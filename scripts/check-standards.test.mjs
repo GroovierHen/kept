@@ -17,7 +17,7 @@ import { dirname, join, resolve } from 'node:path'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { ESLint } from 'eslint'
-import { CHECKS, runStandardsChecks } from './check-standards.mjs'
+import { CHECKS, envWithoutGitRepo, runStandardsChecks } from './check-standards.mjs'
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SCRIPT = join(REPO_ROOT, 'scripts/check-standards.mjs')
@@ -54,8 +54,11 @@ const FIXTURE_FILES = [
 	'.codex-logs/.gitkeep'
 ]
 
+// Without the scrub, a run under a worktree's pre-push hook inherits GIT_DIR
+// and `git add -A` here stages the fixture into the real repo's index,
+// deleting everything the fixture doesn't copy.
 function git(root, ...args) {
-	return spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' })
+	return spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', env: envWithoutGitRepo() })
 }
 
 function createFixture() {
@@ -549,6 +552,23 @@ test('git-backed checks fail, not skip, outside a git repository', () => {
 		}
 	} finally {
 		rmSync(root, { recursive: true, force: true })
+	}
+})
+
+test('git-backed checks read --root, not the repo a git hook exports in GIT_DIR', () => {
+	const hookRepo = createFixture()
+	const root = mkdtempSync(join(tmpdir(), 'check-standards-nogit-'))
+	const saved = process.env.GIT_DIR
+	process.env.GIT_DIR = join(hookRepo, '.git')
+	try {
+		const { results } = runStandardsChecks({ root, ids: ['no-machine-local-state-tracked'] })
+		assert.equal(results[0].ok, false)
+		assert.match(results[0].detail, /not a git repository/)
+	} finally {
+		if (saved === undefined) delete process.env.GIT_DIR
+		else process.env.GIT_DIR = saved
+		rmSync(root, { recursive: true, force: true })
+		rmSync(hookRepo, { recursive: true, force: true })
 	}
 })
 
