@@ -142,12 +142,48 @@ function fail(detail) {
 	return { ok: false, detail }
 }
 
+// What `git rev-parse --local-env-vars` lists: the variables that pin git to
+// one repository. Git exports GIT_DIR to its hooks — in a worktree, an
+// absolute path into the main checkout's .git — and it outranks `-C <root>`,
+// so under the pre-push hook every git call here would read the pushing
+// repo instead of the one --root names. Git drops these same variables
+// before it works in a submodule.
+const GIT_REPO_ENV_VARS = [
+	'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+	'GIT_CONFIG',
+	'GIT_CONFIG_PARAMETERS',
+	'GIT_CONFIG_COUNT',
+	'GIT_OBJECT_DIRECTORY',
+	'GIT_DIR',
+	'GIT_WORK_TREE',
+	'GIT_IMPLICIT_WORK_TREE',
+	'GIT_GRAFT_FILE',
+	'GIT_INDEX_FILE',
+	'GIT_NO_REPLACE_OBJECTS',
+	'GIT_REPLACE_REF_BASE',
+	'GIT_PREFIX',
+	'GIT_SHALLOW_FILE',
+	'GIT_COMMON_DIR'
+]
+
+/** `process.env` minus anything that would point git at a repo other than `-C`'s. */
+export function envWithoutGitRepo() {
+	const env = { ...process.env }
+	for (const name of GIT_REPO_ENV_VARS) delete env[name]
+	return env
+}
+
 function createContext(rootArg) {
 	const root = resolve(rootArg)
 	const has = (path) => existsSync(join(root, path))
 	const read = (path) => (has(path) ? readFileSync(join(root, path), 'utf8') : null)
+	const gitEnv = envWithoutGitRepo()
 	const git = (...args) =>
-		spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+		spawnSync('git', ['-C', root, ...args], {
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'pipe'],
+			env: gitEnv
+		})
 	const isGitRepo = git('rev-parse', '--is-inside-work-tree').status === 0
 	const trackedFiles = isGitRepo ? git('ls-files', '-z').stdout.split('\0').filter(Boolean) : []
 
