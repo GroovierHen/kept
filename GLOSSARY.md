@@ -15,8 +15,12 @@ One small action the user commits to doing on one specific Kept day, such as "Af
 _Avoid_: goal, task, commitment
 
 **Check-in**:
-A visit to the daily screen where the user reports on their due promise and commits the next one.
+One Kept day's turn of the loop: the user reports on their due promise, learns, and commits the next promise, across as many visits as that takes. Setup counts as Day 1's check-in.
 _Avoid_: session, visit, daily loop (the loop is the repeating cycle, a check-in is one turn of it)
+
+**Today screen**:
+The screen where the user does their check-in, one step at a time, ending in a done-for-today summary once the day's check-in is complete.
+_Avoid_: daily screen, home, dashboard
 
 **Report**:
 The user's Yes, Partly or No answer to whether they kept a promise.
