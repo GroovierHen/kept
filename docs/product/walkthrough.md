@@ -50,7 +50,7 @@ Sara is 26. She takes home £2,000 a month, spends £1,600 and has £300 saved.
 ### Day 2 (2 minutes)
 
 1. **The reminder pops up.** She taps it and lands straight on today's screen, already logged in.
-2. **Report back.** "Did you cook instead of ordering yesterday?" She taps **Yes**.
+2. **Report back.** "Did you cook instead of ordering today?" She taps **Yes**.
 3. **Recall.** "You save £335 a month for 5 years. About how much will you have, and why is it more than you put in?"
    - She types: "around 20k plus a bit of interest."
    - The app already knows the right answer, £22,200, because code worked it out from her numbers. Claude marks her **1 out of 2**: "Right idea. But the interest is about £2,100, not a bit. That's your money earning money."
@@ -83,7 +83,7 @@ AI is used in three places only: making the plan, marking answers, and the "Help
 
 | Text in the app           | Where it comes from                                                                            | Example                                                                                            |
 | ------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Report back question      | Built from her own promise                                                                     | Promise "cook instead of ordering" becomes "Did you cook instead of ordering yesterday?"           |
+| Report question           | Built from her own promise                                                                     | Promise "cook instead of ordering" becomes "Did you cook instead of ordering today?"               |
 | Promise options           | Written by us. Each habit has a small, medium and large action. She picks one or types her own | Small: "eggs on toast". Medium: "cook one simple meal". Large: "cook and keep leftovers for lunch" |
 | Pounds each promise saves | Worked out by code from her spending                                                           | Cooking 4 nights: about £156 a month                                                               |
 | "Help me choose"          | Claude asks one or two questions and suggests a promise. Code still works out the pounds       | "You order most on Fridays. Try cooking on Fridays only"                                           |

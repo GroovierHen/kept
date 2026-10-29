@@ -12,7 +12,9 @@
   it. No comments unless they state a non-obvious constraint; don't
   describe what the code already says.
 - Dates crossing an API boundary are ISO strings. Time logic is UTC; only
-  display formatting may localize.
+  display formatting may localize. The one exception is turning an instant
+  into a Kept day, which is local by definition: that happens only in
+  `src/lib/kept-day.ts`, and everything downstream works on its plain dates.
 - Styling goes through Tailwind utility classes and the design tokens in
   `src/app/globals.css`'s `@theme` block — see `DESIGN.md`. Don't hardcode
   a color, spacing, or radius value that already has a token. Use `cn()`
