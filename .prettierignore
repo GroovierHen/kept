@@ -4,3 +4,9 @@
 # Codex (see docs/rules/secrets.md).
 .claude-logs/
 .codex-logs/
+
+# Third-party agent skills installed with `npx skills add`, copied verbatim from
+# upstream and hash-pinned in skills-lock.json — reformatting them would break
+# that hash and be undone by the next update.
+.agents/skills/
+skills-lock.json
