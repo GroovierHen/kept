@@ -122,71 +122,17 @@ test('anthropic input_tokens excludes cache, so nothing is subtracted', () => {
 	})
 })
 
-test('openai prompt_tokens includes cache, so cached tokens are subtracted out', () => {
-	const extracted = extractUsage('openai', {
-		id: 'chatcmpl-1',
-		model: 'gpt-5.4',
-		usage: {
-			prompt_tokens: 11_000,
-			completion_tokens: 500,
-			prompt_tokens_details: { cached_tokens: 10_000 }
-		}
-	})
-	// The trap: billing 11,000 fresh input tokens here would double-count
-	// every cache hit and inflate the reported spend on the cheapest calls.
-	assert.equal(extracted?.tokens.inputTokens, 1000)
-	assert.equal(extracted?.tokens.cacheReadTokens, 10_000)
-})
-
-test('google cachedContentTokenCount is subtracted out of the prompt count too', () => {
-	const extracted = extractUsage('google', {
-		responseId: 'resp-1',
-		modelVersion: 'gemini-3.8-flash',
-		usageMetadata: {
-			promptTokenCount: 11_000,
-			candidatesTokenCount: 500,
-			cachedContentTokenCount: 10_000
-		}
-	})
-	assert.equal(extracted?.tokens.inputTokens, 1000)
-	assert.equal(extracted?.tokens.cacheReadTokens, 10_000)
-})
-
-test('google thinking tokens are billed as output, so they land in the output count', () => {
-	const extracted = extractUsage('google', {
-		responseId: 'resp-2',
-		modelVersion: 'gemini-3.8-flash',
-		usageMetadata: {
-			promptTokenCount: 1000,
-			candidatesTokenCount: 500,
-			cachedContentTokenCount: 0,
-			thoughtsTokenCount: 4000
-		}
-	})
-	// The output-side twin of the trap above. candidatesTokenCount alone
-	// reports 500 of the 4,500 output tokens Google charges for, and a
-	// reasoning-heavy call is mostly thinking. Anthropic and OpenAI fold
-	// reasoning into their completion counts upstream; Google does not.
-	assert.equal(extracted?.tokens.outputTokens, 4500)
-})
-
 test('a refusal is recorded as a refusal, not as a plain success', () => {
 	const anthropic = extractUsage('anthropic', {
 		stop_reason: 'refusal',
 		usage: { input_tokens: 10, output_tokens: 0 }
 	})
 	assert.equal(anthropic?.status, 'refusal')
-
-	const openai = extractUsage('openai', {
-		choices: [{ finish_reason: 'content_filter' }],
-		usage: { prompt_tokens: 10, completion_tokens: 0 }
-	})
-	assert.equal(openai?.status, 'refusal')
 })
 
 test('an unrecognised response shape yields no usage rather than throwing', () => {
 	assert.equal(extractUsage('anthropic', { unexpected: true }), undefined)
-	assert.equal(extractUsage('openai', null), undefined)
+	assert.equal(extractUsage('anthropic', null), undefined)
 })
 
 // --- row building ----------------------------------------------------------

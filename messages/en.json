@@ -1,11 +1,11 @@
 {
 	"HomePage": {
 		"meta": {
-			"title": "Web template: a Next.js 16 starting point",
-			"description": "A Next.js 16 template with Tailwind v4, next-intl, Supabase Auth, PostHog and Sentry wired in, ready to replace page by page."
+			"title": "Kept: a two-minute daily money habit coach",
+			"description": "Learn one Rich Habits money habit a day, make a small promise, and report back. Kept adapts to you and tracks what you kept."
 		},
-		"title": "Web template",
-		"description": "This page renders — pnpm dev to confirm the App Router, Tailwind v4, and next-intl wiring all work before you start replacing it."
+		"title": "Kept",
+		"description": "A daily habit coach built on the ideas in Tom Corley's Rich Habits. Two minutes a day to learn a habit, act on it, and keep it."
 	},
 	"SiteFooter": {
 		"privacy": "Privacy",

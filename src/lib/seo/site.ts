@@ -23,7 +23,7 @@ export interface SiteConfig {
 }
 
 export const SITE: SiteConfig = {
-	name: 'Web template',
+	name: 'Kept',
 	indexable: true,
 	sameAs: [],
 	contactEmail: null,

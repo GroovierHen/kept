@@ -1,4 +1,5 @@
 import 'server-only'
+import Anthropic from '@anthropic-ai/sdk'
 import { trackAiCall } from '@/server/lib/ai-usage/sink'
 import type { TrackedModel } from '@/server/lib/ai-usage/models'
 import type { AiUsageMeta } from '@/server/lib/ai-usage/track'
@@ -7,9 +8,7 @@ import type { AiUsageMeta } from '@/server/lib/ai-usage/track'
 // so that an agent or a developer setting up a new project from this template
 // can see exactly where the provider client gets wrapped and what a call site
 // is supposed to look like, instead of inferring a layering from prose and
-// inventing a different one per repo. Keep it even before an SDK is
-// installed: the placeholder below makes it compile, and a pattern you can
-// open beats a paragraph describing one.
+// inventing a different one per repo.
 //
 // Concretely, it is the only file allowed to import the Anthropic SDK,
 // enforced by no-restricted-imports in eslint.config.mjs. Same shape as
@@ -18,48 +17,16 @@ import type { AiUsageMeta } from '@/server/lib/ai-usage/track'
 // trackAiCall, so a call that isn't costed is not something anyone has to
 // remember — it's a lint error.
 //
-// Copy this file per provider you actually use (openai.ts, google.ts) and
-// delete the ones you don't. Copy the shape too, not just the file: the
-// layering is the part being demonstrated. See docs/rules/ai-usage.md.
+// Anthropic is this project's only provider. A second one gets its own copy
+// of this file, same shape. See docs/rules/ai-usage.md.
 
-// ---------------------------------------------------------------------------
-// PLACEHOLDER. Delete this whole block and replace it with:
-//
-//   import Anthropic from '@anthropic-ai/sdk'
-//   const anthropic = new Anthropic()
-//
-// after `pnpm add @anthropic-ai/sdk`. Nothing below the block changes. It
-// exists so the template compiles without shipping an AI SDK every project
-// pays for, and it is deliberately narrower than the real client — the real
-// one is a superset, so the swap only ever widens what's available.
-type MessageParams = {
-	model: string
-	max_tokens: number
-	messages: Array<{ role: 'user' | 'assistant'; content: string }>
-	system?: string
-	temperature?: number
-}
+// Reads ANTHROPIC_API_KEY from the environment. Constructing it without one
+// is fine; only a request fails, so a build or preview with no key still boots.
+const anthropic = new Anthropic()
 
-type Message = {
-	id: string
-	model: string
-	stop_reason: string | null
-	content: Array<{ type: string; text?: string }>
-	usage: { input_tokens: number; output_tokens: number }
-}
-
-type MessageStream = {
-	finalMessage(): Promise<Message>
-	toReadableStream(): ReadableStream
-}
-
-declare const anthropic: {
-	messages: {
-		create(params: MessageParams): Promise<Message>
-		stream(params: MessageParams): MessageStream
-	}
-}
-// --------------------------------------------------------------------------
+type MessageParams = Anthropic.MessageCreateParamsNonStreaming
+type Message = Anthropic.Message
+type MessageStream = ReturnType<typeof anthropic.messages.stream>
 
 /**
  * What the spend is for. `feature` is the axis every cost question gets asked

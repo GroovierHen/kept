@@ -33,7 +33,7 @@ The habits come from _Rich Habits_ by Tom Corley, written in our own words. This
 
 ## Development
 
-Scaffolded from [8xsocial/template-web](https://github.com/8xsocial/template-web). The sections below are the template's reference docs for this codebase.
+Scaffolded from [8xsocial/template-web](https://github.com/8xsocial/template-web). The sections below are the reference docs for this codebase.
 
 ## Stack
 
@@ -203,22 +203,17 @@ Never run a manual production deploy command — CI/CD handles it (see
 
 ## Before you start replacing things
 
-1. Run the `template-setup` skill first — it renames the placeholders
-   above for you and asks the questions that shape what else you'll need.
-2. Read `AGENTS.md`, `DESIGN.md`, and `docs/rules/*.md` — the migration
+1. Read `AGENTS.md`, `DESIGN.md`, and `docs/rules/*.md` — the migration
    workflow, the Server/Client Component rules, and the token conventions
    are not optional style preferences, they're enforced in CI (or, where
    noted, by `local-review`'s manual pass).
-3. Delete `prisma/schema/example.prisma` once you've written real models,
+2. Delete `prisma/schema/example.prisma` once you've written real models,
    and `e2e/smoke.spec.ts` once real e2e coverage exists.
-4. Confirm the auth decision `template-setup` made, and decide on state
-   management beyond the TanStack Query default and whichever
-   i18n/Tailwind-major/Prisma-major open decisions apply to this project.
-5. Set up GitHub and Vercel per the Deployment section above before
-   merging your first PR — without `MIGRATIONS_TOKEN` specifically, the
-   CI-generated migration commit's own run sits in `action_required`
-   waiting for manual approval (the migration still lands, but a green PR
-   can be a false signal until that's set up).
+3. Set up GitHub and Vercel per the Deployment section above before
+   merging your first schema change — without `MIGRATIONS_TOKEN`
+   specifically, the CI-generated migration commit's own run sits in
+   `action_required` waiting for manual approval (the migration still
+   lands, but a green PR can be a false signal until that's set up).
 
 ## Scripts
 
