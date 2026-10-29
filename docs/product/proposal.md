@@ -30,7 +30,7 @@ On day 1 the user turns a dream into a plan. After that, a 2 minute routine ever
 | 2   | Report back on the promise. Next habit                        |
 | 3   | Report back. Day 1 habit comes back as a recall question      |
 | 5   | Missed reading twice, so the action shrinks to "read 5 pages" |
-| 7   | Weekly ledger: habits kept vs slipped, recall day 1 vs day 7  |
+| 7   | Weekly ledger: habits kept vs slipped, first recall vs latest |
 
 The app shows progress as a ledger, because Corley is an accountant. Kept habits are credits, slips are debits. A projection turns them into real numbers, for example cooking 4 nights a week saves about £1,900 a year.
 
@@ -44,7 +44,7 @@ The screens are simple on purpose. The work is in six engines behind them.
 | Recall grader          | Claude scores the user's answer 0 to 2 and says why. If Claude fails, the app falls back to multiple choice. We test it against 20 answers we graded by hand |
 | Adaptive habit engine  | Makes tomorrow's action easier after misses and harder after a good run                                                                                      |
 | Review scheduler       | Brings each habit back at the right time, sooner if forgotten. We reuse FSRS, the open source scheduler Anki uses                                            |
-| Ledger and projections | Every action is saved as an event. The ledger, the money projections and the day 1 vs day 7 progress are built from those events                             |
+| Ledger and projections | Every action is saved as an event. The ledger, the money projections and the recall progress (first try vs latest) are built from those events               |
 | Calendar reminders     | Turns each promise into a calendar file, so the user's phone reminds them. No push notifications needed                                                      |
 
 Stack proposal: a web app (for example Next.js) with SQLite, running on localhost. Everything is saved as events from day 1, so we can show real tester numbers.
