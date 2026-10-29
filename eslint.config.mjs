@@ -89,7 +89,17 @@ const LOGGER_IMPORTS = {
 const eslintConfig = defineConfig([
 	...nextVitals,
 	...nextTypescript,
-	globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'src/generated/**']),
+	// .claude/worktrees/ holds other Claude Code sessions' full checkouts. It's
+	// git-ignored (via .git/info/exclude), but flat config doesn't read ignore
+	// files, so without this `pnpm lint` lints every one of them.
+	globalIgnores([
+		'.next/**',
+		'out/**',
+		'build/**',
+		'next-env.d.ts',
+		'src/generated/**',
+		'.claude/worktrees/**'
+	]),
 	{
 		// See docs/rules/code-quality.md for the rationale behind both rules.
 		rules: {
