@@ -63,9 +63,14 @@ def get_git_email() -> str:
 
 
 def get_project_session_dir(cwd: Path) -> Path:
-    """Get the session directory for a project."""
+    """Get the session directory for a project.
+
+    Claude Code names the folder by replacing every non-alphanumeric character
+    of the cwd with '-', not just '/': a worktree under `.claude/worktrees/`
+    becomes `...-kept--claude-worktrees-...`.
+    """
     claude_dir = Path.home() / '.claude' / 'projects'
-    project_hash = str(cwd).replace('/', '-')
+    project_hash = re.sub(r'[^A-Za-z0-9]', '-', str(cwd))
     return claude_dir / project_hash
 
 
