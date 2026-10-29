@@ -10,3 +10,8 @@
 # that hash and be undone by the next update.
 .agents/skills/
 skills-lock.json
+
+# Other Claude Code sessions' live checkouts. Git-ignored only through
+# .git/info/exclude, which Prettier doesn't read, so `pnpm format` would
+# otherwise rewrite another session's files.
+.claude/worktrees/
