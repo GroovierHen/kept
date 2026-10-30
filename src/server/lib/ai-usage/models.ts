@@ -12,7 +12,7 @@
 // row is one `where cost_micro_usd is null` away from being counted on the
 // dashboard.
 
-export const AI_PROVIDERS = ['anthropic'] as const
+export const AI_PROVIDERS = ['google'] as const
 export type AiProvider = (typeof AI_PROVIDERS)[number]
 
 export const SERVICE_TIERS = ['standard', 'fast', 'batch'] as const
@@ -36,7 +36,7 @@ export type AiCallStatus = (typeof AI_CALL_STATUSES)[number]
 // OPENROUTER_MODELS_URL comment there before concluding a slug doesn't
 // exist.
 export const OPENROUTER_SLUGS = {
-	'claude-opus-5': 'anthropic/claude-opus-5'
+	'gemini-3.5-flash-lite': 'google/gemini-3.5-flash-lite'
 } satisfies Record<string, string>
 
 // The model ids a call site is allowed to ask for. `satisfies` above keeps

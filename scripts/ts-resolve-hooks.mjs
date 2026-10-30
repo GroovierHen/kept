@@ -33,6 +33,13 @@ export async function resolve(specifier, context, nextResolve) {
 	try {
 		return await nextResolve(specifier, context)
 	} catch (error) {
+		// A package subpath with no exports map, such as `next/server`: a
+		// bundler finds `next/server.js`, so a script running app code must too.
+		if (!specifier.startsWith('.') && !specifier.startsWith('node:') && specifier.includes('/')) {
+			return nextResolve(`${specifier}.js`, context).catch(() => {
+				throw error
+			})
+		}
 		if (!specifier.startsWith('.')) throw error
 		for (const suffix of CANDIDATE_SUFFIXES) {
 			try {

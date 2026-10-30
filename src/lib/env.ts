@@ -35,9 +35,9 @@ const envSchema = z.object({
 	NEXT_PUBLIC_POSTHOG_HOST: z.string().url().default('https://us.i.posthog.com'),
 	POSTHOG_PERSONAL_API_KEY: z.string().optional(),
 
-	// Read by the Anthropic SDK in src/server/ai/anthropic.ts. Optional so a
+	// Read by src/server/ai/google.ts, the only Gemini caller. Optional so a
 	// build or preview without it boots; only an AI call fails.
-	ANTHROPIC_API_KEY: z.string().optional(),
+	GEMINI_API_KEY: z.string().optional(),
 
 	// Optional — captureError() no-ops on Slack alerting entirely without
 	// this. See docs/rules/error-handling.md.
