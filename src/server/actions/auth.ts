@@ -8,6 +8,7 @@ import { AppError } from '@/lib/errors/app-error'
 import { resolveTimeZone } from '@/lib/kept-day'
 import { captureError } from '@/lib/observability/capture-error'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { provisionOrSignOut } from '@/server/auth/provision-or-sign-out'
 import { provisionUser } from '@/server/auth/provision-user'
 import { START_EMAIL_COOKIE, START_EMAIL_MAX_AGE_SECONDS } from '@/server/auth/start-email'
 import { validatedAction } from './validated-action'
@@ -82,7 +83,11 @@ const createAccount = validatedAction({
 		// "Confirm email" is meant to be off for Kept. If it's on, there's no
 		// session yet, and the person has to confirm before they can sign in.
 		if (data.session == null) throw new AppError(t('confirm'), { status: 403 })
-		await provisionUser({ id: data.user.id, email, timeZone })
+		const userId = data.user.id
+		await provisionOrSignOut({
+			provision: () => provisionUser({ id: userId, email, timeZone }),
+			signOut: () => closeSession(supabase)
+		})
 	}
 })
 
@@ -95,9 +100,19 @@ const openSession = validatedAction({
 		if (error != null) throw userFacingAuthError(error.code, t) ?? error
 		// Idempotent: covers an account made before its User row existed. An
 		// existing row keeps the time zone it already has.
-		await provisionUser({ id: data.user.id, email, timeZone })
+		await provisionOrSignOut({
+			provision: () => provisionUser({ id: data.user.id, email, timeZone }),
+			signOut: () => closeSession(supabase)
+		})
 	}
 })
+
+async function closeSession(
+	supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>
+): Promise<void> {
+	const { error } = await supabase.auth.signOut()
+	if (error != null) throw error
+}
 
 async function submit(run: typeof createAccount, formData: FormData): Promise<AuthFormState> {
 	const t = await getTranslations('Auth.errors')
