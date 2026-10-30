@@ -247,5 +247,28 @@
 		"privacy": "Privacy",
 		"terms": "Terms",
 		"contact": "Contact"
+	},
+	"Learn": {
+		"goal": {
+			"eyebrow": "Your goal",
+			"title": "What you want, and where you start",
+			"goal": "Your goal",
+			"weeks": "How long you give yourself",
+			"weeksValue": "{weeks} weeks",
+			"startingPoint": "Where you are now",
+			"obstacle": "What usually gets in your way"
+		},
+		"plan": {
+			"eyebrow": "Your plan",
+			"weeks": "Over {weeks} weeks",
+			"milestones": "Milestones",
+			"week": "Week {week}:",
+			"actions": "Daily actions, starting small",
+			"bigger": "Then: {medium}. Then: {large}."
+		},
+		"card": {
+			"eyebrow": "Key idea",
+			"learned": "Learned today"
+		}
 	}
 }
