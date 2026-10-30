@@ -6,7 +6,7 @@ import type { PlanStatus } from '@/lib/setup-step'
 // our halves meet"). The goal planner (#28) parses Gemini's answer with
 // generatedPlanSchema, so a plan that reaches the database always has this shape.
 
-export const PLAN_WEEKS = [4, 8, 12] as const
+export { PLAN_WEEKS } from './goal-questions'
 export const KEY_IDEAS_PER_PLAN = 5
 export const CHOICES_PER_IDEA = 3
 
