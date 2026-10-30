@@ -207,6 +207,7 @@ test('writes one newline-terminated line to stdout by default', () => {
 
 test('resolves the threshold from LOG_LEVEL, defaulting to info', () => {
 	assert.equal(resolveThreshold({}), 'info')
+	assert.equal(resolveThreshold({ LOG_LEVEL: '' }), 'info')
 	assert.equal(resolveThreshold({ LOG_LEVEL: 'debug' }), 'debug')
 	assert.equal(resolveThreshold({ LOG_LEVEL: ' WARN ' }), 'warn')
 	assert.equal(resolveThreshold({ LOG_LEVEL: 'chatty' }), 'info')
