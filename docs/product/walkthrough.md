@@ -42,7 +42,7 @@ Sara is 26. She wants to get fit, can jog about 1 km before she has to walk, and
 
    She can reword or remove any action, and press **Try again** once for a new plan. Then she clicks **Confirm**. After **Confirm**, the plan can't be edited during the test; if something is wrong, she messages us.
 
-   Behind the screen, Gemini returns the plan in a fixed shape and code checks it: 2 to 4 milestones, 3 to 5 actions with all three sizes, 5 key ideas each with a question, a model answer and 3 multiple choice options. A plan that doesn't pass is asked for again once. If Gemini is down, she sees "We couldn't build your plan right now", types her first promise herself, and her plan is built on her next visit.
+   Behind the screen, Gemini returns the plan in a fixed shape and code checks it: 2 to 4 milestones, 3 to 5 actions with all three sizes, 5 key ideas each with a question, a model answer and 3 multiple choice options. A plan that doesn't pass is asked for again once. If Gemini fails, the plan step tries once more, then shows "We couldn't build your plan right now. Your answers are saved, try again in a minute" with a **Try again** button, and we're alerted. She stays on the plan step until it works, so nobody reaches today's screen without a confirmed plan.
 
    Gemini turns down goals that could hurt someone, such as "lose 10 kg in 2 weeks", and suggests a safer version instead.
 
