@@ -24,6 +24,11 @@ model User {
 	updatedAt          DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
 	adminMember        AdminMember?
 	events             Event[]
+	// Learn's side (learn.prisma). Prisma needs both ends of a relation.
+	goal               Goal?
+	plan               Plan?
+	reviews            Review[]
+	recallAttempts     RecallAttempt[]
 
 	@@map("users")
 }
