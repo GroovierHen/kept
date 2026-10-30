@@ -29,7 +29,8 @@
 		"check:rls": "node scripts/check-rls.mjs",
 		"check:ai-models": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/check-ai-models.mjs",
 		"prepare": "git config core.hooksPath .githooks",
-		"postinstall": "prisma generate"
+		"postinstall": "prisma generate",
+		"eval:planner": "node --conditions=react-server --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/eval-planner.mts"
 	},
 	"dependencies": {
 		"@google/genai": "^2.32.0",
@@ -69,6 +70,7 @@
 		"prettier": "^3",
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"prisma": "^6.19.3",
+		"server-only": "^0.0.1",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^5.8.3"
 	},
