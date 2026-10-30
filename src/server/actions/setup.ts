@@ -3,9 +3,9 @@
 import { getLocale } from 'next-intl/server'
 import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
-import { SETUP_STEPS } from '@/lib/setup-step'
-import { getSignedInUser } from '@/server/auth/session'
 import { withRetry } from '@/lib/retry'
+import { SAVE_FAILED_PARAM, SETUP_STEPS } from '@/lib/setup-step'
+import { getSignedInUser } from '@/server/auth/session'
 import { db } from '@/server/db/client'
 import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
 import { recordSetupFinished } from '@/server/setup/record-setup-finished'
@@ -31,12 +31,15 @@ const finishStubStep = validatedAction({
 })
 
 // TEMPORARY, with the stub steps it serves (src/server/setup/stub-progress.ts).
-// If it fails, the page shows the same step again with no message: real steps need better.
+// If it fails, the same step comes back with a message saying it wasn't saved.
 export async function continueSetup(formData: FormData): Promise<void> {
 	const locale = await getLocale()
 	const user = await getSignedInUser()
 	if (user == null) return redirect({ href: '/sign-in', locale })
 
-	await finishStubStep({ userId: user.id, step: formData.get('step') })
-	return redirect({ href: '/setup', locale })
+	const result = await finishStubStep({ userId: user.id, step: formData.get('step') })
+	return redirect({
+		href: result.ok ? '/setup' : { pathname: '/setup', query: { [SAVE_FAILED_PARAM]: '1' } },
+		locale
+	})
 }

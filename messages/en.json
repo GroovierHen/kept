@@ -234,7 +234,8 @@
 			"reminder": "Your daily reminder"
 		},
 		"stub": "This step is still being built. Continue to see the next one.",
-		"continue": "Continue"
+		"continue": "Continue",
+		"saveFailed": "We couldn’t save that step. Check your connection, then tap Continue again."
 	},
 	"TodayPage": {
 		"meta": {
