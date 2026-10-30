@@ -1,5 +1,7 @@
 import 'server-only'
+import { withRetry } from '@/lib/retry'
 import { db } from '@/server/db/client'
+import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
 import { log } from '@/server/lib/logger'
 import { recordEvent } from '@/server/events/record-event'
 import { toKeptDay } from '@/lib/kept-day'
@@ -26,25 +28,30 @@ export async function provisionUser({
 	email: string
 	timeZone: string
 }): Promise<void> {
-	await db.$transaction(async (tx) => {
-		const { count } = await tx.user.createMany({
-			data: [{ id, email, timeZone }],
-			skipDuplicates: true
-		})
-		if (count === 0) {
-			await tx.user.update({ where: { id }, data: { email } })
-			return
-		}
-		await recordEvent({
-			tx,
-			event: {
-				userId: id,
-				name: 'signed_up',
-				keptDay: toKeptDay({ instant: new Date(), timeZone }),
-				details: {}
-			}
-		})
-	})
+	// Safe to retry: a repeat finds the row and records nothing twice.
+	await withRetry(
+		() =>
+			db.$transaction(async (tx) => {
+				const { count } = await tx.user.createMany({
+					data: [{ id, email, timeZone }],
+					skipDuplicates: true
+				})
+				if (count === 0) {
+					await tx.user.update({ where: { id }, data: { email } })
+					return
+				}
+				await recordEvent({
+					tx,
+					event: {
+						userId: id,
+						name: 'signed_up',
+						keptDay: toKeptDay({ instant: new Date(), timeZone }),
+						details: {}
+					}
+				})
+			}),
+		{ isRetryable: isTransientDbError, onRetry: logDbRetry }
+	)
 
 	const seatRole = seatRoleForEmail(email)
 	if (!seatRole) return

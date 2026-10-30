@@ -5,7 +5,9 @@ import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
 import { SETUP_STEPS } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
+import { withRetry } from '@/lib/retry'
 import { db } from '@/server/db/client'
+import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
 import { recordSetupFinished } from '@/server/setup/record-setup-finished'
 import { readSetupStep, saveStubStep } from '@/server/setup/stub-progress'
 import { validatedAction } from './validated-action'
@@ -18,7 +20,11 @@ const finishStubStep = validatedAction({
 		// A step only counts as the one the user is on, so a double tap can't skip the next.
 		if ((await readSetupStep(userId)) !== step) return
 		if (step === LAST_STEP) {
-			await db.$transaction((tx) => recordSetupFinished({ tx, userId }))
+			// Safe to retry: recordSetupFinished records the Event once.
+			await withRetry(() => db.$transaction((tx) => recordSetupFinished({ tx, userId })), {
+				isRetryable: isTransientDbError,
+				onRetry: logDbRetry
+			})
 		}
 		await saveStubStep({ userId, step })
 	}
