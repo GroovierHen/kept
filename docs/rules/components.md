@@ -2,8 +2,10 @@
 
 `src/components/ui/` is a small foundation, not a full suite — `Button`,
 `Input`, `Label`, `Textarea`, `Card`, `Badge`, and the toast system
-(`Toast`/`Toaster`/`toast()`). Add to it as the project needs more (Dialog,
-Select, Tabs, ...); don't pre-build a component nobody's using yet.
+(`Toast`/`Toaster`/`toast()`), plus Kept's four shared design pieces
+(`StepCard`, `ChoiceGroup`, `Money`, `ProgressBar` — see `DESIGN.md`). Add to
+it as the project needs more (Dialog, Select, Tabs, ...); don't pre-build a
+component nobody's using yet.
 
 ## The convention every one of these follows
 
@@ -18,8 +20,9 @@ Select, Tabs, ...); don't pre-build a component nobody's using yet.
   Tailwind's cascade never fights itself.
 - **Radix primitives for anything genuinely interactive** — focus trapping,
   portal rendering, live-region ARIA announcements, and keyboard handling
-  are easy to get subtly wrong by hand. `Label` and the toast system are
-  built on `@radix-ui/react-label`/`@radix-ui/react-toast`; `Button`'s
+  are easy to get subtly wrong by hand. `Label`, `ChoiceGroup` and the toast
+  system are built on `@radix-ui/react-label`/`@radix-ui/react-radio-group`/
+  `@radix-ui/react-toast`; `Button`'s
   `asChild` prop uses `@radix-ui/react-slot`. This is the same
   convention shadcn/ui builds on, not a template-specific choice.
 - **No `forwardRef`** — React 19 accepts `ref` as a plain prop on function
@@ -27,8 +30,9 @@ Select, Tabs, ...); don't pre-build a component nobody's using yet.
   it. If you're writing a new primitive and reach for `forwardRef`, stop —
   that's the pre-React-19 pattern your training data defaults to.
 - **Server Components by default** — `Button`, `Input`, `Textarea`, `Card`,
-  `Badge` have no `'use client'` directive and don't need one; only
-  `Label` and the toast system do, because Radix's own implementation for
+  `Badge`, `StepCard`, `Money`, `ProgressBar` have no `'use client'` directive
+  and don't need one; only `Label`, `ChoiceGroup` and the toast system do,
+  because Radix's own implementation for
   those specific primitives requires client-side interactivity. Don't add
   `'use client'` to a new primitive unless it actually uses a hook, an
   event handler that needs to run client-side, or a Radix primitive that

@@ -74,7 +74,29 @@ small class-toggling script; don't rebuild the token set to do it.
 - Respect `prefers-reduced-motion` for any animation beyond a simple
   opacity/color transition.
 
-## 4. Accessibility baseline
+## 4. Shared design pieces
+
+Both halves of Kept build their screens from these four, all in
+`src/components/ui/`. Reach for them before writing a new panel, picker or £
+figure.
+
+| Piece         | Import                         | Use it for                                                                                         |
+| ------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `StepCard`    | `@/components/ui/step-card`    | The panel one step of setup or a check-in sits in. `active` shows its children, `done` its summary |
+| `ChoiceGroup` | `@/components/ui/choice-group` | Big tap targets for picking one: Yes/Partly/No, promises, moments, multiple choice answers         |
+| `Money`       | `@/components/ui/money`        | Every £ figure on screen: `<Money pence={250} per="day" />` shows "£2.50 a day"                    |
+| `ProgressBar` | `@/components/ui/progress-bar` | How far something gets toward a target. It stops at 100%                                           |
+
+- `Money` takes pence, as they are stored. `isRounded` shows whole pounds, for
+  figures shown as "about", and keeps pence under £1 ("65p"). For a £ figure
+  inside a plain string, use `formatPence` from `@/lib/money`.
+- `Money` sets no colour, so it reads correctly on whatever it sits on,
+  including a selected choice. Don't give it a muted colour inside a
+  `ChoiceGroup`.
+- `ChoiceGroup`'s `label` is read out by screen readers but not shown, so put
+  the visible question nearby.
+
+## 5. Accessibility baseline
 
 - Text-on-`--bg`/`--surface` must hit at least WCAG AA contrast (4.5:1 for
   body text, 3:1 for large text). Check this when you change a token value,
