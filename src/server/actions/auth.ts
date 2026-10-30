@@ -2,12 +2,14 @@
 
 import { cookies, headers } from 'next/headers'
 import { getLocale, getTranslations } from 'next-intl/server'
+import { isAuthRetryableFetchError } from '@/lib/supabase/auth-only'
 import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
 import { AppError } from '@/lib/errors/app-error'
 import { resolveTimeZone } from '@/lib/kept-day'
 import { captureError } from '@/lib/observability/capture-error'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { retryAuthCall, signUpOnce } from '@/server/auth/auth-retry'
 import { provisionOrSignOut } from '@/server/auth/provision-or-sign-out'
 import { provisionUser } from '@/server/auth/provision-user'
 import { START_EMAIL_COOKIE, START_EMAIL_MAX_AGE_SECONDS } from '@/server/auth/start-email'
@@ -77,7 +79,11 @@ const createAccount = validatedAction({
 	handler: async ({ email, password, timeZone }) => {
 		const t = await getTranslations('Auth.errors')
 		const supabase = await createServerSupabaseClient()
-		const { data, error } = await supabase.auth.signUp({ email, password })
+		const { data, error } = await signUpOnce({
+			signUp: () => supabase.auth.signUp({ email, password }),
+			signIn: () => supabase.auth.signInWithPassword({ email, password }),
+			isRetryable: isAuthRetryableFetchError
+		})
 		if (error != null) throw userFacingAuthError(error.code, t) ?? error
 		if (data.user == null) throw new Error('Supabase signUp returned no user and no error')
 		// "Confirm email" is meant to be off for Kept. If it's on, there's no
@@ -96,7 +102,10 @@ const openSession = validatedAction({
 	handler: async ({ email, password, timeZone }) => {
 		const t = await getTranslations('Auth.errors')
 		const supabase = await createServerSupabaseClient()
-		const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+		const { data, error } = await retryAuthCall(
+			() => supabase.auth.signInWithPassword({ email, password }),
+			{ isRetryable: isAuthRetryableFetchError }
+		)
 		if (error != null) throw userFacingAuthError(error.code, t) ?? error
 		// Idempotent: covers an account made before its User row existed. An
 		// existing row keeps the time zone it already has.
@@ -110,7 +119,9 @@ const openSession = validatedAction({
 async function closeSession(
 	supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>
 ): Promise<void> {
-	const { error } = await supabase.auth.signOut()
+	const { error } = await retryAuthCall(() => supabase.auth.signOut(), {
+		isRetryable: isAuthRetryableFetchError
+	})
 	if (error != null) throw error
 }
 
