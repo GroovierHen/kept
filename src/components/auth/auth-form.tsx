@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useId } from 'react'
+import { useActionState, useId, useSyncExternalStore } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,9 +31,11 @@ export function AuthForm({
 	})
 	const errorId = `${id}-error`
 	const hintId = `${id}-hint`
+	const timeZone = useSyncExternalStore(subscribeToNothing, browserTimeZone, serverTimeZone)
 
 	return (
 		<form action={formAction} className="flex flex-col gap-6" noValidate>
+			<input type="hidden" name="timeZone" value={timeZone} />
 			<div data-reveal className="flex flex-col gap-2 delay-[140ms]">
 				<Label htmlFor={`${id}-email`} className="text-body font-normal">
 					{t('emailLabel')}
@@ -86,6 +88,20 @@ export function AuthForm({
 			</div>
 		</form>
 	)
+}
+
+// The server can't know the browser's time zone, so it renders the field empty
+// and the browser fills it in after hydrating. Empty falls back on the server.
+function subscribeToNothing(): () => void {
+	return () => {}
+}
+
+function browserTimeZone(): string {
+	return Intl.DateTimeFormat().resolvedOptions().timeZone
+}
+
+function serverTimeZone(): string {
+	return ''
 }
 
 function joinIds(...ids: (string | null)[]): string | undefined {

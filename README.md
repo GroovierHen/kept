@@ -207,8 +207,7 @@ Never run a manual production deploy command — CI/CD handles it (see
    workflow, the Server/Client Component rules, and the token conventions
    are not optional style preferences, they're enforced in CI (or, where
    noted, by `local-review`'s manual pass).
-2. Delete `prisma/schema/example.prisma` once you've written real models,
-   and `e2e/smoke.spec.ts` once real e2e coverage exists.
+2. Delete `e2e/smoke.spec.ts` once real e2e coverage exists.
 3. Set up GitHub and Vercel per the Deployment section above before
    merging your first schema change — without `MIGRATIONS_TOKEN`
    specifically, the CI-generated migration commit's own run sits in

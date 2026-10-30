@@ -53,7 +53,7 @@ enum column; `role` stays a small fixed enum.
 - `staff-bootstrap.ts` — `seatRoleForEmail(email)`: an email on a domain in
   `ADMIN_EMAIL_DOMAINS` auto-gets the **lowest** seat, everyone else gets
   `null` (no seat). Unset means every seat is granted by hand.
-- `provision-user.ts` — `provisionUser({ id, email })`: upsert the `User` at
+- `provision-user.ts` — `provisionUser({ id, email, timeZone })`: create or refresh the `User` at
   the Supabase auth uuid, and if `seatRoleForEmail` is non-null, create an
   `AdminMember` at that role. Logs through `src/server/lib/logger`.
 
