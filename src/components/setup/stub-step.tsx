@@ -6,7 +6,13 @@ import { continueSetup } from '@/server/actions/setup'
 
 // TEMPORARY: stands in for a step until its real piece lands: <GoalSteps> (#29),
 // <PlanStep> (#30), <LearnCard> (#31), the promise picker (#13), the reminder (#14).
-export async function StubStep({ step }: { step: SetupStep }) {
+export async function StubStep({
+	step,
+	hasSaveFailed
+}: {
+	step: SetupStep
+	hasSaveFailed: boolean
+}) {
 	const t = await getTranslations('SetupPage')
 
 	return (
@@ -15,6 +21,11 @@ export async function StubStep({ step }: { step: SetupStep }) {
 			title={t(`steps.${step}`)}
 		>
 			<p className="text-body text-text-muted">{t('stub')}</p>
+			{hasSaveFailed ? (
+				<p role="alert" className="text-body text-danger">
+					{t('saveFailed')}
+				</p>
+			) : null}
 			<form action={continueSetup}>
 				<input type="hidden" name="step" value={step} />
 				<Button type="submit" size="lg" className="text-body h-12 w-full">

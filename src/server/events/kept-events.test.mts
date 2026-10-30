@@ -120,3 +120,29 @@ test('a Kept day must be a real calendar date', () => {
 	assert.throws(() => parseEvent({ ...event, keptDay: '30/10/2026' }))
 	assert.throws(() => parseEvent({ ...event, keptDay: '2026-02-30' }))
 })
+
+// A repeated submission (a double tap, a retry after a lost answer, an entry
+// replayed from the outbox) carries the same key, and the database keeps one.
+test('an Event can carry an idempotency key', () => {
+	const event = parseEvent({
+		userId,
+		name: 'report_made',
+		keptDay: '2026-10-30',
+		details: { promiseId, promiseDay: '2026-10-30', answer: 'yes' },
+		idempotencyKey: `report_made:${promiseId}`
+	})
+	assert.equal(event.idempotencyKey, `report_made:${promiseId}`)
+})
+
+test('an Event without a key has none', () => {
+	const event = parseEvent({ userId, name: 'signed_up', keptDay: '2026-10-30', details: {} })
+	assert.equal('idempotencyKey' in event, false)
+})
+
+test('an idempotency key is a short token, never free text', () => {
+	for (const idempotencyKey of ['', 'Has Spaces', 'x'.repeat(129), 'drop table;']) {
+		assert.throws(() =>
+			parseEvent({ userId, name: 'signed_up', keptDay: '2026-10-30', details: {}, idempotencyKey })
+		)
+	}
+})
