@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from '@/i18n/routing'
 import { SiteNav } from '@/components/landing/site-nav'
+import { GoalSteps } from '@/components/learn/goal-steps'
 import { StubStep } from '@/components/setup/stub-step'
 import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
@@ -31,7 +32,11 @@ export default async function SetupPage({ searchParams }: PageProps<'/[locale]/s
 			<main className="flex flex-1 flex-col justify-center px-(--page-margin) pb-24">
 				<h1 className="sr-only">{t('heading')}</h1>
 				<div className="w-full max-w-xl">
-					<StubStep step={step} hasSaveFailed={hasSaveFailed} />
+					{step === 'goal' ? (
+						<GoalSteps userId={user.id} />
+					) : (
+						<StubStep step={step} hasSaveFailed={hasSaveFailed} />
+					)}
 				</div>
 			</main>
 		</div>
