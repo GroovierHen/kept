@@ -46,7 +46,8 @@ export async function provisionUser({
 						userId: id,
 						name: 'signed_up',
 						keptDay: toKeptDay({ instant: new Date(), timeZone }),
-						details: {}
+						details: {},
+						idempotencyKey: 'signed_up'
 					}
 				})
 			}),
