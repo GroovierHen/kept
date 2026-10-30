@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
 import { AppError } from '@/lib/errors/app-error'
+import { resolveTimeZone } from '@/lib/kept-day'
 import { captureError } from '@/lib/observability/capture-error'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { provisionUser } from '@/server/auth/provision-user'
@@ -19,7 +20,10 @@ const MIN_PASSWORD_LENGTH = 8
 
 const credentials = z.object({
 	email: z.email().trim().toLowerCase(),
-	password: z.string().min(MIN_PASSWORD_LENGTH)
+	password: z.string().min(MIN_PASSWORD_LENGTH),
+	// From the browser, so it can be missing or wrong. That falls back rather
+	// than failing: a bad time zone must never stop someone signing up.
+	timeZone: z.unknown().transform(resolveTimeZone)
 })
 
 export interface AuthFormState {
@@ -51,7 +55,11 @@ function userFacingAuthError(code: string | undefined, t: AuthErrors): AppError 
 }
 
 function readCredentials(formData: FormData, t: AuthErrors) {
-	const raw = { email: formData.get('email'), password: formData.get('password') }
+	const raw = {
+		email: formData.get('email'),
+		password: formData.get('password'),
+		timeZone: formData.get('timeZone')
+	}
 	const email = typeof raw.email === 'string' ? raw.email : ''
 	const parsed = credentials.safeParse(raw)
 	if (parsed.success) return { email, data: parsed.data, error: null }
@@ -61,7 +69,7 @@ function readCredentials(formData: FormData, t: AuthErrors) {
 
 const createAccount = validatedAction({
 	input: credentials,
-	handler: async ({ email, password }) => {
+	handler: async ({ email, password, timeZone }) => {
 		const t = await getTranslations('Auth.errors')
 		const supabase = await createServerSupabaseClient()
 		const { data, error } = await supabase.auth.signUp({ email, password })
@@ -70,19 +78,20 @@ const createAccount = validatedAction({
 		// "Confirm email" is meant to be off for Kept. If it's on, there's no
 		// session yet, and the person has to confirm before they can sign in.
 		if (data.session == null) throw new AppError(t('confirm'), { status: 403 })
-		await provisionUser({ id: data.user.id, email })
+		await provisionUser({ id: data.user.id, email, timeZone })
 	}
 })
 
 const openSession = validatedAction({
 	input: credentials,
-	handler: async ({ email, password }) => {
+	handler: async ({ email, password, timeZone }) => {
 		const t = await getTranslations('Auth.errors')
 		const supabase = await createServerSupabaseClient()
 		const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 		if (error != null) throw userFacingAuthError(error.code, t) ?? error
-		// Idempotent: covers an account made before its User row existed.
-		await provisionUser({ id: data.user.id, email })
+		// Idempotent: covers an account made before its User row existed. An
+		// existing row keeps the time zone it already has.
+		await provisionUser({ id: data.user.id, email, timeZone })
 	}
 })
 

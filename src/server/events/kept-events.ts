@@ -1,0 +1,76 @@
+import { z } from 'zod'
+
+// Kept's own typed list of Events (GLOSSARY.md, ADR 0001): the record the ledger
+// and results page are built from. It is separate from the PostHog taxonomy in
+// src/lib/analytics/events.ts. Details hold only ids, enums and pence. Each
+// contract is strict and an id is a single lowercase token, which keeps sentences
+// out of the table. It can't tell a lone word from an id, so never pass typed text.
+
+const entityId = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
+const pence = z.number().int().nonnegative()
+const keptDay = z.iso.date()
+
+const size = z.enum(['small', 'medium', 'large'])
+const moment = z.enum(['wake_up', 'lunch', 'after_work', 'before_bed'])
+const answer = z.enum(['yes', 'partly', 'no'])
+const recallScore = z.union([z.literal(0), z.literal(1), z.literal(2)])
+
+const noDetails = z.strictObject({})
+
+// An Event's own keptDay is the day the tap happened. A Promise can be for a later
+// day ("commit a Promise for tomorrow"), so its Events also carry promiseDay.
+function eventContract<Name extends string, Details extends z.ZodType>({
+	name,
+	details
+}: {
+	name: Name
+	details: Details
+}) {
+	return z.strictObject({
+		userId: z.uuid(),
+		name: z.literal(name),
+		keptDay: keptDay.transform((day) => new Date(`${day}T00:00:00Z`)),
+		details
+	})
+}
+
+const keptEvent = z.discriminatedUnion('name', [
+	eventContract({ name: 'signed_up', details: noDetails }),
+	eventContract({ name: 'setup_finished', details: noDetails }),
+	eventContract({ name: 'plan_confirmed', details: noDetails }),
+	eventContract({ name: 'reminder_added', details: noDetails }),
+	// A Typed promise has no Action, Size or £ value, so all three are null.
+	eventContract({
+		name: 'promise_committed',
+		details: z.strictObject({
+			promiseId: entityId,
+			promiseDay: keptDay,
+			actionId: entityId.nullable(),
+			size: size.nullable(),
+			moment,
+			savingPence: pence.nullable()
+		})
+	}),
+	eventContract({
+		name: 'report_made',
+		details: z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
+	}),
+	eventContract({
+		name: 'lesson_taught',
+		details: z.strictObject({ lessonId: entityId, skillId: entityId })
+	}),
+	eventContract({
+		name: 'recall_graded',
+		details: z.strictObject({ questionId: entityId, skillId: entityId, score: recallScore })
+	}),
+	eventContract({
+		name: 'i_think_i_was_right_pressed',
+		details: z.strictObject({ questionId: entityId })
+	})
+])
+
+export type KeptEvent = z.input<typeof keptEvent>
+
+export function parseEvent(input: unknown): z.output<typeof keptEvent> {
+	return keptEvent.parse(input)
+}

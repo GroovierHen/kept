@@ -1,0 +1,45 @@
+// Act's half of the schema (docs/product/tasks.md). Learn's tables live in
+// learn.prisma. New tables here need the RLS migration: docs/rules/auth.md.
+//
+// User.id is NOT @default — per docs/rules/auth.md, this template's convention
+// is that User.id IS the Supabase auth user's uuid, set explicitly when the row
+// is first created (provisionUser, on first sign-up or sign-in), never generated
+// app-side. @db.Uuid matches AdminMember.userId @db.Uuid
+// (prisma/schema/authz.prisma) so the FK types agree.
+//
+// The money numbers and first reminder time are null until setup asks for them.
+// timeZone is set once, by provisionUser; the default covers rows made before
+// it existed and matches the fallback in src/lib/kept-day.ts.
+model User {
+	id                 String       @id @db.Uuid
+	email              String       @unique
+	incomePence        Int?         @map("income_pence")
+	costsPence         Int?         @map("costs_pence")
+	savingsPence       Int?         @map("savings_pence")
+	timeZone           String       @default("Europe/London") @map("time_zone")
+	firstReminderTime  String?      @map("first_reminder_time")
+	isCountedInResults Boolean      @default(true) @map("is_counted_in_results")
+	isDemo             Boolean      @default(false) @map("is_demo")
+	createdAt          DateTime     @default(now()) @db.Timestamptz(6)
+	updatedAt          DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
+	adminMember        AdminMember?
+	events             Event[]
+
+	@@map("users")
+}
+
+// Append-only, written only through recordEvent (src/server/events/record-event.ts),
+// which holds the typed list of names and the contract for details.
+model Event {
+	id         String   @id @default(uuid()) @db.Uuid
+	userId     String   @map("user_id") @db.Uuid
+	name       String
+	keptDay    DateTime @map("kept_day") @db.Date
+	occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+	details    Json     @default("{}") @db.JsonB
+	user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+	@@index([userId, keptDay])
+	@@index([name, keptDay])
+	@@map("events")
+}
