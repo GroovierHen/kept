@@ -218,7 +218,7 @@ work, not just be documented.
 
 ### Issue tracker
 
-Issues live in GitHub Issues on `abdelmalek-maskri/kept`, managed with the
+Issues live in GitHub Issues on `GroovierHen/kept`, managed with the
 `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels

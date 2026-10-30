@@ -12,7 +12,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
 
-Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
+Use `GroovierHen/kept`, the `origin` remote. This clone may also have an `abdelmalek` remote for the older `abdelmalek-maskri/kept`, so pass `-R GroovierHen/kept` rather than letting `gh` infer the repo.
 
 ## Pull requests as a triage surface
 
