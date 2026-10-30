@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { SiteNav } from '@/components/landing/site-nav'
 import { signOut } from '@/server/actions/auth'
 import { getSignedInUser } from '@/server/auth/session'
+import { readSetupStep } from '@/server/setup/stub-progress'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('TodayPage.meta')
@@ -14,8 +15,12 @@ export async function generateMetadata(): Promise<Metadata> {
 // Where sign-up and sign-in land. A placeholder until the Today screen is
 // built: it proves the session works and gives the person a way out.
 export default async function TodayPage() {
+	const locale = await getLocale()
 	const user = await getSignedInUser()
-	if (user == null) return redirect({ href: '/sign-in', locale: await getLocale() })
+	if (user == null) return redirect({ href: '/sign-in', locale })
+	if ((await readSetupStep(user.id)) != null) {
+		return redirect({ href: '/setup', locale })
+	}
 
 	const t = await getTranslations('TodayPage')
 

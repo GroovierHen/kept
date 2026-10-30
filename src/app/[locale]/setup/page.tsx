@@ -1,0 +1,37 @@
+import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { redirect } from '@/i18n/routing'
+import { SiteNav } from '@/components/landing/site-nav'
+import { StubStep } from '@/components/setup/stub-step'
+import { getSignedInUser } from '@/server/auth/session'
+import { readSetupStep } from '@/server/setup/stub-progress'
+
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getTranslations('SetupPage.meta')
+	return { title: t('title'), robots: { index: false, follow: false } }
+}
+
+// One screen at a time, always the first unfinished one, so a user who leaves
+// comes back to where they stopped.
+export default async function SetupPage() {
+	const locale = await getLocale()
+	const user = await getSignedInUser()
+	if (user == null) return redirect({ href: '/sign-in', locale })
+
+	const step = await readSetupStep(user.id)
+	if (step == null) return redirect({ href: '/today', locale })
+
+	const t = await getTranslations('SetupPage')
+
+	return (
+		<div className="flex min-h-svh flex-col">
+			<SiteNav />
+			<main className="flex flex-1 flex-col justify-center px-(--page-margin) pb-24">
+				<h1 className="sr-only">{t('heading')}</h1>
+				<div className="w-full max-w-xl">
+					<StubStep step={step} />
+				</div>
+			</main>
+		</div>
+	)
+}
