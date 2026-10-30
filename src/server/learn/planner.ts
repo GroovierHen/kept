@@ -68,9 +68,49 @@ First decide whether the goal is safe. It is unsafe if following it could harm t
 For a safe goal, write a plan:
 - milestones: 2 to 4 checkpoints, each with a week number from 1 to ${goal.weeks}, in increasing order, the last one at or near week ${goal.weeks}. Each is something the person can test themselves on.
 - actions: 3 to 5 daily actions, most important first. Each has a small, medium and large version that finish the sentence "I will ...": lowercase, no full stop, under 12 words, concrete enough to answer yes or no at the end of the day. Small must be easy on a bad day, given their starting point. Large is a full effort for someone who has been keeping up. At least one action should work around their obstacle.
-- keyIdeas: exactly 5 ideas behind the goal that make the actions work, in the order they should be learned. Each has a short title, a lesson of 2 or 3 plain sentences, a recall question that asks why or how (not a fact to repeat), a model answer of 1 or 2 sentences, and 3 multiple choice options with correctChoice as the index of the right one. Wrong options must be plausible, not silly.
+- keyIdeas: exactly 5 ideas behind the goal that make the actions work, in the order they should be learned. Each has a short title, a lesson of 2 or 3 plain sentences, a recall question that asks why or how (not a fact to repeat), a model answer of 1 or 2 sentences, and 3 multiple choice options with correctChoice as the index of the right one. Wrong options must be plausible, not silly, and about as long as the right one; the right one must not repeat the model answer word for word.
 
 Write in plain, warm English for an adult beginner. Do not promise outcomes, and do not give medical, financial or legal advice beyond general good practice.`
+}
+
+// What a prompt can't guarantee, code does. The app adds "I will" before an
+// action, so Gemini's own is removed, along with a full stop. And the right
+// multiple choice option is moved to a random place: Gemini tends to put it
+// first or second, which a tester would learn to guess.
+const LEADING_I_WILL = /^\s*i\s+will\s+/i
+const TRAILING_FULL_STOP = /\.\s*$/
+
+function tidyAction(wording: string): string {
+	return wording.replace(LEADING_I_WILL, '').replace(TRAILING_FULL_STOP, '').trim()
+}
+
+function shuffled<T>(items: readonly T[], random: () => number): T[] {
+	const result = [...items]
+	for (let i = result.length - 1; i > 0; i -= 1) {
+		const j = Math.floor(random() * (i + 1))
+		const swap = result[i]
+		const other = result[j]
+		if (swap === undefined || other === undefined) continue
+		result[i] = other
+		result[j] = swap
+	}
+	return result
+}
+
+function tidyPlan(plan: GeneratedPlan, random: () => number): GeneratedPlan {
+	return {
+		...plan,
+		actions: plan.actions.map(({ small, medium, large }) => ({
+			small: tidyAction(small),
+			medium: tidyAction(medium),
+			large: tidyAction(large)
+		})),
+		keyIdeas: plan.keyIdeas.map((idea) => {
+			const right = idea.choices[idea.correctChoice]
+			const choices = shuffled(idea.choices, random)
+			return { ...idea, choices, correctChoice: choices.findIndex((choice) => choice === right) }
+		})
+	}
 }
 
 function parseReply(text: string | undefined, weeks: number) {
@@ -86,10 +126,12 @@ function parseReply(text: string | undefined, weeks: number) {
 
 export async function planGoal({
 	goal,
-	ask
+	ask,
+	random = Math.random
 }: {
 	goal: PlannerGoal
 	ask: AskGemini
+	random?: () => number
 }): Promise<PlanResult> {
 	const prompt = buildPlannerPrompt(goal)
 	const responseJsonSchema = z.toJSONSchema(replySchema(goal.weeks))
@@ -110,7 +152,7 @@ export async function planGoal({
 			return { ok: false, reason: 'unsafe', saferGoal: reply.saferGoal }
 		}
 		if (reply.plan == null) continue
-		return { ok: true, plan: reply.plan, attempts: attempt }
+		return { ok: true, plan: tidyPlan(reply.plan, random), attempts: attempt }
 	}
 	return { ok: false, reason: 'invalid' }
 }

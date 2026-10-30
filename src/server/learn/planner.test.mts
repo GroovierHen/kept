@@ -29,7 +29,8 @@ test("the user's answers reach the prompt as quoted data, not as instructions", 
 
 test('a valid plan comes back as a plan', async () => {
 	const { ask, attempts } = scripted([SARA_REPLY])
-	const result = await planGoal({ goal: SARA_GOAL, ask })
+	// Just under 1 makes every shuffle swap an option with itself, so the order holds.
+	const result = await planGoal({ goal: SARA_GOAL, ask, random: () => 0.999 })
 	assert.deepEqual(result, { ok: true, plan: SARA_GENERATED_PLAN, attempts: 1 })
 	assert.deepEqual(attempts, [1])
 })
@@ -90,4 +91,50 @@ test('Gemini being down, after its own retries, is reported as unavailable', asy
 test('a refused or empty reply counts as the wrong shape', async () => {
 	const { ask } = scripted([undefined])
 	assert.deepEqual(await planGoal({ goal: SARA_GOAL, ask }), { ok: false, reason: 'invalid' })
+})
+
+// Found reading real plans: the sleep plan wrote "i will charge my phone...",
+// and the app adds "I will" itself.
+test('action wording that already starts with "I will" has it removed', async () => {
+	const [, ...rest] = SARA_GENERATED_PLAN.actions
+	const plan = {
+		...SARA_GENERATED_PLAN,
+		actions: [
+			{
+				small: 'i will charge my phone in the kitchen.',
+				medium: 'I Will read',
+				large: 'I will  run.'
+			},
+			...rest
+		]
+	}
+	const { ask } = scripted([reply({ isSafe: true, saferGoal: null, plan })])
+	const result = await planGoal({ goal: SARA_GOAL, ask })
+	assert.equal(result.ok, true)
+	assert.deepEqual(result.ok && result.plan.actions[0], {
+		small: 'charge my phone in the kitchen',
+		medium: 'read',
+		large: 'run'
+	})
+})
+
+// Found reading real plans: the right option was never third, so the multiple
+// choice fallback could be guessed.
+test('the right option is moved to a random position and still points at the same text', async () => {
+	const { ask } = scripted([SARA_REPLY])
+	const picks = [0.99, 0.5, 0.01]
+	let i = 0
+	const random = () => picks[i++ % picks.length] ?? 0
+	const result = await planGoal({ goal: SARA_GOAL, ask, random })
+	assert.equal(result.ok, true)
+	if (!result.ok) return
+	const positions = new Set<number>()
+	for (const [index, idea] of result.plan.keyIdeas.entries()) {
+		const original = SARA_GENERATED_PLAN.keyIdeas[index]
+		assert.ok(original)
+		assert.equal(idea.choices[idea.correctChoice], original.choices[original.correctChoice])
+		assert.deepEqual([...idea.choices].sort(), [...original.choices].sort())
+		positions.add(idea.correctChoice)
+	}
+	assert.ok(positions.size > 1, 'the right option should not always land in the same place')
 })
