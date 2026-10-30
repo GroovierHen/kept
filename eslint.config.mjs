@@ -92,13 +92,17 @@ const eslintConfig = defineConfig([
 	// .claude/worktrees/ holds other Claude Code sessions' full checkouts. It's
 	// git-ignored (via .git/info/exclude), but flat config doesn't read ignore
 	// files, so without this `pnpm lint` lints every one of them.
+	// .agents/skills/ holds third-party skills installed through skills-lock.json
+	// (linked into .claude/skills/). Their scripts are vendored, not ours to
+	// restyle, and a skill update would otherwise fail the build.
 	globalIgnores([
 		'.next/**',
 		'out/**',
 		'build/**',
 		'next-env.d.ts',
 		'src/generated/**',
-		'.claude/worktrees/**'
+		'.claude/worktrees/**',
+		'.agents/skills/**'
 	]),
 	{
 		// See docs/rules/code-quality.md for the rationale behind both rules.
