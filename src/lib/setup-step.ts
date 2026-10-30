@@ -24,3 +24,6 @@ export function firstUnfinishedStep(progress: SetupProgress): SetupStep | null {
 	if (!progress.hasAddedReminder) return 'reminder'
 	return null
 }
+
+/** Set on /setup when a step couldn't be saved, so the page can say so. */
+export const SAVE_FAILED_PARAM = 'saveFailed'

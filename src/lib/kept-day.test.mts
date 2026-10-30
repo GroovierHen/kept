@@ -45,7 +45,21 @@ test('a time zone is stored under its canonical name', () => {
 	assert.equal(resolveTimeZone('europe/london'), 'Europe/London')
 })
 
+// A sign-up sent before the page's JavaScript runs has no browser time zone.
+// Falling straight to London rolled a Karachi tester's day over at 9am, not 4am.
+test("a missing browser time zone uses the request's time zone before London", () => {
+	assert.equal(resolveTimeZone('', 'Asia/Karachi'), 'Asia/Karachi')
+	assert.equal(resolveTimeZone(null, 'Asia/Karachi'), 'Asia/Karachi')
+	assert.equal(resolveTimeZone('Mars/Olympus', 'Asia/Karachi'), 'Asia/Karachi')
+})
+
+test("the browser's time zone wins over the request's", () => {
+	assert.equal(resolveTimeZone('Europe/Paris', 'Asia/Karachi'), 'Europe/Paris')
+})
+
 test('a missing or invalid time zone falls back to Europe/London', () => {
+	assert.equal(resolveTimeZone('', null), 'Europe/London')
+	assert.equal(resolveTimeZone('', 'Mars/Olympus'), 'Europe/London')
 	for (const value of [undefined, null, '', 'Mars/Olympus', 'not a zone', 42]) {
 		assert.equal(resolveTimeZone(value), 'Europe/London')
 	}

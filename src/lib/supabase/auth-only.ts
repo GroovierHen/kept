@@ -7,3 +7,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 // that adopts Supabase realtime widens this to add 'channel' | 'removeChannel'
 // deliberately, in this one place; never to 'from' or 'rpc'.
 export type AuthOnlySupabaseClient = Pick<SupabaseClient, 'auth'>
+
+// True for a network failure or a 5xx from Supabase Auth: worth another try.
+export { isAuthRetryableFetchError } from '@supabase/supabase-js'

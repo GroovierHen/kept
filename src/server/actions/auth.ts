@@ -1,13 +1,16 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { getLocale, getTranslations } from 'next-intl/server'
-import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
 import { AppError } from '@/lib/errors/app-error'
 import { resolveTimeZone } from '@/lib/kept-day'
 import { captureError } from '@/lib/observability/capture-error'
+import { isAuthRetryableFetchError } from '@/lib/supabase/auth-only'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { retryAuthCall, signUpOnce } from '@/server/auth/auth-retry'
+import { credentials } from '@/server/auth/credentials'
+import { provisionOrSignOut } from '@/server/auth/provision-or-sign-out'
 import { provisionUser } from '@/server/auth/provision-user'
 import { START_EMAIL_COOKIE, START_EMAIL_MAX_AGE_SECONDS } from '@/server/auth/start-email'
 import { validatedAction } from './validated-action'
@@ -16,15 +19,9 @@ import { validatedAction } from './validated-action'
 // no email verification, no social sign-in, 30-day sessions). Supabase owns
 // the session; the User row is ours, created on first sign-up or sign-in.
 
-const MIN_PASSWORD_LENGTH = 8
-
-const credentials = z.object({
-	email: z.email().trim().toLowerCase(),
-	password: z.string().min(MIN_PASSWORD_LENGTH),
-	// From the browser, so it can be missing or wrong. That falls back rather
-	// than failing: a bad time zone must never stop someone signing up.
-	timeZone: z.unknown().transform(resolveTimeZone)
-})
+// Vercel sets this from the visitor's IP. It stands in when the browser sends no
+// time zone, as it does when the form is submitted before the page's JavaScript runs.
+const REQUEST_TIME_ZONE_HEADER = 'x-vercel-ip-timezone'
 
 export interface AuthFormState {
 	readonly error: string | null
@@ -54,17 +51,18 @@ function userFacingAuthError(code: string | undefined, t: AuthErrors): AppError 
 	}
 }
 
-function readCredentials(formData: FormData, t: AuthErrors) {
+function readCredentials(formData: FormData, t: AuthErrors, requestTimeZone: string | null) {
 	const raw = {
 		email: formData.get('email'),
 		password: formData.get('password'),
-		timeZone: formData.get('timeZone')
+		timeZone: resolveTimeZone(formData.get('timeZone'), requestTimeZone)
 	}
 	const email = typeof raw.email === 'string' ? raw.email : ''
 	const parsed = credentials.safeParse(raw)
 	if (parsed.success) return { email, data: parsed.data, error: null }
-	const field = parsed.error.issues[0]?.path[0]
-	return { email, data: null, error: field === 'password' ? t('password') : t('email') }
+	const issue = parsed.error.issues[0]
+	if (issue?.path[0] !== 'password') return { email, data: null, error: t('email') }
+	return { email, data: null, error: issue.code === 'too_big' ? t('passwordLong') : t('password') }
 }
 
 const createAccount = validatedAction({
@@ -72,13 +70,21 @@ const createAccount = validatedAction({
 	handler: async ({ email, password, timeZone }) => {
 		const t = await getTranslations('Auth.errors')
 		const supabase = await createServerSupabaseClient()
-		const { data, error } = await supabase.auth.signUp({ email, password })
+		const { data, error } = await signUpOnce({
+			signUp: () => supabase.auth.signUp({ email, password }),
+			signIn: () => supabase.auth.signInWithPassword({ email, password }),
+			isRetryable: isAuthRetryableFetchError
+		})
 		if (error != null) throw userFacingAuthError(error.code, t) ?? error
 		if (data.user == null) throw new Error('Supabase signUp returned no user and no error')
 		// "Confirm email" is meant to be off for Kept. If it's on, there's no
 		// session yet, and the person has to confirm before they can sign in.
 		if (data.session == null) throw new AppError(t('confirm'), { status: 403 })
-		await provisionUser({ id: data.user.id, email, timeZone })
+		const userId = data.user.id
+		await provisionOrSignOut({
+			provision: () => provisionUser({ id: userId, email, timeZone }),
+			signOut: () => closeSession(supabase)
+		})
 	}
 })
 
@@ -87,17 +93,33 @@ const openSession = validatedAction({
 	handler: async ({ email, password, timeZone }) => {
 		const t = await getTranslations('Auth.errors')
 		const supabase = await createServerSupabaseClient()
-		const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+		const { data, error } = await retryAuthCall(
+			() => supabase.auth.signInWithPassword({ email, password }),
+			{ isRetryable: isAuthRetryableFetchError }
+		)
 		if (error != null) throw userFacingAuthError(error.code, t) ?? error
 		// Idempotent: covers an account made before its User row existed. An
 		// existing row keeps the time zone it already has.
-		await provisionUser({ id: data.user.id, email, timeZone })
+		await provisionOrSignOut({
+			provision: () => provisionUser({ id: data.user.id, email, timeZone }),
+			signOut: () => closeSession(supabase)
+		})
 	}
 })
 
+async function closeSession(
+	supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>
+): Promise<void> {
+	const { error } = await retryAuthCall(() => supabase.auth.signOut(), {
+		isRetryable: isAuthRetryableFetchError
+	})
+	if (error != null) throw error
+}
+
 async function submit(run: typeof createAccount, formData: FormData): Promise<AuthFormState> {
 	const t = await getTranslations('Auth.errors')
-	const { email, data, error } = readCredentials(formData, t)
+	const requestTimeZone = (await headers()).get(REQUEST_TIME_ZONE_HEADER)
+	const { email, data, error } = readCredentials(formData, t, requestTimeZone)
 	if (data == null) return { error, email }
 
 	const result = await run(data)

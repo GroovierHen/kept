@@ -1,11 +1,12 @@
 'use client'
 
-import { useActionState, useId, useSyncExternalStore } from 'react'
+import { useActionState, useId, useState, useSyncExternalStore } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { AuthFormState } from '@/server/actions/auth'
+import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/lib/credential-limits'
 
 // The email and password form both sign-in pages share. The action returns
 // the error to show and the email to keep in the field; on success it
@@ -32,9 +33,21 @@ export function AuthForm({
 	const errorId = `${id}-error`
 	const hintId = `${id}-hint`
 	const timeZone = useSyncExternalStore(subscribeToNothing, browserTimeZone, serverTimeZone)
+	// Offline, the action would fail in the browser and throw to the error page,
+	// losing what was typed. Stopping the submit keeps it and says why.
+	const [isOffline, setIsOffline] = useState(false)
+	const error = isOffline ? t('errors.offline') : state.error
 
 	return (
-		<form action={formAction} className="flex flex-col gap-6" noValidate>
+		<form
+			action={formAction}
+			onSubmit={(event) => {
+				setIsOffline(!navigator.onLine)
+				if (!navigator.onLine) event.preventDefault()
+			}}
+			className="flex flex-col gap-6"
+			noValidate
+		>
 			<input type="hidden" name="timeZone" value={timeZone} />
 			<div data-reveal className="flex flex-col gap-2 delay-[140ms]">
 				<Label htmlFor={`${id}-email`} className="text-body font-normal">
@@ -45,10 +58,11 @@ export function AuthForm({
 					name="email"
 					type="email"
 					autoComplete="email"
+					maxLength={MAX_EMAIL_LENGTH}
 					required
 					defaultValue={state.email}
-					aria-describedby={state.error == null ? undefined : errorId}
-					aria-invalid={state.error == null ? undefined : true}
+					aria-describedby={error == null ? undefined : errorId}
+					aria-invalid={error == null ? undefined : true}
 					className="text-body h-12 px-4"
 				/>
 			</div>
@@ -62,12 +76,13 @@ export function AuthForm({
 					type="password"
 					autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
 					required
-					minLength={8}
+					minLength={MIN_PASSWORD_LENGTH}
+					maxLength={MAX_PASSWORD_LENGTH}
 					aria-describedby={joinIds(
 						mode === 'sign-up' ? hintId : null,
-						state.error == null ? null : errorId
+						error == null ? null : errorId
 					)}
-					aria-invalid={state.error == null ? undefined : true}
+					aria-invalid={error == null ? undefined : true}
 					className="text-body h-12 px-4"
 				/>
 				{mode === 'sign-up' ? (
@@ -78,7 +93,7 @@ export function AuthForm({
 			</div>
 
 			<p id={errorId} role="alert" className="text-body text-danger empty:hidden">
-				{state.error}
+				{error}
 			</p>
 
 			<div data-reveal className="delay-[280ms]">

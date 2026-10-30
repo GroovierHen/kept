@@ -3,10 +3,11 @@ import type { Prisma } from '@/server/db/client'
 import { recordEvent } from '@/server/events/record-event'
 import { toKeptDay } from '@/lib/kept-day'
 
-// Results count a tester as Started from this Event, so it's saved once. Touching
-// updatedAt takes the user's row lock, so two taps on the last step can't
-// both find no Event and record it twice. Takes the transaction so the last
-// step can save its own change alongside it (ADR 0001).
+// Results count a tester as Started from this Event, so it's saved once. Its
+// idempotency key makes the database enforce that. The row lock (touching
+// updatedAt) and the lookup still cover Events saved before keys existed,
+// which have none. Takes the transaction so the last step can save its own
+// change alongside it (ADR 0001).
 export async function recordSetupFinished({
 	tx,
 	userId
@@ -30,7 +31,8 @@ export async function recordSetupFinished({
 			userId,
 			name: 'setup_finished',
 			keptDay: toKeptDay({ instant: new Date(), timeZone }),
-			details: {}
+			details: {},
+			idempotencyKey: 'setup_finished'
 		}
 	})
 }

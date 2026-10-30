@@ -9,6 +9,9 @@ import { z } from 'zod'
 const entityId = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
 const pence = z.number().int().nonnegative()
 const keptDay = z.iso.date()
+// Unique per user in the events table, so a repeated submission saves once.
+// Built from names and ids, such as `report_made:<promiseId>`.
+const idempotencyKey = z.string().regex(/^[a-z0-9][a-z0-9_:-]{0,127}$/)
 
 const size = z.enum(['small', 'medium', 'large'])
 const moment = z.enum(['wake_up', 'lunch', 'after_work', 'before_bed'])
@@ -30,7 +33,8 @@ function eventContract<Name extends string, Details extends z.ZodType>({
 		userId: z.uuid(),
 		name: z.literal(name),
 		keptDay: keptDay.transform((day) => new Date(`${day}T00:00:00Z`)),
-		details
+		details,
+		idempotencyKey: idempotencyKey.optional()
 	})
 }
 
