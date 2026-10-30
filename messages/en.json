@@ -187,11 +187,13 @@
 		"errors": {
 			"email": "Enter your email address, like you@email.com.",
 			"password": "Your password needs at least 8 characters.",
+			"passwordLong": "Your password can be at most 72 characters.",
 			"taken": "There’s already an account with this email. Sign in instead.",
 			"wrong": "That email and password don’t match. Try again.",
 			"confirm": "Check your inbox to confirm your email, then sign in.",
 			"busy": "Too many tries. Wait a minute, then try again.",
-			"failed": "Something went wrong on our side. Try again in a moment."
+			"failed": "Something went wrong on our side. Try again in a moment.",
+			"offline": "You’re offline, so nothing was sent. What you typed is still here; try again once you’re connected."
 		}
 	},
 	"SignUpPage": {
