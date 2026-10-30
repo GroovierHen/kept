@@ -253,13 +253,35 @@
 	},
 	"Learn": {
 		"goal": {
-			"eyebrow": "Your goal",
-			"title": "What you want, and where you start",
-			"goal": "Your goal",
-			"weeks": "How long you give yourself",
-			"weeksValue": "{weeks} weeks",
-			"startingPoint": "Where you are now",
-			"obstacle": "What usually gets in your way"
+			"progress": "Question {current} of {total}",
+			"questions": {
+				"text": "What do you want to get better at?",
+				"weeks": "How long will you give yourself?",
+				"startingPoint": "Where are you now?",
+				"obstacle": "What usually gets in your way?"
+			},
+			"hints": {
+				"text": "One goal, in your own words. Kept turns it into one small promise a day.",
+				"weeks": "Long enough to build the habit. You can’t change this once your plan is made.",
+				"startingPoint": "Be honest: the first promises are sized to where you start.",
+				"obstacle": "Your plan will work around it."
+			},
+			"placeholders": {
+				"text": "I want to run 5k without stopping.",
+				"startingPoint": "I can jog about 1 km, then I have to walk.",
+				"obstacle": "I’m tired after work and skip it."
+			},
+			"weeksOption": "{weeks} weeks",
+			"continue": "Continue",
+			"saving": "Saving…",
+			"errors": {
+				"empty": "Write a few words so we can plan around it.",
+				"tooLong": "Keep it under 280 characters.",
+				"weeks": "Pick 4, 8 or 12 weeks.",
+				"locked": "Your plan is already made from these answers, so they can’t change now.",
+				"failed": "We couldn’t save that. Your answer is still here; try again in a moment.",
+				"offline": "You’re offline, so nothing was sent. Your answer is still here; try again once you’re connected."
+			}
 		},
 		"plan": {
 			"eyebrow": "Your plan",
