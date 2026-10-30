@@ -10,6 +10,7 @@ import {
 	type RecallGrade,
 	type RecallProgress
 } from '@/lib/learn/plan'
+import type { GoalAnswers } from '@/lib/learn/goal'
 import { SARA_GENERATED_PLAN, SARA_GOAL } from '@/lib/learn/sara-plan'
 import type { PlanStatus } from '@/lib/setup-step'
 import { db } from '@/server/db/client'
@@ -24,6 +25,14 @@ const MAX_ANSWER_LENGTH = 1000
 // Act calls these with a user id and a Kept day it worked out. A bad one is a
 // bug on the calling side, so it fails here rather than returning Sara's data.
 const callerInput = z.object({ userId: z.uuid(), keptDay: z.iso.date().optional() })
+
+/** The user's goal answers so far, or null before the first. */
+export async function getGoal(userId: string): Promise<GoalAnswers | null> {
+	return db.goal.findUnique({
+		where: { userId },
+		select: { text: true, weeks: true, startingPoint: true, obstacle: true }
+	})
+}
 
 export async function getPlanStatus(userId: string): Promise<PlanStatus> {
 	const goal = await db.goal.findUnique({
