@@ -218,13 +218,29 @@
 		"switch": "New to Kept?",
 		"switchLink": "Create an account"
 	},
+	"SetupPage": {
+		"meta": {
+			"title": "Set up Kept"
+		},
+		"heading": "Set up Kept",
+		"progress": "Step {current} of {total}",
+		"steps": {
+			"goal": "Your goal",
+			"plan": "Your plan",
+			"keyIdea": "Your first key idea",
+			"promise": "Your promise for tomorrow",
+			"reminder": "Your daily reminder"
+		},
+		"stub": "This step is still being built. Continue to see the next one.",
+		"continue": "Continue"
+	},
 	"TodayPage": {
 		"meta": {
 			"title": "Today on Kept"
 		},
 		"heading": "You’re in.",
 		"signedInAs": "Signed in as {email}.",
-		"soon": "Today’s screen is on its way. Setup and your first promise come next.",
+		"soon": "Setup is done. Today’s screen is on its way.",
 		"signOut": "Sign out"
 	},
 	"SiteFooter": {
