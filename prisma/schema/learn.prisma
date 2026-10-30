@@ -1,0 +1,133 @@
+// Learn's half of the schema (docs/product/tasks.md): the goal, the plan Gemini
+// makes from it, and what the user learns and recalls. Act's tables live in
+// act.prisma. New tables here need the RLS migration: docs/rules/auth.md.
+//
+// One Goal and one Plan per user, enforced by unique userId, so a double submit
+// or a retry can't make a second. Milestones, actions and key ideas keep
+// Gemini's order in position, unique per plan. Text the user types is capped
+// in the column; text Gemini writes is checked against src/lib/learn/plan.ts.
+
+// Filled one setup screen at a time, so every answer starts empty.
+// getPlanStatus says goal_saved only once all four are answered.
+model Goal {
+	id            String   @id @default(uuid(7)) @db.Uuid
+	userId        String   @unique @map("user_id") @db.Uuid
+	text          String?  @db.VarChar(280)
+	weeks         Int?
+	startingPoint String?  @map("starting_point") @db.VarChar(280)
+	obstacle      String?  @db.VarChar(280)
+	createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+	updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+	user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+	plan          Plan?
+
+	@@map("goals")
+}
+
+// Made, then locked at confirmedAt. attempts counts Gemini calls, so Try again
+// is offered once.
+model Plan {
+	id          String       @id @default(uuid(7)) @db.Uuid
+	userId      String       @unique @map("user_id") @db.Uuid
+	goalId      String       @unique @map("goal_id") @db.Uuid
+	model       String
+	attempts    Int          @default(1)
+	confirmedAt DateTime?    @map("confirmed_at") @db.Timestamptz(6)
+	createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+	user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+	goal        Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
+	milestones  Milestone[]
+	actions     PlanAction[]
+	keyIdeas    KeyIdea[]
+
+	@@map("plans")
+}
+
+model Milestone {
+	id       String @id @default(uuid(7)) @db.Uuid
+	planId   String @map("plan_id") @db.Uuid
+	position Int
+	week     Int
+	text     String @db.VarChar(200)
+	plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+	@@unique([planId, position])
+	@@map("milestones")
+}
+
+// Act's Promise points here by id. The two relation lines are added together
+// when act.prisma gets Promise (#13).
+model PlanAction {
+	id       String @id @default(uuid(7)) @db.Uuid
+	planId   String @map("plan_id") @db.Uuid
+	position Int
+	small    String @db.VarChar(160)
+	medium   String @db.VarChar(160)
+	large    String @db.VarChar(160)
+	plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+	@@unique([planId, position])
+	@@map("plan_actions")
+}
+
+// taughtOn is the Kept day its lesson was shown, null until then.
+model KeyIdea {
+	id             String          @id @default(uuid(7)) @db.Uuid
+	planId         String          @map("plan_id") @db.Uuid
+	position       Int
+	title          String          @db.VarChar(80)
+	lesson         String
+	question       String          @db.VarChar(300)
+	modelAnswer    String          @map("model_answer")
+	choices        String[]
+	correctChoice  Int             @map("correct_choice")
+	taughtOn       DateTime?       @map("taught_on") @db.Date
+	plan           Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+	reviews        Review[]
+	recallAttempts RecallAttempt[]
+
+	@@unique([planId, position])
+	@@map("key_ideas")
+}
+
+// A Kept day a key idea is due back. recallAttemptId stays null until it is
+// answered, so "due today" is one index read on (user_id, due_on).
+model Review {
+	id              String         @id @default(uuid(7)) @db.Uuid
+	userId          String         @map("user_id") @db.Uuid
+	keyIdeaId       String         @map("key_idea_id") @db.Uuid
+	dueOn           DateTime       @map("due_on") @db.Date
+	recallAttemptId String?        @unique @map("recall_attempt_id") @db.Uuid
+	createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+	user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+	keyIdea         KeyIdea        @relation(fields: [keyIdeaId], references: [id], onDelete: Cascade)
+	recallAttempt   RecallAttempt? @relation(fields: [recallAttemptId], references: [id], onDelete: SetNull)
+
+	@@index([userId, dueOn])
+	@@map("reviews")
+}
+
+// Added to, never edited, except for the user's I think I was right reason.
+// A repeated submission carries the same idempotencyKey and saves once.
+model RecallAttempt {
+	id               String    @id @default(uuid(7)) @db.Uuid
+	userId           String    @map("user_id") @db.Uuid
+	keyIdeaId        String    @map("key_idea_id") @db.Uuid
+	keptDay          DateTime  @map("kept_day") @db.Date
+	answer           String    @db.VarChar(1000)
+	score            Int
+	reason           String
+	isMultipleChoice Boolean   @map("is_multiple_choice")
+	disputeReason    String?   @map("dispute_reason") @db.VarChar(1000)
+	disputedAt       DateTime? @map("disputed_at") @db.Timestamptz(6)
+	idempotencyKey   String?   @map("idempotency_key")
+	createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+	user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+	keyIdea          KeyIdea   @relation(fields: [keyIdeaId], references: [id], onDelete: Cascade)
+	review           Review?
+
+	@@unique([userId, idempotencyKey])
+	@@index([keyIdeaId, createdAt])
+	@@index([userId, keptDay])
+	@@map("recall_attempts")
+}
