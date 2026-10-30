@@ -10,16 +10,17 @@ import type { AiCallStatus, AiProvider } from './models'
 //
 // **The trap this file exists to contain:** providers disagree on whether
 // the prompt-token count already includes cached tokens, and on whether the
-// completion count already includes reasoning tokens. Anthropic, the only
-// provider here:
+// completion count already includes reasoning tokens. Google, the only
+// provider here (GenerateContentResponseUsageMetadata in @google/genai):
 //
-//   input_tokens   EXCLUDES both cache figures. Add all four.
-//   output_tokens  INCLUDES thinking. Nothing to add.
+//   promptTokenCount      INCLUDES cached tokens. Subtract them from input.
+//   toolUsePromptTokenCount  separate, billed as input. Add it.
+//   candidatesTokenCount  EXCLUDES thinking. Add thoughtsTokenCount.
 //
-// OpenAI and Google both include cached tokens in their prompt count, and
-// Google leaves thinking out of its output count. Answer both questions from
-// the provider's own docs before adding an extractor for one (see
-// docs/rules/ai-usage.md). Get this wrong and the totals are plausible,
+// Gemini's caching has no write charge, so cache writes are 0. Anthropic's
+// input_tokens excludes cache instead, and OpenAI's prompt count includes it.
+// Answer both questions from the provider's own docs before adding an
+// extractor for one (see docs/rules/ai-usage.md). Get this wrong and the totals are plausible,
 // self-consistent, and wrong, which is the hardest kind of wrong to notice.
 
 export type ExtractedUsage = {
@@ -36,32 +37,54 @@ const count = z
 	.nullish()
 	.transform((value) => value ?? 0)
 
-const anthropicResponse = z.object({
-	id: z.string().optional(),
-	model: z.string().optional(),
-	stop_reason: z.string().nullish(),
-	usage: z.object({
-		input_tokens: count,
-		output_tokens: count,
-		cache_creation_input_tokens: count,
-		cache_read_input_tokens: count
+// A block on the prompt, or an answer stopped for safety, is a refusal.
+const REFUSAL_FINISH_REASONS = new Set([
+	'SAFETY',
+	'PROHIBITED_CONTENT',
+	'BLOCKLIST',
+	'SPII',
+	'IMAGE_SAFETY'
+])
+
+const googleResponse = z.object({
+	responseId: z.string().optional(),
+	modelVersion: z.string().optional(),
+	promptFeedback: z.object({ blockReason: z.string().nullish() }).nullish(),
+	candidates: z.array(z.object({ finishReason: z.string().nullish() })).nullish(),
+	usageMetadata: z.object({
+		promptTokenCount: count,
+		cachedContentTokenCount: count,
+		toolUsePromptTokenCount: count,
+		candidatesTokenCount: count,
+		thoughtsTokenCount: count
 	})
 })
 
 const EXTRACTORS: Record<AiProvider, UsageExtractor> = {
-	anthropic: (response) => {
-		const parsed = anthropicResponse.safeParse(response)
+	google: (response) => {
+		const parsed = googleResponse.safeParse(response)
 		if (!parsed.success) return undefined
-		const { id, model, stop_reason: stopReason, usage } = parsed.data
+		const {
+			responseId,
+			modelVersion,
+			promptFeedback,
+			candidates,
+			usageMetadata: usage
+		} = parsed.data
+		const finishReason = candidates?.[0]?.finishReason
+		const isRefusal =
+			promptFeedback?.blockReason != null ||
+			(finishReason != null && REFUSAL_FINISH_REASONS.has(finishReason))
 		return {
-			model,
-			requestId: id,
-			status: stopReason === 'refusal' ? 'refusal' : 'ok',
+			model: modelVersion,
+			requestId: responseId,
+			status: isRefusal ? 'refusal' : 'ok',
 			tokens: {
-				inputTokens: usage.input_tokens,
-				outputTokens: usage.output_tokens,
-				cacheWriteTokens: usage.cache_creation_input_tokens,
-				cacheReadTokens: usage.cache_read_input_tokens
+				inputTokens:
+					usage.promptTokenCount - usage.cachedContentTokenCount + usage.toolUsePromptTokenCount,
+				outputTokens: usage.candidatesTokenCount + usage.thoughtsTokenCount,
+				cacheWriteTokens: 0,
+				cacheReadTokens: usage.cachedContentTokenCount
 			}
 		}
 	}
