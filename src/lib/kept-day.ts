@@ -4,13 +4,17 @@ export type KeptDay = string
 const ROLLOVER_HOUR = 4
 const FALLBACK_TIME_ZONE = 'Europe/London'
 
-export function resolveTimeZone(value: unknown): string {
-	if (typeof value !== 'string' || value === '') return FALLBACK_TIME_ZONE
-	try {
-		return new Intl.DateTimeFormat('en-GB', { timeZone: value }).resolvedOptions().timeZone
-	} catch {
-		return FALLBACK_TIME_ZONE
+/** The first valid time zone among `candidates`, in canonical form, else Europe/London. */
+export function resolveTimeZone(...candidates: unknown[]): string {
+	for (const value of candidates) {
+		if (typeof value !== 'string' || value === '') continue
+		try {
+			return new Intl.DateTimeFormat('en-GB', { timeZone: value }).resolvedOptions().timeZone
+		} catch {
+			// Not a zone this runtime knows: try the next candidate.
+		}
 	}
+	return FALLBACK_TIME_ZONE
 }
 
 function addDays({ day, days }: { day: KeptDay; days: number }): KeptDay {

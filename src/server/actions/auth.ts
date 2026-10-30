@@ -1,6 +1,6 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
@@ -18,12 +18,16 @@ import { validatedAction } from './validated-action'
 
 const MIN_PASSWORD_LENGTH = 8
 
+// Vercel sets this from the visitor's IP. It stands in when the browser sends no
+// time zone, as it does when the form is submitted before the page's JavaScript runs.
+const REQUEST_TIME_ZONE_HEADER = 'x-vercel-ip-timezone'
+
 const credentials = z.object({
 	email: z.email().trim().toLowerCase(),
 	password: z.string().min(MIN_PASSWORD_LENGTH),
 	// From the browser, so it can be missing or wrong. That falls back rather
 	// than failing: a bad time zone must never stop someone signing up.
-	timeZone: z.unknown().transform(resolveTimeZone)
+	timeZone: z.unknown().transform((value) => resolveTimeZone(value))
 })
 
 export interface AuthFormState {
@@ -54,11 +58,11 @@ function userFacingAuthError(code: string | undefined, t: AuthErrors): AppError 
 	}
 }
 
-function readCredentials(formData: FormData, t: AuthErrors) {
+function readCredentials(formData: FormData, t: AuthErrors, requestTimeZone: string | null) {
 	const raw = {
 		email: formData.get('email'),
 		password: formData.get('password'),
-		timeZone: formData.get('timeZone')
+		timeZone: resolveTimeZone(formData.get('timeZone'), requestTimeZone)
 	}
 	const email = typeof raw.email === 'string' ? raw.email : ''
 	const parsed = credentials.safeParse(raw)
@@ -97,7 +101,8 @@ const openSession = validatedAction({
 
 async function submit(run: typeof createAccount, formData: FormData): Promise<AuthFormState> {
 	const t = await getTranslations('Auth.errors')
-	const { email, data, error } = readCredentials(formData, t)
+	const requestTimeZone = (await headers()).get(REQUEST_TIME_ZONE_HEADER)
+	const { email, data, error } = readCredentials(formData, t, requestTimeZone)
 	if (data == null) return { error, email }
 
 	const result = await run(data)
