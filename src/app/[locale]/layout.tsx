@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Hanken_Grotesk } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
@@ -7,9 +8,19 @@ import { QueryProvider } from '@/components/query-provider'
 import { AnalyticsProvider } from '@/lib/analytics/analytics-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { SiteFooter } from '@/components/site-footer'
+import { RevealObserver } from '@/components/reveal-observer'
 import { JsonLd, organizationJsonLd, webSiteJsonLd } from '@/lib/seo/json-ld'
 import { SITE, siteUrl } from '@/lib/seo/site'
 import '../globals.css'
+
+// The one face, at the two weights the design uses (DESIGN.md). Exposed as
+// --font-hanken, which --font-sans in globals.css reads.
+const hanken = Hanken_Grotesk({
+	subsets: ['latin'],
+	weight: ['400', '500'],
+	variable: '--font-hanken',
+	display: 'swap'
+})
 
 // The defaults every page inherits. Each page's own title, description,
 // canonical, share card and robots come from pageMetadata(), or a noindex of
@@ -38,12 +49,13 @@ export default async function LocaleLayout({
 	}
 
 	return (
-		<html lang={locale}>
+		<html lang={locale} className={hanken.variable}>
 			<body>
 				<AnalyticsProvider />
 				<NextIntlClientProvider>
 					<QueryProvider>{children}</QueryProvider>
 					<SiteFooter />
+					<RevealObserver />
 				</NextIntlClientProvider>
 				<Toaster />
 				<JsonLd data={organizationJsonLd()} />

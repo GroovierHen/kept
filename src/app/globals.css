@@ -5,51 +5,64 @@
    both declares them as real CSS variables and generates the matching
    Tailwind utilities (e.g. --radius-lg below gives you `rounded-lg`). */
 @theme {
-	--font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--radius-sm: 6px;
-	--radius: 10px;
-	--radius-lg: 16px;
+	/* --font-hanken is set on <html> by next/font in the locale layout. */
+	--font-sans: var(--font-hanken), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	/* Near-square corners everywhere: buttons, fields, product fragments. */
+	--radius-sm: 2px;
+	--radius: 4px;
+	--radius-lg: 6px;
+
+	/* The five type steps. Every size on a page is one of these. */
+	--text-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+	--text-small--line-height: 1.45;
+	--text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+	--text-body--line-height: 1.5;
+	--text-lead: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+	--text-lead--line-height: 1.2;
+	--text-head: clamp(2rem, 1rem + 3.4vw, 3.75rem);
+	--text-head--line-height: 1;
+	--text-display: clamp(3rem, 1rem + 7vw, 8.25rem);
+	--text-display--line-height: 0.95;
+
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-/* Color tokens DO need to change with color scheme, so they're declared on
-   :root (swappable at runtime) and re-exposed to Tailwind via `@theme
-   inline` below — `inline` tells Tailwind to reference these variables
-   live rather than inlining today's computed value at build time. See
-   DESIGN.md for the full token table and naming rationale. */
+/* Color tokens are declared on :root and re-exposed to Tailwind via `@theme
+   inline` below — `inline` tells Tailwind to reference these variables live
+   rather than inlining today's computed value at build time. Kept has one
+   scheme, bottle green and gold, whatever the OS preference: the brand is
+   a dark ground, so there is no light/dark pair to swap. See DESIGN.md. */
 :root {
-	--bg: #fafafa;
-	--surface: #ffffff;
-	--surface-hover: #f0f1f3;
-	--border: #e5e7eb;
-	--border-strong: #cbd2db;
-	--text: #16181d;
-	--text-muted: #5b6472;
-	--text-faint: #8891a0;
-	--accent: #2454b8;
-	--accent-hover: #1c4292;
-	--accent-ink: #ffffff;
-	--success: #1a7f4b;
-	--warning: #a5580a;
-	--danger: #b3261e;
-}
+	color-scheme: dark;
+	--bg: #133621;
+	--surface: #1a4429;
+	--surface-hover: #21502f;
+	--border: #2f6140;
+	--border-strong: #4a7c58;
+	--text: #f4d96c;
+	--text-muted: #c2b56c;
+	--text-faint: #9a9058;
+	--accent: #f4d96c;
+	--accent-hover: #f9e799;
+	--accent-ink: #133621;
+	--success: #a6d99a;
+	--warning: #f4b86c;
+	--danger: #ffb59e;
+	/* Flat fields for bands and bars, each with the ink that reads on it. */
+	--field-1: #f4d96c;
+	--field-1-ink: #133621;
+	--field-2: #c2b56c;
+	--field-2-ink: #133621;
+	--field-3: #2d6a40;
+	--field-3-ink: #f4d96c;
+	--field-4: #0c2716;
+	--field-4-ink: #f4d96c;
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg: #101215;
-		--surface: #17191d;
-		--surface-hover: #202329;
-		--border: #2a2d33;
-		--border-strong: #3a3e46;
-		--text: #f2f3f5;
-		--text-muted: #a6adba;
-		--text-faint: #767d8a;
-		--accent: #5b8fe0;
-		--accent-hover: #7ba3e6;
-		--accent-ink: #0b1220;
-		--success: #35c37f;
-		--warning: #e2a03f;
-		--danger: #e5675f;
-	}
+	/* One pair of outer margins and one gutter for every page. */
+	--page-margin: clamp(1rem, 2.2vw, 2rem);
+	--gutter: clamp(1rem, 1.7vw, 1.5rem);
 }
 
 @theme inline {
@@ -67,10 +80,53 @@
 	--color-success: var(--success);
 	--color-warning: var(--warning);
 	--color-danger: var(--danger);
+	--color-field-1: var(--field-1);
+	--color-field-1-ink: var(--field-1-ink);
+	--color-field-2: var(--field-2);
+	--color-field-2-ink: var(--field-2-ink);
+	--color-field-3: var(--field-3);
+	--color-field-3-ink: var(--field-3-ink);
+	--color-field-4: var(--field-4);
+	--color-field-4-ink: var(--field-4-ink);
 }
 
 body {
 	background-color: var(--bg);
 	color: var(--text);
 	font-family: var(--font-sans);
+	letter-spacing: -0.005em;
+	-webkit-font-smoothing: antialiased;
+}
+
+::selection {
+	background-color: var(--accent);
+	color: var(--accent-ink);
+}
+
+/* Entrances. Content is only hidden once <RevealObserver> has mounted and
+   set data-motion on <html>, so a page whose script never runs still shows
+   everything. Each part of a section rises on its own, staggered by the
+   delay utility on the element. */
+@media (prefers-reduced-motion: no-preference) {
+	[data-motion='on'] [data-reveal] {
+		opacity: 0;
+		transform: translateY(24px);
+		transition:
+			opacity 700ms var(--ease-out),
+			transform 900ms var(--ease-expo);
+	}
+	[data-motion='on'] [data-reveal].is-in {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* The one moving picture: a slow drift on the ledger cover. */
+@keyframes drift {
+	from {
+		transform: scale(1) translate3d(-2%, 0, 0);
+	}
+	to {
+		transform: scale(1.08) translate3d(2%, -2%, 0);
+	}
 }

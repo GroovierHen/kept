@@ -4,8 +4,228 @@
 			"title": "Kept: a two-minute daily money habit coach",
 			"description": "Learn one Rich Habits money habit a day, make a small promise, and report back. Kept adapts to you and tracks what you kept."
 		},
-		"title": "Kept",
-		"description": "A daily habit coach built on the ideas in Tom Corley's Rich Habits. Two minutes a day to learn a habit, act on it, and keep it."
+		"nav": {
+			"label": "Main",
+			"how": "How it works",
+			"plan": "Your plan",
+			"questions": "Questions",
+			"signIn": "Sign in",
+			"start": "Start"
+		},
+		"hero": {
+			"before": "Promises,",
+			"after": "kept.",
+			"support": "Kept is a two-minute daily coach for the habits that grow your money.",
+			"start": "Start tonight",
+			"reelLabel": "A check-in on Kept, one step at a time",
+			"steps": {
+				"report": "Report on yesterday’s promise",
+				"learn": "Learn a money skill on your numbers",
+				"promise": "Promise one small thing for tomorrow",
+				"ledger": "Watch it add up in your ledger"
+			}
+		},
+		"how": {
+			"heading": "Two minutes a day.",
+			"barLabel": "How a day with Kept is spent",
+			"report": {
+				"duration": "Seconds",
+				"clause": "First, report on yesterday: Yes, Partly or No."
+			},
+			"learn": {
+				"duration": "About a minute",
+				"clause": "Then learn one money skill, worked out on your own numbers."
+			},
+			"promise": {
+				"duration": "Under a minute",
+				"clause": "Next, promise one small action for tomorrow."
+			},
+			"day": {
+				"duration": "The rest of your day",
+				"clause": "Last, keep it. An 8pm reminder brings you back."
+			}
+		},
+		"plan": {
+			"heading": "Type a goal. Get today’s number.",
+			"inputLabel": "Your goal, as an amount and a time",
+			"initial": "£20,000 in 5 years",
+			"examplesLabel": "Try another goal",
+			"examples": {
+				"safety": "A £6,000 safety net in 2 years",
+				"holiday": "£1,200 for a holiday in 12 months",
+				"deposit": "A £50,000 deposit in 8 years"
+			},
+			"rows": {
+				"year": "This year",
+				"month": "This month",
+				"week": "This week",
+				"day": "Today"
+			},
+			"growth": "Saved monthly at an example 4%, that’s about {total} after {span}. {interest} of it is your money earning money.",
+			"hint": "Add an amount and a time, like £5,000 in 3 years.",
+			"years": "{count, plural, one {# year} other {# years}}",
+			"months": "{count, plural, one {# month} other {# months}}"
+		},
+		"spends": {
+			"heading": "Where does your money go?",
+			"support": "Kept prices every promise from what you tell it. These are Sara’s numbers: she takes home £2,000 a month.",
+			"takeaway": {
+				"sentence": "I order takeaway four nights a week.",
+				"result": "Cooking instead saves about £9 a night, about £1,900 a year."
+			},
+			"coffee": {
+				"sentence": "I buy coffee out most weekdays.",
+				"result": "Making it at home saves about £2.50 a day, about £650 a year."
+			},
+			"subscriptions": {
+				"sentence": "I pay for subscriptions I barely use.",
+				"result": "Cancelling two frees £20 a month for good, £240 a year."
+			},
+			"payday": {
+				"sentence": "I get paid once a month.",
+				"result": "Moving £335 to savings on payday locks in the whole month before you spend it."
+			},
+			"total": "Switched on, that’s about {amount} a year you keep.",
+			"none": "Switch on what sounds like you."
+		},
+		"about": {
+			"heading": "Kept, like the books.",
+			"lead": "Kept is built on Rich Habits by Tom Corley, an accountant who spent five years studying the daily habits of rich and poor people.",
+			"second": "So your progress is a ledger: promises kept are credits, slips are debits. Every habit is in our own words, and we never promise you’ll get rich.",
+			"imageAlt": "A ledger from the 1830s with a marbled green and gold cover",
+			"hoursAlt": "A handwritten page of accounts from 1846, each job drawn in watercolour beside the hours it took and its price",
+			"hoursCaption": "An account of hours spent, Paris, 1846. Every job entered, every hour counted.",
+			"facts": {
+				"habits": "10 habits from Rich Habits",
+				"time": "2 minutes a day",
+				"advice": "Education, not financial advice"
+			}
+		},
+		"faq": {
+			"heading": "Fair questions",
+			"items": {
+				"advice": {
+					"q": "Is this financial advice?",
+					"a": "No. Kept teaches money ideas using your own numbers. It is education, not advice. Rates like the 4% in a lesson are examples, and the lesson says so."
+				},
+				"dayOne": {
+					"q": "What happens on day one?",
+					"a": "About five minutes of setup: your dream, your income, costs and savings, and where your money goes. Kept turns that into a plan and your first promise."
+				},
+				"ai": {
+					"q": "What does the AI do?",
+					"a": "Three things: it suggests your plan, marks your answers, and helps you choose a promise when you’re stuck. Code does every sum, so the maths is always right."
+				},
+				"missed": {
+					"q": "What if I miss a day?",
+					"a": "It doesn’t count against you. A promise you don’t report by the end of the next day closes as unreported, and your promises don’t shrink because of it."
+				},
+				"install": {
+					"q": "Do I need to install anything?",
+					"a": "No. Kept runs in your browser. One calendar reminder, added once, brings you back each evening and opens today’s screen."
+				},
+				"numbers": {
+					"q": "Who sees my numbers?",
+					"a": "Only you see your plan. Our public results page shows totals across everyone testing Kept, with no names or emails."
+				}
+			}
+		},
+		"cta": {
+			"before": "Sign me up as",
+			"after": "and",
+			"button": "start.",
+			"emailLabel": "Your email",
+			"placeholder": "you@email.com",
+			"note": "Next you pick a password. Then about five minutes of setup, and your first promise."
+		},
+		"footer": {
+			"invitation": "Two minutes, starting tonight.",
+			"start": "Start",
+			"linksLabel": "More",
+			"credit": "Ledger pictures: The Metropolitan Museum of Art, public domain.",
+			"legal": "Education, not financial advice. Habits after Tom Corley’s Rich Habits."
+		}
+	},
+	"Fragments": {
+		"report": {
+			"day": "Day 2",
+			"step": "Report",
+			"question": "Did you cook instead of ordering today?",
+			"yes": "Yes",
+			"partly": "Partly",
+			"no": "No"
+		},
+		"learn": {
+			"day": "Day 2",
+			"step": "Recall",
+			"question": "If you save £335 a month for 5 years, about how much will you have?",
+			"answer": "around 20k plus a bit of interest",
+			"mark": "1 out of 2",
+			"reason": "Right idea. The interest is about £2,100, not a bit."
+		},
+		"promise": {
+			"day": "Day 1",
+			"step": "Promise for tomorrow",
+			"sentence": "After work, I will cook instead of ordering.",
+			"saves": "Saves about £9",
+			"progress": "Covers £9 of your £11 a day"
+		},
+		"ledger": {
+			"day": "Day 5",
+			"step": "Ledger",
+			"kept": "Kept",
+			"slipped": "Slipped",
+			"keptCount": "2",
+			"slippedCount": "2",
+			"worth": "Cooking 4 nights a week is worth about £1,900 a year."
+		}
+	},
+	"Auth": {
+		"emailLabel": "Email",
+		"passwordLabel": "Password",
+		"passwordHint": "At least 8 characters.",
+		"errors": {
+			"email": "Enter your email address, like you@email.com.",
+			"password": "Your password needs at least 8 characters.",
+			"taken": "There’s already an account with this email. Sign in instead.",
+			"wrong": "That email and password don’t match. Try again.",
+			"confirm": "Check your inbox to confirm your email, then sign in.",
+			"busy": "Too many tries. Wait a minute, then try again.",
+			"failed": "Something went wrong on our side. Try again in a moment."
+		}
+	},
+	"SignUpPage": {
+		"meta": {
+			"title": "Start with Kept"
+		},
+		"heading": "Make your first promise tonight.",
+		"support": "Two minutes a day. You stay signed in for 30 days, so tomorrow’s reminder opens straight on today’s screen.",
+		"submit": "Create account",
+		"pending": "Creating your account",
+		"results": "Our results page shows totals across everyone testing Kept. Your name and email never appear there.",
+		"switch": "Already have an account?",
+		"switchLink": "Sign in"
+	},
+	"SignInPage": {
+		"meta": {
+			"title": "Sign in to Kept"
+		},
+		"heading": "Back to today’s promise.",
+		"support": "Sign in once and you stay signed in for 30 days.",
+		"submit": "Sign in",
+		"pending": "Signing you in",
+		"forgot": "Forgot your password? Tell us and we’ll reset it for you.",
+		"switch": "New to Kept?",
+		"switchLink": "Create an account"
+	},
+	"TodayPage": {
+		"meta": {
+			"title": "Today on Kept"
+		},
+		"heading": "You’re in.",
+		"signedInAs": "Signed in as {email}.",
+		"soon": "Today’s screen is on its way. Setup and your first promise come next.",
+		"signOut": "Sign out"
 	},
 	"SiteFooter": {
 		"privacy": "Privacy",
