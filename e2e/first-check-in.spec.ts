@@ -244,4 +244,14 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		expect(next.promiseDay.getTime() - reported.promiseDay.getTime()).toBe(DAY_MS)
 		expect(eventsNamed('promise_committed')).toHaveLength(2)
 	})
+
+	await test.step('the ledger is one tap away and counts the Report', async () => {
+		await page.getByRole('link', { name: 'See your ledger' }).click()
+		await expect(page).toHaveURL(/\/ledger$/)
+		await expect(page.getByText('1 of 1 promise kept')).toBeVisible()
+		await expect(page.getByText('day 2', { exact: true })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Getting bigger' })).toHaveCount(0)
+		await page.getByRole('link', { name: 'Back to today' }).click()
+		await expect(page).toHaveURL(/\/today$/)
+	})
 })

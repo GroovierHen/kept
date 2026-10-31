@@ -19,6 +19,16 @@ const recallScore = z.union([z.literal(0), z.literal(1), z.literal(2)])
 
 const noDetails = z.strictObject({})
 
+// A Typed promise has no Action or Size, so both are null.
+const promiseCommittedDetails = z.strictObject({
+	promiseId: entityId,
+	promiseDay: keptDay,
+	actionId: entityId.nullable(),
+	size: size.nullable(),
+	moment
+})
+const reportMadeDetails = z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
+
 // An Event's own keptDay is the day the tap happened. A Promise can be for a later
 // day ("commit a Promise for tomorrow"), so its Events also carry promiseDay.
 function eventContract<Name extends string, Details extends z.ZodType>({
@@ -47,21 +57,8 @@ const keptEvent = z.discriminatedUnion('name', [
 	}),
 	eventContract({ name: 'plan_confirmed', details: noDetails }),
 	eventContract({ name: 'reminder_added', details: noDetails }),
-	// A Typed promise has no Action or Size, so both are null.
-	eventContract({
-		name: 'promise_committed',
-		details: z.strictObject({
-			promiseId: entityId,
-			promiseDay: keptDay,
-			actionId: entityId.nullable(),
-			size: size.nullable(),
-			moment
-		})
-	}),
-	eventContract({
-		name: 'report_made',
-		details: z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
-	}),
+	eventContract({ name: 'promise_committed', details: promiseCommittedDetails }),
+	eventContract({ name: 'report_made', details: reportMadeDetails }),
 	eventContract({
 		name: 'lesson_taught',
 		details: z.strictObject({ lessonId: entityId, skillId: entityId })
@@ -80,4 +77,16 @@ export type KeptEvent = z.input<typeof keptEvent>
 
 export function parseEvent(input: unknown): z.output<typeof keptEvent> {
 	return keptEvent.parse(input)
+}
+
+// The saved Events the ledger reads, checked against the contracts they were written with.
+export const LEDGER_EVENT_NAMES = ['promise_committed', 'report_made'] as const
+
+const savedLedgerEvent = z.discriminatedUnion('name', [
+	z.object({ name: z.literal('promise_committed'), details: promiseCommittedDetails }),
+	z.object({ name: z.literal('report_made'), details: reportMadeDetails })
+])
+
+export function parseLedgerEvent(row: { name: string; details: unknown }) {
+	return savedLedgerEvent.parse(row)
 }

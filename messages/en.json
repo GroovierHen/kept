@@ -286,6 +286,7 @@
 		},
 		"day": "Day {day}",
 		"signOut": "Sign out",
+		"ledgerLink": "See your ledger",
 		"report": {
 			"question": {
 				"today": "Did you {wording} today?",
@@ -315,6 +316,46 @@
 			"title": "Done for today",
 			"nextPromise": "Your next promise",
 			"nextCheckIn": "We’ll ask how it went at your next check-in."
+		}
+	},
+	"LedgerPage": {
+		"meta": {
+			"title": "Your ledger on Kept"
+		},
+		"title": "Your ledger",
+		"backToToday": "Back to today",
+		"promises": {
+			"title": "Your promises",
+			"kept": "Kept",
+			"partly": "Partly",
+			"slipped": "Slipped",
+			"days": "{count, plural, one {day {days}} other {days {days}}}",
+			"note": "A Partly counts as half. A promise nobody reported on counts as neither kept nor slipped."
+		},
+		"sizes": {
+			"bigger": "Getting bigger",
+			"smaller": "Getting smaller",
+			"change": "Moved from {from} to {to} on day {day}",
+			"names": {
+				"small": "small",
+				"medium": "medium",
+				"large": "large"
+			}
+		},
+		"week": {
+			"title": "This week",
+			"kept": "{kept, number} of {total, plural, one {# promise} other {# promises}} kept",
+			"none": "Nothing reported in your last 7 days yet."
+		},
+		"milestone": {
+			"title": "Next milestone",
+			"due": "{days, plural, =0 {Due today} one {Due in # day} other {Due in # days}}"
+		},
+		"learned": {
+			"title": "What you learned",
+			"scores": "{firstScore} out of 2 on day {firstDay}, {lastScore} out of 2 on day {lastDay}",
+			"leftOut": "{count, plural, one {# more idea needs} other {# more ideas need}} another recall before it shows here.",
+			"none": "Your key ideas show here once you’ve recalled them twice."
 		}
 	},
 	"SiteFooter": {

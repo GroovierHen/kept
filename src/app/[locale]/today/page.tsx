@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
-import { redirect } from '@/i18n/routing'
+import { Link, redirect } from '@/i18n/routing'
 import { LearnCard } from '@/components/learn/learn-card'
 import { SiteNav } from '@/components/landing/site-nav'
 import { CommitStep } from '@/components/today/commit-step'
@@ -101,6 +101,10 @@ export default async function TodayPage() {
 						{hasLearnedToday && lesson != null && <LearnCard lesson={lesson} mode="summary" />}
 					</>
 				)}
+
+				<Button asChild variant="secondary" className="self-start">
+					<Link href="/ledger">{t('ledgerLink')}</Link>
+				</Button>
 
 				<form action={signOut}>
 					<Button type="submit" variant="ghost">
