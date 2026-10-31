@@ -9,7 +9,7 @@ import { z } from 'zod'
 const entityId = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
 const keptDay = z.iso.date()
 // Unique per user in the events table, so a repeated submission saves once.
-// Built from names and ids, such as `report_made:<promiseId>`.
+// Built from names and ids, such as `report_made:<reportId>`.
 const idempotencyKey = z.string().regex(/^[a-z0-9][a-z0-9_:-]{0,127}$/)
 
 const size = z.enum(['small', 'medium', 'large'])

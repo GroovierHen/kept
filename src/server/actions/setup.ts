@@ -10,7 +10,7 @@ import { getSignedInUser } from '@/server/auth/session'
 import { addReminder } from '@/server/setup/add-reminder'
 import { commitFirstPromise } from '@/server/setup/commit-first-promise'
 import { readSetupStep, saveStubStep } from '@/server/setup/stub-progress'
-import { validatedAction } from './validated-action'
+import { saveFailedMessage, validatedAction } from './validated-action'
 
 const finishStubStep = validatedAction({
 	input: z.object({ userId: z.uuid(), step: z.literal('keyIdea') }),
@@ -61,7 +61,7 @@ export async function commitPromise(
 	if (!parsed.success) return { error: t('invalid') }
 
 	const result = await commit({ userId: user.id, choice: parsed.data })
-	if (!result.ok) return { error: result.status >= 500 ? t('failed') : result.error }
+	if (!result.ok) return { error: saveFailedMessage({ result, fallback: t('failed') }) }
 	return redirect({ href: '/setup', locale })
 }
 

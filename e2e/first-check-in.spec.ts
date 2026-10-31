@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page, type Request } from '@playwright/test'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
@@ -37,6 +37,17 @@ async function answerGoalQuestion({
 	await page.getByRole('button', { name: 'Continue' }).click()
 }
 
+// Replays a form submission exactly, as a flaky connection's retry would.
+async function sendAgain({ page, sent }: { page: Page; sent: Request }) {
+	await page.request.fetch(sent.url(), {
+		method: 'POST',
+		headers: sent.headers(),
+		data: sent.postDataBuffer() ?? undefined
+	})
+}
+
+const dayBefore = (date: Date) => new Date(date.getTime() - DAY_MS)
+
 function onlyOne<T>(rows: T[]): T {
 	const [row, ...others] = rows
 	if (row == null || others.length > 0) throw new Error(`Expected one row, found ${rows.length}`)
@@ -47,11 +58,11 @@ test.use({ timezoneId: TIME_ZONE })
 test.skip(RUNS_AGAINST_LIVE_URL, 'Needs the local database and fake services')
 test.afterAll(() => db.$disconnect())
 
-test('a new user goes from sign-up to the reminder, and the Promise matches its Event', async ({
+test('a new user goes from sign-up through their first check-in, and each save matches its Event', async ({
 	page
 }) => {
 	test.setTimeout(TEST_TIMEOUT_MS)
-	const email = `day-1-${crypto.randomUUID()}@example.com`
+	const email = `first-check-in-${crypto.randomUUID()}@example.com`
 
 	await test.step('sign up', async () => {
 		await page.goto('/sign-up')
@@ -148,5 +159,89 @@ test('a new user goes from sign-up to the reminder, and the Promise matches its 
 
 		onlyOne(eventsNamed('reminder_added'))
 		onlyOne(eventsNamed('setup_finished'))
+	})
+
+	await test.step('Day 1 is already done', async () => {
+		await expect(page.getByRole('heading', { name: 'Day 1' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
+		await expect(page.getByText(`After work, I will ${CHOSEN_ACTION}.`)).toBeVisible()
+	})
+
+	await test.step('a day passes', async () => {
+		const user = await db.user.findFirstOrThrow({ where: { email }, include: { promises: true } })
+		const promise = onlyOne(user.promises)
+		await db.user.update({
+			where: { id: user.id },
+			data: { createdAt: dayBefore(user.createdAt) }
+		})
+		await db.promise.update({
+			where: { id: promise.id },
+			data: { promiseDay: dayBefore(promise.promiseDay), createdAt: dayBefore(promise.createdAt) }
+		})
+		await page.goto('/today')
+		await expect(page.getByRole('heading', { name: 'Day 2' })).toBeVisible()
+	})
+
+	await test.step('report, and a repeated submission saves once', async () => {
+		await expect(
+			page.getByRole('heading', { name: 'Did you put your running shoes by the door today?' })
+		).toBeVisible()
+		const submission = page.waitForRequest((request) => request.method() === 'POST')
+		await page.getByRole('button', { name: 'Yes' }).click()
+		await expect(page.getByText('Key idea')).toBeVisible()
+
+		await sendAgain({ page, sent: await submission })
+	})
+
+	await test.step('pass the learn card', async () => {
+		await page.getByRole('button', { name: 'Continue' }).click()
+	})
+
+	await test.step('keep the current Promise with one tap, and a repeat saves once', async () => {
+		await expect(page.getByRole('radio', { name: CHOSEN_ACTION })).toBeChecked()
+		await expect(page.getByRole('radio', { name: 'After work' })).toBeChecked()
+		const submission = page.waitForRequest((request) => request.method() === 'POST')
+		await page.getByRole('button', { name: 'Make my promise' }).click()
+		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
+		await sendAgain({ page, sent: await submission })
+	})
+
+	await test.step('done for today', async () => {
+		await expect(page.getByRole('heading', { name: 'Day 2' })).toBeVisible()
+		await page.reload()
+		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
+	})
+
+	await test.step('the Report and next Promise match their Events', async () => {
+		const user = await db.user.findFirstOrThrow({
+			where: { email },
+			include: {
+				promises: { orderBy: { promiseDay: 'asc' }, include: { reports: true } },
+				events: true
+			}
+		})
+		const [reported, next, ...others] = user.promises
+		if (reported == null || next == null || others.length > 0) {
+			throw new Error(`Expected two Promises, found ${user.promises.length}`)
+		}
+		expect(onlyOne(reported.reports).answer).toBe('yes')
+
+		const eventsNamed = (name: string) => user.events.filter((event) => event.name === name)
+		const report = onlyOne(eventsNamed('report_made'))
+		expect(report.details).toEqual({
+			promiseId: reported.id,
+			promiseDay: reported.promiseDay.toISOString().slice(0, 10),
+			answer: 'yes'
+		})
+		expect(report.keptDay).toEqual(reported.promiseDay)
+
+		expect(next).toMatchObject({
+			wording: CHOSEN_ACTION,
+			moment: 'after_work',
+			planActionId: reported.planActionId,
+			reports: []
+		})
+		expect(next.promiseDay.getTime() - reported.promiseDay.getTime()).toBe(DAY_MS)
+		expect(eventsNamed('promise_committed')).toHaveLength(2)
 	})
 })

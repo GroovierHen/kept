@@ -8,6 +8,17 @@ import type { Permission } from '@/lib/rbac/permissions'
 export type ActionResult<Output> =
 	{ ok: true; data: Output } | { ok: false; error: string; status: number }
 
+/** What a form shows for a failed action: its own message, or `fallback` for a server fault. */
+export function saveFailedMessage({
+	result,
+	fallback
+}: {
+	result: { error: string; status: number }
+	fallback: string
+}): string {
+	return result.status >= 500 ? fallback : result.error
+}
+
 // Server Actions' counterpart to createApiRoute (src/server/api/route-factory.ts)
 // — same Zod-validated input, same captureError reporting, but returns a
 // result object instead of a Response: a Server Action's return value goes

@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { StepCard } from '@/components/ui/step-card'
 import { SETUP_STEPS } from '@/lib/setup-step'
+import { commitPromise } from '@/server/actions/setup'
 import { getPlan } from '@/server/learn/learn'
 import { PromiseForm } from './promise-form'
 
@@ -17,7 +18,10 @@ export async function PromiseStep({ userId }: { userId: string }) {
 			})}
 			title={t('steps.promise')}
 		>
-			<PromiseForm actions={plan.actions.map(({ id, sizes }) => ({ id, wording: sizes.small }))} />
+			<PromiseForm
+				submit={commitPromise}
+				actions={plan.actions.map(({ id, sizes }) => ({ id, wording: sizes.small }))}
+			/>
 		</StepCard>
 	)
 }
