@@ -61,7 +61,7 @@ kept/
 │   ├── rules/                one file per engineering rule (see below)
 │   ├── STANDARDS.md          what every repo from this template carries, and the check that proves it
 │   └── CI_CD_SETUP.md        GitHub secrets/environments + Vercel setup
-├── e2e/smoke.spec.ts        Playwright — delete once real coverage exists
+├── e2e/                     Playwright — the Day 1 test, against a local database
 ├── messages/en.json         i18n strings
 ├── prisma/schema/            multi-file schema — the only thing you hand-edit
 │   └── migrations/           CI-generated only, never by hand
@@ -207,8 +207,7 @@ Never run a manual production deploy command — CI/CD handles it (see
    workflow, the Server/Client Component rules, and the token conventions
    are not optional style preferences, they're enforced in CI (or, where
    noted, by `local-review`'s manual pass).
-2. Delete `e2e/smoke.spec.ts` once real e2e coverage exists.
-3. Set up GitHub and Vercel per the Deployment section above before
+2. Set up GitHub and Vercel per the Deployment section above before
    merging your first schema change — without `MIGRATIONS_TOKEN`
    specifically, the CI-generated migration commit's own run sits in
    `action_required` waiting for manual approval (the migration still

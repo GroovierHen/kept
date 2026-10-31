@@ -82,8 +82,23 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      # The browser test's own database; see e2e/support/test-env.ts.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:54329/postgres
       CRON_SECRET: placeholder-secret-for-e2e-only
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -111,8 +126,8 @@ jobs:
       # env("DIRECT_URL") unconditionally, so Prisma's schema validation
       # fails on ANY CLI command (migrate deploy, migrate diff) if it isn't
       # set, regardless of whether that specific command uses it. `prisma
-      # generate` alone doesn't hit this, which is why build/e2e don't need
-      # it — only this job, which actually runs migrate commands, does.
+      # generate` alone doesn't hit this, which is why build doesn't need it,
+      # and e2e/global-setup.ts sets its own for the browser test's migrations.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres
     services:
