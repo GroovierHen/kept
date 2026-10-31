@@ -24,8 +24,8 @@ model Goal {
 	@@map("goals")
 }
 
-// Made, then locked at confirmedAt. attempts counts Gemini calls, so Try again
-// is offered once.
+// Made, then locked at confirmedAt. attempts counts the plans built for this
+// goal, so Try again is offered once.
 model Plan {
 	id          String       @id @default(uuid(7)) @db.Uuid
 	userId      String       @unique @map("user_id") @db.Uuid
