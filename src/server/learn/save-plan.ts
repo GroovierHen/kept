@@ -59,23 +59,16 @@ async function createPlan({
 		})
 		if (savedGoal.plan != null) return { planId: savedGoal.plan.id }
 
+		const rows = planRows(plan)
 		const created = await tx.plan.create({
 			data: {
 				userId,
 				goalId: savedGoal.id,
 				model,
 				confirmedAt: isConfirmed ? new Date() : null,
-				milestones: {
-					createMany: {
-						data: plan.milestones.map((milestone, position) => ({ position, ...milestone }))
-					}
-				},
-				actions: {
-					createMany: { data: plan.actions.map((action, position) => ({ position, ...action })) }
-				},
-				keyIdeas: {
-					createMany: { data: plan.keyIdeas.map((idea, position) => ({ position, ...idea })) }
-				}
+				milestones: { createMany: { data: rows.milestones } },
+				actions: { createMany: { data: rows.actions } },
+				keyIdeas: { createMany: { data: rows.keyIdeas } }
 			},
 			select: { id: true, user: { select: { timeZone: true } } }
 		})
@@ -104,4 +97,13 @@ async function createPlan({
 		}
 		return { planId: created.id }
 	})
+}
+
+/** A plan's children as rows, numbered in Gemini's order. */
+export function planRows(plan: GeneratedPlan) {
+	return {
+		milestones: plan.milestones.map((milestone, position) => ({ position, ...milestone })),
+		actions: plan.actions.map((action, position) => ({ position, ...action })),
+		keyIdeas: plan.keyIdeas.map((idea, position) => ({ position, ...idea }))
+	}
 }

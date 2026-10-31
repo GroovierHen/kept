@@ -1,13 +1,15 @@
 import { getTranslations } from 'next-intl/server'
 import { StepCard } from '@/components/ui/step-card'
 import { confirmPlan } from '@/server/actions/plan'
-import { getPlan, getPlanStatus } from '@/server/learn/learn'
+import { getPlanDraft, getPlanStatus } from '@/server/learn/learn'
+import { ActionEditor } from './action-editor'
 import { BuildPlanForm } from './build-plan-form'
 import { ConfirmPlanButton } from './confirm-plan-button'
+import { RebuildPlanForm } from './rebuild-plan-form'
 
 // Setup's plan step (#30). With a complete goal and no plan: say the goal goes
-// to Gemini, then one button builds it. With a plan: show it and Confirm,
-// which locks it. Editing and the one Try again come next.
+// to Gemini, then one button builds it. With a plan: show it, let the person
+// reword or remove actions and Try again once, then Confirm, which locks it.
 export async function PlanStep({
 	userId,
 	hasSaveFailed
@@ -28,11 +30,15 @@ export async function PlanStep({
 	}
 	if (status !== 'plan_made') return null
 
-	const plan = await getPlan(userId)
+	const plan = await getPlanDraft(userId)
+	if (plan == null || plan.goal.text == null) return null
 
 	return (
 		<StepCard eyebrow={t('eyebrow')} title={plan.goal.text}>
-			<p className="text-small text-text-muted">{t('weeks', { weeks: plan.goal.weeks })}</p>
+			<p className="text-small text-text-muted">
+				{t('weeks', { weeks: plan.goal.weeks ?? 0 })} ·{' '}
+				{t('keyIdeas', { count: plan.keyIdeaCount })}
+			</p>
 
 			<section className="flex flex-col gap-2">
 				<h3 className="text-small font-semibold">{t('milestones')}</h3>
@@ -51,10 +57,11 @@ export async function PlanStep({
 				<ul className="flex flex-col gap-3">
 					{plan.actions.map((action) => (
 						<li key={action.id} className="flex flex-col gap-0.5">
-							<span className="text-body">{action.sizes.small}</span>
+							<span className="text-body">{action.small}</span>
 							<span className="text-small text-text-muted">
-								{t('bigger', { medium: action.sizes.medium, large: action.sizes.large })}
+								{t('bigger', { medium: action.medium, large: action.large })}
 							</span>
+							<ActionEditor action={action} canRemove={plan.actions.length > 1} />
 						</li>
 					))}
 				</ul>
@@ -69,6 +76,8 @@ export async function PlanStep({
 				<p className="text-small text-text-muted">{t('confirmHint')}</p>
 				<ConfirmPlanButton />
 			</form>
+
+			{plan.canRebuild && <RebuildPlanForm />}
 		</StepCard>
 	)
 }

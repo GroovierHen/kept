@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { generatedPlanSchema, planStatusOf } from './plan.ts'
+import { generatedPlanSchema, planActionEdit, planStatusOf } from './plan.ts'
 import { SARA_GENERATED_PLAN } from './sara-plan.ts'
 
 const eightWeeks = generatedPlanSchema({ weeks: 8 })
@@ -61,4 +61,32 @@ test('goal saved means every goal screen is answered', () => {
 	assert.equal(planStatusOf({ goal: answered, plan: null }), 'goal_saved')
 	assert.equal(planStatusOf({ goal: answered, plan: { confirmedAt: null } }), 'plan_made')
 	assert.equal(planStatusOf({ goal: answered, plan: { confirmedAt: new Date() } }), 'confirmed')
+})
+
+const actionId = '0195f0c2-7b1a-7c3e-9a1b-2c3d4e5f6a7b'
+const sizes = { small: 'Walk 10 minutes', medium: 'Walk 20 minutes', large: 'Run 1 km' }
+
+test('an action edit is trimmed and saved with all three sizes', () => {
+	const parsed = planActionEdit.parse({
+		intent: 'save',
+		actionId,
+		sizes: { ...sizes, small: '  Walk 10 minutes  ' }
+	})
+	assert.deepEqual(parsed, { intent: 'save', actionId, sizes })
+})
+
+test('an action edit refuses an empty or over-long size, or a missing one', () => {
+	const edit = (changed: object) => ({ intent: 'save', actionId, sizes: { ...sizes, ...changed } })
+	assert.equal(planActionEdit.safeParse(edit({ medium: '   ' })).success, false)
+	assert.equal(planActionEdit.safeParse(edit({ large: 'x'.repeat(161) })).success, false)
+	assert.equal(planActionEdit.safeParse(edit({ large: null })).success, false)
+})
+
+test('removing an action needs only its id, and the id must be a real one', () => {
+	assert.equal(planActionEdit.safeParse({ intent: 'remove', actionId }).success, true)
+	assert.equal(
+		planActionEdit.safeParse({ intent: 'remove', actionId: 'stub-action-0' }).success,
+		false
+	)
+	assert.equal(planActionEdit.safeParse({ intent: 'delete', actionId }).success, false)
 })
