@@ -24,6 +24,7 @@ model User {
 	updatedAt          DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
 	adminMember        AdminMember?
 	events             Event[]
+	promises           Promise[]
 	// Learn's side (learn.prisma). Prisma needs both ends of a relation.
 	goal               Goal?
 	plan               Plan?
@@ -55,4 +56,37 @@ model Event {
 	@@index([userId, keptDay])
 	@@index([name, keptDay])
 	@@map("events")
+}
+
+enum PromiseSize {
+	small
+	medium
+	large
+}
+
+enum PromiseMoment {
+	wake_up
+	lunch
+	after_work
+	before_bed
+}
+
+// One Action on one Kept day (GLOSSARY.md). Wording and size are copied in when
+// it's made, so it stays what the user promised. A Typed promise has no
+// planActionId or size. The moment is kept apart so a screen can word the sentence.
+model Promise {
+	id           String        @id @default(uuid(7)) @db.Uuid
+	userId       String        @map("user_id") @db.Uuid
+	promiseDay   DateTime      @map("promise_day") @db.Date
+	planActionId String?       @map("plan_action_id") @db.Uuid
+	size         PromiseSize?
+	wording      String        @db.VarChar(160)
+	moment       PromiseMoment
+	createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+	user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+	planAction   PlanAction?   @relation(fields: [planActionId], references: [id], onDelete: Cascade)
+
+	@@unique([userId, promiseDay])
+	@@index([planActionId])
+	@@map("promises")
 }

@@ -18,6 +18,11 @@ export function isTransientDbError(error: unknown): boolean {
 	return typeof code === 'string' && TRANSIENT_CODES.has(code)
 }
 
+// Two writes racing for the same unique key: the loser's retry finds the winner's row.
+export function isUniqueViolation(error: unknown): boolean {
+	return prismaCode(error) === 'P2002'
+}
+
 // A retry that works leaves no error behind, so this line is the only record
 // that the database is wobbling.
 export function logDbRetry({

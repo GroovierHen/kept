@@ -8,7 +8,7 @@ import { goalAnswer, type GoalAnswer } from '@/lib/learn/goal'
 import { withRetry } from '@/lib/retry'
 import { getSignedInUser } from '@/server/auth/session'
 import { db } from '@/server/db/client'
-import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
+import { isTransientDbError, isUniqueViolation, logDbRetry } from '@/server/db/transient-error'
 import { validatedAction } from './validated-action'
 
 // Saves one goal screen's answer (#29). Answering a question again just
@@ -36,9 +36,7 @@ function goalData(answer: GoalAnswer) {
 // Two first answers at once both try to create the user's goal row; the
 // unique userId lets one through and the other retries as an update.
 function isRetryable(error: unknown): boolean {
-	const isUniqueRace =
-		typeof error === 'object' && error != null && 'code' in error && error.code === 'P2002'
-	return isUniqueRace || isTransientDbError(error)
+	return isUniqueViolation(error) || isTransientDbError(error)
 }
 
 const saveAnswer = validatedAction({

@@ -14,14 +14,13 @@ test('a signed up Event carries the user and the Kept day, and no details', () =
 	})
 })
 
-test('a promise committed Event keeps its ids, enums and pence', () => {
+test('a promise committed Event keeps its ids and enums', () => {
 	const details = {
 		promiseId,
 		promiseDay: '2026-10-31',
 		actionId: 'cook-instead',
 		size: 'small',
-		moment: 'after_work',
-		savingPence: 900
+		moment: 'after_work'
 	}
 	assert.deepEqual(
 		parseEvent({ userId, name: 'promise_committed', keptDay: '2026-10-30', details }).details,
@@ -29,14 +28,13 @@ test('a promise committed Event keeps its ids, enums and pence', () => {
 	)
 })
 
-test('a Typed promise is committed with no Action, Size or pence', () => {
+test('a Typed promise is committed with no Action or Size', () => {
 	const details = {
 		promiseId,
 		promiseDay: '2026-10-31',
 		actionId: null,
 		size: null,
-		moment: 'lunch',
-		savingPence: null
+		moment: 'lunch'
 	}
 	assert.deepEqual(
 		parseEvent({ userId, name: 'promise_committed', keptDay: '2026-10-30', details }).details,
@@ -50,7 +48,7 @@ test('a promise committed Event says which day the Promise is for, apart from th
 			userId,
 			name: 'promise_committed',
 			keptDay: '2026-10-30',
-			details: { promiseId, actionId: null, size: null, moment: 'lunch', savingPence: null }
+			details: { promiseId, actionId: null, size: null, moment: 'lunch' }
 		})
 	)
 })
@@ -77,8 +75,7 @@ test('free text cannot get into an Event', () => {
 				promiseDay: '2026-10-31',
 				actionId: 'Stop buying coffee on the way to work',
 				size: null,
-				moment: 'lunch',
-				savingPence: null
+				moment: 'lunch'
 			}
 		})
 	)
@@ -91,7 +88,7 @@ test('free text cannot get into an Event', () => {
 	)
 })
 
-test('pence are whole numbers', () => {
+test('money is no longer part of a promise', () => {
 	assert.throws(() =>
 		parseEvent({
 			userId,
@@ -103,7 +100,7 @@ test('pence are whole numbers', () => {
 				actionId: null,
 				size: null,
 				moment: 'lunch',
-				savingPence: 2.5
+				savingPence: 250
 			}
 		})
 	)

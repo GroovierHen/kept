@@ -4,8 +4,7 @@ import { StepCard } from '@/components/ui/step-card'
 import { SETUP_STEPS, type SetupStep } from '@/lib/setup-step'
 import { continueSetup } from '@/server/actions/setup'
 
-// TEMPORARY: stands in for a step until its real piece lands: <GoalSteps> (#29),
-// <PlanStep> (#30), <LearnCard> (#31), the promise picker (#13), the reminder (#14).
+// TEMPORARY: stands in for the first key idea until <LearnCard> can teach it (#31).
 export async function StubStep({
 	step,
 	hasSaveFailed
