@@ -321,7 +321,11 @@
 		},
 		"commit": {
 			"title": "Your next promise",
-			"reminder": "Your daily reminder already covers it."
+			"reminder": "Your daily reminder already covers it.",
+			"nudge": {
+				"differentAction": "That was two Noes at the smallest size, so here’s a different action from your plan. You can still pick the old one.",
+				"typeSmaller": "That was two Noes on this one. Try typing a smaller version."
+			}
 		},
 		"done": {
 			"title": "Done for today",
