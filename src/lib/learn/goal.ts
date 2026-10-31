@@ -31,3 +31,18 @@ export const goalAnswer = z.discriminatedUnion('question', [
 ])
 
 export type GoalAnswer = z.output<typeof goalAnswer>
+
+export interface CompleteGoal {
+	readonly text: string
+	readonly weeks: number
+	readonly startingPoint: string
+	readonly obstacle: string
+}
+
+/** All four answers, ready for the planner, or null while any is missing. */
+export function completeGoal(goal: GoalAnswers | null): CompleteGoal | null {
+	if (goal == null) return null
+	const { text, weeks, startingPoint, obstacle } = goal
+	if (text == null || weeks == null || startingPoint == null || obstacle == null) return null
+	return { text, weeks, startingPoint, obstacle }
+}

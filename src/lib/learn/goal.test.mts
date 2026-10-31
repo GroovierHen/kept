@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { goalAnswer, nextGoalQuestion } from './goal.ts'
+import { completeGoal, goalAnswer, nextGoalQuestion } from './goal.ts'
 
 const empty = { text: null, weeks: null, startingPoint: null, obstacle: null }
 
@@ -48,4 +48,11 @@ test('weeks is 4, 8 or 12, sent from a form as text', () => {
 
 test('an unknown question is refused', () => {
 	assert.equal(goalAnswer.safeParse({ question: 'userId', answer: 'x' }).success, false)
+})
+
+test('only a goal with all four answers can be planned', () => {
+	const complete = { text: 'run 5k', weeks: 8, startingPoint: '1 km', obstacle: 'tired' }
+	assert.deepEqual(completeGoal(complete), complete)
+	assert.equal(completeGoal({ ...complete, obstacle: null }), null)
+	assert.equal(completeGoal(null), null)
 })
