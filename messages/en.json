@@ -289,7 +289,22 @@
 			"milestones": "Milestones",
 			"week": "Week {week}:",
 			"actions": "Daily actions, starting small",
-			"bigger": "Then: {medium}. Then: {large}."
+			"bigger": "Then: {medium}. Then: {large}.",
+			"build": {
+				"title": "Ready to make your plan",
+				"body": "Kept turns your answers into milestones, small daily actions and the ideas behind them. It takes about 10 seconds.",
+				"privacy": "Your answers are sent to Google’s Gemini to write the plan. Leave out anything private.",
+				"submit": "Make my plan",
+				"pending": "Writing your plan…",
+				"retry": "Try again",
+				"failed": "We couldn’t make your plan right now. Your answers are saved; try again in a minute.",
+				"offline": "You’re offline, so nothing was sent. Try again once you’re connected.",
+				"unsafe": "Kept can’t plan that goal safely. Here’s a safer version: use it as it is, or change it."
+			},
+			"confirm": "Confirm my plan",
+			"confirming": "Confirming…",
+			"confirmHint": "Once confirmed, your plan stays fixed for the test.",
+			"confirmFailed": "We couldn’t confirm your plan. Check your connection, then tap Confirm again."
 		},
 		"card": {
 			"eyebrow": "Key idea",

@@ -146,3 +146,19 @@ test('an idempotency key is a short token, never free text', () => {
 		)
 	}
 })
+
+test('a plan generated Event says which build of the plan it was', () => {
+	const event = parseEvent({
+		userId,
+		name: 'plan_generated',
+		keptDay: '2026-10-31',
+		details: { build: 1 },
+		idempotencyKey: 'plan_generated:1'
+	})
+	assert.deepEqual(event.details, { build: 1 })
+	for (const build of [0, 3, 1.5]) {
+		assert.throws(() =>
+			parseEvent({ userId, name: 'plan_generated', keptDay: '2026-10-31', details: { build } })
+		)
+	}
+})

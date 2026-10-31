@@ -41,6 +41,11 @@ function eventContract<Name extends string, Details extends z.ZodType>({
 const keptEvent = z.discriminatedUnion('name', [
 	eventContract({ name: 'signed_up', details: noDetails }),
 	eventContract({ name: 'setup_finished', details: noDetails }),
+	// build is 1 for the first plan and 2 after the one Try again (#30).
+	eventContract({
+		name: 'plan_generated',
+		details: z.strictObject({ build: z.int().min(1).max(2) })
+	}),
 	eventContract({ name: 'plan_confirmed', details: noDetails }),
 	eventContract({ name: 'reminder_added', details: noDetails }),
 	// A Typed promise has no Action, Size or £ value, so all three are null.

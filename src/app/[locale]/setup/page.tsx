@@ -3,10 +3,15 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from '@/i18n/routing'
 import { SiteNav } from '@/components/landing/site-nav'
 import { GoalSteps } from '@/components/learn/goal-steps'
+import { PlanStep } from '@/components/learn/plan-step'
 import { StubStep } from '@/components/setup/stub-step'
 import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
 import { readSetupStep } from '@/server/setup/stub-progress'
+
+// Building a plan can take two Gemini attempts, each with up to 3 network
+// tries of 20s; the usual case is about 4s. Server actions on this page share it.
+export const maxDuration = 120
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('SetupPage.meta')
@@ -34,6 +39,8 @@ export default async function SetupPage({ searchParams }: PageProps<'/[locale]/s
 				<div className="w-full max-w-xl">
 					{step === 'goal' ? (
 						<GoalSteps userId={user.id} />
+					) : step === 'plan' ? (
+						<PlanStep userId={user.id} hasSaveFailed={hasSaveFailed} />
 					) : (
 						<StubStep step={step} hasSaveFailed={hasSaveFailed} />
 					)}
