@@ -1,9 +1,12 @@
 import 'server-only'
 import type { GeneratedPlan } from '@/lib/learn/plan'
+import { toKeptDay } from '@/lib/kept-day'
 import { db } from '@/server/db/client'
+import { recordEvent } from '@/server/events/record-event'
 
 // Saves a user's goal answers and plan in one transaction, so a plan never
-// exists without its milestones, actions and key ideas. Safe to call twice:
+// exists without its milestones, actions and key ideas, or without its
+// plan_generated Event (ADR 0001). Safe to call twice:
 // a user has one plan (unique userId), and a second call returns the first.
 // The planner (#30) and the demo account (#35) both save through here.
 export async function savePlan({
@@ -56,7 +59,7 @@ async function createPlan({
 		})
 		if (savedGoal.plan != null) return { planId: savedGoal.plan.id }
 
-		const { id: planId } = await tx.plan.create({
+		const created = await tx.plan.create({
 			data: {
 				userId,
 				goalId: savedGoal.id,
@@ -74,8 +77,31 @@ async function createPlan({
 					createMany: { data: plan.keyIdeas.map((idea, position) => ({ position, ...idea })) }
 				}
 			},
-			select: { id: true }
+			select: { id: true, user: { select: { timeZone: true } } }
 		})
-		return { planId }
+		const keptDay = toKeptDay({ instant: new Date(), timeZone: created.user.timeZone })
+		await recordEvent({
+			tx,
+			event: {
+				userId,
+				name: 'plan_generated',
+				keptDay,
+				details: { build: 1 },
+				idempotencyKey: 'plan_generated:1'
+			}
+		})
+		if (isConfirmed) {
+			await recordEvent({
+				tx,
+				event: {
+					userId,
+					name: 'plan_confirmed',
+					keptDay,
+					details: {},
+					idempotencyKey: 'plan_confirmed'
+				}
+			})
+		}
+		return { planId: created.id }
 	})
 }
