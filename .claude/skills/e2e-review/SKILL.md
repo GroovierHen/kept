@@ -19,7 +19,7 @@ pnpm exec playwright install chromium
 
 ## 2. Run it
 
-The Day 1 test writes to a real database, always the local one on port 54329 (`e2e/support/test-env.ts`). Start it once:
+The first check-in test writes to a real database, always the local one on port 54329 (`e2e/support/test-env.ts`). Start it once:
 
 ```bash
 docker run -d --rm --name kept-e2e-pg -e POSTGRES_PASSWORD=postgres -p 54329:5432 postgres:16
@@ -31,7 +31,7 @@ Then run the tests. They apply the migrations, start fake Supabase Auth and Gemi
 pnpm test:e2e
 ```
 
-With `E2E_BASE_URL` set, the Day 1 test skips itself. It is the only spec, so that run tests nothing: use `preview-acceptance-testing` for a live URL.
+With `E2E_BASE_URL` set, the first check-in test skips itself. It is the only spec, so that run tests nothing: use `preview-acceptance-testing` for a live URL.
 
 ## 3. On failure, actually look at the evidence
 

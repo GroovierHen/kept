@@ -3,6 +3,7 @@ export type KeptDay = string
 
 export const ROLLOVER_HOUR = 4
 const FALLBACK_TIME_ZONE = 'Europe/London'
+const DAY_MS = 24 * 60 * 60 * 1000
 
 /** The first valid time zone among `candidates`, in canonical form, else Europe/London. */
 export function resolveTimeZone(...candidates: unknown[]): string {
@@ -23,6 +24,14 @@ export function addDays({ day, days }: { day: KeptDay; days: number }): KeptDay 
 	return date.toISOString().slice(0, 10)
 }
 
+export function dayNumber({ signUpDay, today }: { signUpDay: KeptDay; today: KeptDay }): number {
+	const daysBetween = Date.parse(`${today}T00:00:00Z`) - Date.parse(`${signUpDay}T00:00:00Z`)
+	return daysBetween / DAY_MS + 1
+}
+
+/** A Kept day read back from a date column. */
+export const keptDayFromDate = (date: Date): KeptDay => date.toISOString().slice(0, 10)
+
 export type PromiseStatus = 'upcoming' | 'dueToday' | 'dueYesterday' | 'unreported'
 
 export function promiseStatus({
@@ -36,6 +45,11 @@ export function promiseStatus({
 	if (promiseDay === today) return 'dueToday'
 	if (addDays({ day: promiseDay, days: 1 }) === today) return 'dueYesterday'
 	return 'unreported'
+}
+
+/** A Promise can be reported on its own Kept day and the one after, then it closes. */
+export function isReportOpen(status: PromiseStatus): boolean {
+	return status === 'dueToday' || status === 'dueYesterday'
 }
 
 /**

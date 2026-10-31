@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+	dayNumber,
 	isReportEditable,
 	nextPromiseDay,
 	promiseStatus,
@@ -108,4 +109,10 @@ test('no new promise can be committed while a later one is still upcoming', () =
 test('a report can be changed until its Kept day rolls over', () => {
 	assert.equal(isReportEditable({ reportedOn: '2026-10-29', today: '2026-10-29' }), true)
 	assert.equal(isReportEditable({ reportedOn: '2026-10-29', today: '2026-10-30' }), false)
+})
+
+test('Day N counts Kept days from the sign-up day, which is Day 1', () => {
+	assert.equal(dayNumber({ signUpDay: '2026-10-29', today: '2026-10-29' }), 1)
+	assert.equal(dayNumber({ signUpDay: '2026-10-29', today: '2026-10-30' }), 2)
+	assert.equal(dayNumber({ signUpDay: '2026-10-29', today: '2026-11-02' }), 5)
 })

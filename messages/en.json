@@ -284,10 +284,38 @@
 		"meta": {
 			"title": "Today on Kept"
 		},
-		"heading": "You’re in.",
-		"signedInAs": "Signed in as {email}.",
-		"soon": "Setup is done. Today’s screen is on its way.",
-		"signOut": "Sign out"
+		"day": "Day {day}",
+		"signOut": "Sign out",
+		"report": {
+			"question": {
+				"today": "Did you {wording} today?",
+				"yesterday": "Did you {wording} yesterday?"
+			},
+			"answers": {
+				"yes": "Yes",
+				"partly": "Partly",
+				"no": "No"
+			},
+			"errors": {
+				"invalid": "Pick Yes, Partly or No.",
+				"promiseGone": "We can’t find that promise. Refresh the page and try again.",
+				"closed": "That promise can’t be reported on any more.",
+				"failed": "We couldn’t save your report. Check your connection, then try again.",
+				"offline": "You’re offline. Try again when you’re back."
+			}
+		},
+		"learn": {
+			"continue": "Continue"
+		},
+		"commit": {
+			"title": "Your next promise",
+			"reminder": "Your daily reminder already covers it."
+		},
+		"done": {
+			"title": "Done for today",
+			"nextPromise": "Your next promise",
+			"nextCheckIn": "We’ll ask how it went at your next check-in."
+		}
 	},
 	"SiteFooter": {
 		"privacy": "Privacy",

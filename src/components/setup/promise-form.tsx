@@ -6,18 +6,29 @@ import { Button } from '@/components/ui/button'
 import { ChoiceGroup } from '@/components/ui/choice-group'
 import { Textarea } from '@/components/ui/textarea'
 import { MAX_PROMISE_LENGTH, PROMISE_MOMENTS, type PromiseMoment } from '@/lib/promise'
-import { commitPromise, type PromiseFormState } from '@/server/actions/setup'
+import type { PromiseFormState } from '@/server/actions/setup'
 
 const INITIAL_STATE: PromiseFormState = { error: null }
 
-export function PromiseForm({ actions }: { actions: { id: string; wording: string }[] }) {
+export function PromiseForm({
+	actions,
+	submit,
+	initial
+}: {
+	actions: { id: string; wording: string }[]
+	submit: (previous: PromiseFormState, formData: FormData) => Promise<PromiseFormState>
+	/** What comes pre-selected. Setup leaves it out, so the first action is selected. */
+	initial?: { actionId?: string; typed?: string; moment: PromiseMoment }
+}) {
 	const t = useTranslations('SetupPage.promise')
 	const id = useId()
-	const [state, formAction, pending] = useActionState(commitPromise, INITIAL_STATE)
-	const [actionId, setActionId] = useState<string | null>(actions[0]?.id ?? null)
-	const [isTyping, setIsTyping] = useState(actions.length === 0)
-	const [typed, setTyped] = useState('')
-	const [moment, setMoment] = useState<PromiseMoment | null>(null)
+	const [state, formAction, pending] = useActionState(submit, INITIAL_STATE)
+	const [actionId, setActionId] = useState<string | null>(
+		initial?.actionId ?? actions[0]?.id ?? null
+	)
+	const [isTyping, setIsTyping] = useState(actions.length === 0 || initial?.typed != null)
+	const [typed, setTyped] = useState(initial?.typed ?? '')
+	const [moment, setMoment] = useState<PromiseMoment | null>(initial?.moment ?? null)
 	const [isOffline, setIsOffline] = useState(false)
 
 	const chosen = actions.find((action) => action.id === actionId)?.wording

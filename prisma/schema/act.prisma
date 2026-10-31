@@ -85,8 +85,29 @@ model Promise {
 	createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 	user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 	planAction   PlanAction?   @relation(fields: [planActionId], references: [id], onDelete: Cascade)
+	reports      Report[]
 
 	@@unique([userId, promiseDay])
 	@@index([planActionId])
 	@@map("promises")
+}
+
+enum ReportAnswer {
+	yes
+	partly
+	no
+}
+
+// Added to, never edited: the latest row for a Promise is the one that counts.
+// The id comes from the screen that asked, so a repeated submission saves once
+// (ADR 0002).
+model Report {
+	id        String       @id @db.Uuid
+	promiseId String       @map("promise_id") @db.Uuid
+	answer    ReportAnswer
+	createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+	promise   Promise      @relation(fields: [promiseId], references: [id], onDelete: Cascade)
+
+	@@index([promiseId, createdAt])
+	@@map("reports")
 }
