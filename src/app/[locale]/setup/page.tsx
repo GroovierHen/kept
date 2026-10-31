@@ -3,13 +3,13 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from '@/i18n/routing'
 import { SiteNav } from '@/components/landing/site-nav'
 import { GoalSteps } from '@/components/learn/goal-steps'
+import { KeyIdeaStep } from '@/components/learn/key-idea-step'
 import { PlanStep } from '@/components/learn/plan-step'
 import { PromiseStep } from '@/components/setup/promise-step'
 import { ReminderStep } from '@/components/setup/reminder-step'
-import { StubStep } from '@/components/setup/stub-step'
 import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
-import { readSetupStep } from '@/server/setup/stub-progress'
+import { readSetupStep } from '@/server/setup/progress'
 
 // Building a plan can take two Gemini attempts, each with up to 3 network
 // tries of 20s; the usual case is about 4s. Server actions on this page share it.
@@ -43,12 +43,12 @@ export default async function SetupPage({ searchParams }: PageProps<'/[locale]/s
 						<GoalSteps userId={user.id} />
 					) : step === 'plan' ? (
 						<PlanStep userId={user.id} hasSaveFailed={hasSaveFailed} />
+					) : step === 'keyIdea' ? (
+						<KeyIdeaStep userId={user.id} hasSaveFailed={hasSaveFailed} />
 					) : step === 'promise' ? (
 						<PromiseStep userId={user.id} />
-					) : step === 'reminder' ? (
-						<ReminderStep userId={user.id} />
 					) : (
-						<StubStep step={step} hasSaveFailed={hasSaveFailed} />
+						<ReminderStep userId={user.id} />
 					)}
 				</div>
 			</main>

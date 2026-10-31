@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { SiteNav } from '@/components/landing/site-nav'
 import { signOut } from '@/server/actions/auth'
 import { getSignedInUser } from '@/server/auth/session'
-import { readSetupStep } from '@/server/setup/stub-progress'
+import { readSetupStep } from '@/server/setup/progress'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('TodayPage.meta')

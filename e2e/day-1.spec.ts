@@ -10,6 +10,8 @@ const TIME_ZONE = 'Asia/Karachi'
 // on the form's default choice.
 const CHOSEN_ACTION = 'put my running shoes by the door'
 const GOAL = 'I want to run 5k without stopping.'
+// The first key idea of the plan the fake Gemini returns.
+const FIRST_KEY_IDEA = 'Run slow enough to talk'
 // A cold run compiles each route on first visit.
 const TEST_TIMEOUT_MS = 180_000
 const HYDRATION_CHECK_MS = 500
@@ -88,9 +90,8 @@ test('a new user goes from sign-up to the reminder, and the Promise matches its 
 		await page.getByRole('button', { name: 'Confirm my plan' }).click()
 	})
 
-	// TEMPORARY: a placeholder until the key idea step lands (#31).
-	await test.step('pass the key idea', async () => {
-		await expect(page.getByText('Your first key idea')).toBeVisible()
+	await test.step('learn the first key idea', async () => {
+		await expect(page.getByRole('heading', { name: FIRST_KEY_IDEA })).toBeVisible()
 		await page.getByRole('button', { name: 'Continue' }).click()
 	})
 
@@ -120,7 +121,13 @@ test('a new user goes from sign-up to the reminder, and the Promise matches its 
 	await test.step('the saved Promise and its Event agree', async () => {
 		const user = await db.user.findFirstOrThrow({
 			where: { email },
-			include: { goal: true, promises: { include: { planAction: true } }, events: true }
+			include: {
+				goal: true,
+				promises: { include: { planAction: true } },
+				events: true,
+				plan: { include: { keyIdeas: { where: { taughtOn: { not: null } } } } },
+				reviews: true
+			}
 		})
 		expect(user.goal).toMatchObject({ text: GOAL, weeks: 8 })
 		expect(user.timeZone).toBe(TIME_ZONE)
@@ -145,6 +152,14 @@ test('a new user goes from sign-up to the reminder, and the Promise matches its 
 		})
 		// Tonight's Promise is for the next Kept day.
 		expect(promise.promiseDay.getTime() - committed.keptDay.getTime()).toBe(DAY_MS)
+
+		// The first key idea is taught on Day 1 and first comes back the next Kept day.
+		const taught = onlyOne(user.plan?.keyIdeas ?? [])
+		expect(taught.title).toBe(FIRST_KEY_IDEA)
+		expect(onlyOne(eventsNamed('lesson_taught')).details).toEqual({ keyIdeaId: taught.id })
+		const review = onlyOne(user.reviews)
+		expect(review.keyIdeaId).toBe(taught.id)
+		expect(review.dueOn.getTime() - (taught.taughtOn?.getTime() ?? 0)).toBe(DAY_MS)
 
 		onlyOne(eventsNamed('reminder_added'))
 		onlyOne(eventsNamed('setup_finished'))

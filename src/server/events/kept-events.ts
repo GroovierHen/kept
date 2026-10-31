@@ -62,10 +62,7 @@ const keptEvent = z.discriminatedUnion('name', [
 		name: 'report_made',
 		details: z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
 	}),
-	eventContract({
-		name: 'lesson_taught',
-		details: z.strictObject({ lessonId: entityId, skillId: entityId })
-	}),
+	eventContract({ name: 'lesson_taught', details: z.strictObject({ keyIdeaId: entityId }) }),
 	eventContract({
 		name: 'recall_graded',
 		details: z.strictObject({ questionId: entityId, skillId: entityId, score: recallScore })

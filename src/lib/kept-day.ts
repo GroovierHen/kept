@@ -23,6 +23,16 @@ export function addDays({ day, days }: { day: KeptDay; days: number }): KeptDay 
 	return date.toISOString().slice(0, 10)
 }
 
+/** A Kept day as a `@db.Date` column takes it: midnight UTC. */
+export function keptDayDate(day: KeptDay): Date {
+	return new Date(`${day}T00:00:00Z`)
+}
+
+/** A `@db.Date` column read back as a Kept day. */
+export function keptDayOf(date: Date): KeptDay {
+	return date.toISOString().slice(0, 10)
+}
+
 export type PromiseStatus = 'upcoming' | 'dueToday' | 'dueYesterday' | 'unreported'
 
 export function promiseStatus({
