@@ -235,7 +235,50 @@
 		},
 		"stub": "This step is still being built. Continue to see the next one.",
 		"continue": "Continue",
-		"saveFailed": "We couldn’t save that step. Check your connection, then tap Continue again."
+		"saveFailed": "We couldn’t save that step. Check your connection, then tap Continue again.",
+		"promise": {
+			"actionsLabel": "Which action will you promise?",
+			"typeMyOwn": "Type my own",
+			"useAction": "Pick from my plan instead",
+			"typedLabel": "Your own promise",
+			"typedPlaceholder": "walk for 10 minutes",
+			"momentLabel": "When will you do it?",
+			"moments": {
+				"wake_up": "Wake up",
+				"lunch": "Lunch",
+				"after_work": "After work",
+				"before_bed": "Before bed"
+			},
+			"sentences": {
+				"wake_up": "When I wake up, I will {wording}.",
+				"lunch": "At lunch, I will {wording}.",
+				"after_work": "After work, I will {wording}.",
+				"before_bed": "Before bed, I will {wording}."
+			},
+			"commit": "Make my promise",
+			"saving": "Saving…",
+			"errors": {
+				"invalid": "Pick a moment, and write up to 160 characters if you’re typing your own.",
+				"actionGone": "That action isn’t in your plan. Pick another one.",
+				"failed": "We couldn’t save your promise. Check your connection, then try again.",
+				"offline": "You’re offline. Your promise is still here, so try again when you’re back."
+			}
+		},
+		"reminder": {
+			"body": "Your phone reminds you every day at this time, with a link straight to today’s screen. You only add it once.",
+			"timeLabel": "Remind me at",
+			"pickTime": "Pick a time to add your reminder.",
+			"changeLater": "You can change the time later in your phone’s calendar.",
+			"addFile": "Add daily reminder",
+			"addGoogle": "Add to Google Calendar",
+			"added": "Your daily reminder is ready. If your calendar asked you to save it, make sure you did.",
+			"goToToday": "Go to today",
+			"saveFailed": "We couldn’t save that. Check your connection, then tap the same button again.",
+			"calendar": {
+				"title": "Open Kept and report back",
+				"details": "Report back on today’s promise: {url}"
+			}
+		}
 	},
 	"TodayPage": {
 		"meta": {

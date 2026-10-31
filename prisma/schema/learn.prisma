@@ -55,8 +55,7 @@ model Milestone {
 	@@map("milestones")
 }
 
-// Act's Promise points here by id. The two relation lines are added together
-// when act.prisma gets Promise (#13).
+// Act's Promise points here by id.
 model PlanAction {
 	id       String @id @default(uuid(7)) @db.Uuid
 	planId   String @map("plan_id") @db.Uuid
@@ -65,6 +64,7 @@ model PlanAction {
 	medium   String @db.VarChar(160)
 	large    String @db.VarChar(160)
 	plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+	promises Promise[]
 
 	@@unique([planId, position])
 	@@map("plan_actions")

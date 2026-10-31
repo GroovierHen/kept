@@ -1,7 +1,7 @@
 /** A Kept day as a plain `YYYY-MM-DD` calendar date. See GLOSSARY.md. */
 export type KeptDay = string
 
-const ROLLOVER_HOUR = 4
+export const ROLLOVER_HOUR = 4
 const FALLBACK_TIME_ZONE = 'Europe/London'
 
 /** The first valid time zone among `candidates`, in canonical form, else Europe/London. */
@@ -17,7 +17,7 @@ export function resolveTimeZone(...candidates: unknown[]): string {
 	return FALLBACK_TIME_ZONE
 }
 
-function addDays({ day, days }: { day: KeptDay; days: number }): KeptDay {
+export function addDays({ day, days }: { day: KeptDay; days: number }): KeptDay {
 	const date = new Date(`${day}T00:00:00Z`)
 	date.setUTCDate(date.getUTCDate() + days)
 	return date.toISOString().slice(0, 10)

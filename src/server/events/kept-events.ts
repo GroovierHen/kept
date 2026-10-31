@@ -2,12 +2,11 @@ import { z } from 'zod'
 
 // Kept's own typed list of Events (GLOSSARY.md, ADR 0001): the record the ledger
 // and results page are built from. It is separate from the PostHog taxonomy in
-// src/lib/analytics/events.ts. Details hold only ids, enums and pence. Each
+// src/lib/analytics/events.ts. Details hold only ids, enums and numbers. Each
 // contract is strict and an id is a single lowercase token, which keeps sentences
 // out of the table. It can't tell a lone word from an id, so never pass typed text.
 
 const entityId = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
-const pence = z.number().int().nonnegative()
 const keptDay = z.iso.date()
 // Unique per user in the events table, so a repeated submission saves once.
 // Built from names and ids, such as `report_made:<promiseId>`.
@@ -48,7 +47,7 @@ const keptEvent = z.discriminatedUnion('name', [
 	}),
 	eventContract({ name: 'plan_confirmed', details: noDetails }),
 	eventContract({ name: 'reminder_added', details: noDetails }),
-	// A Typed promise has no Action, Size or £ value, so all three are null.
+	// A Typed promise has no Action or Size, so both are null.
 	eventContract({
 		name: 'promise_committed',
 		details: z.strictObject({
@@ -56,8 +55,7 @@ const keptEvent = z.discriminatedUnion('name', [
 			promiseDay: keptDay,
 			actionId: entityId.nullable(),
 			size: size.nullable(),
-			moment,
-			savingPence: pence.nullable()
+			moment
 		})
 	}),
 	eventContract({

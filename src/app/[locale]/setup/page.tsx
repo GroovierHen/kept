@@ -4,6 +4,8 @@ import { redirect } from '@/i18n/routing'
 import { SiteNav } from '@/components/landing/site-nav'
 import { GoalSteps } from '@/components/learn/goal-steps'
 import { PlanStep } from '@/components/learn/plan-step'
+import { PromiseStep } from '@/components/setup/promise-step'
+import { ReminderStep } from '@/components/setup/reminder-step'
 import { StubStep } from '@/components/setup/stub-step'
 import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
@@ -41,6 +43,10 @@ export default async function SetupPage({ searchParams }: PageProps<'/[locale]/s
 						<GoalSteps userId={user.id} />
 					) : step === 'plan' ? (
 						<PlanStep userId={user.id} hasSaveFailed={hasSaveFailed} />
+					) : step === 'promise' ? (
+						<PromiseStep userId={user.id} />
+					) : step === 'reminder' ? (
+						<ReminderStep userId={user.id} />
 					) : (
 						<StubStep step={step} hasSaveFailed={hasSaveFailed} />
 					)}
