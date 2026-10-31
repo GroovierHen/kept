@@ -12,8 +12,7 @@ import { getPlanStatus } from '@/server/learn/learn'
 // walked before they land. A cookie keeps fake progress out of the database, but
 // the last step still saves a real setup_finished Event, so anyone who walks these
 // counts as Started. Replace each field in readSetupProgress as its piece lands:
-// planStatus reads the real goal (#29) and fakes only the plan until #30,
-// hasLearnedFirstIdea (#31),
+// planStatus is real (#29, #30), hasLearnedFirstIdea (#31),
 // hasCommittedPromise (#13), hasAddedReminder (#14). Then delete the cookie.
 
 const COOKIE_PREFIX = 'kept_setup_stub_'
@@ -29,7 +28,7 @@ async function readSetupProgress(userId: string): Promise<SetupProgress> {
 	const [done, planStatus] = await Promise.all([readDoneSteps(userId), getPlanStatus(userId)])
 	const isDone = (step: SetupStep) => done.includes(step)
 	return {
-		planStatus: planStatus === 'no_goal' || !isDone('plan') ? planStatus : 'confirmed',
+		planStatus,
 		hasLearnedFirstIdea: isDone('keyIdea'),
 		hasCommittedPromise: isDone('promise'),
 		hasAddedReminder: isDone('reminder')

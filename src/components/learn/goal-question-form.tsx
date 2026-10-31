@@ -12,10 +12,19 @@ const INITIAL_STATE: GoalFormState = { error: null, answer: '' }
 
 // One goal question. On an error the action hands back what was typed, so
 // nothing is lost; offline, the submit is stopped before it can fail.
-export function GoalQuestionForm({ question }: { question: GoalQuestion }) {
+export function GoalQuestionForm({
+	question,
+	defaultAnswer = ''
+}: {
+	question: GoalQuestion
+	defaultAnswer?: string
+}) {
 	const t = useTranslations('Learn.goal')
 	const id = useId()
-	const [state, formAction, pending] = useActionState(saveGoalAnswer, INITIAL_STATE)
+	const [state, formAction, pending] = useActionState(saveGoalAnswer, {
+		...INITIAL_STATE,
+		answer: defaultAnswer
+	})
 	const [weeks, setWeeks] = useState<string | null>(null)
 	const [isOffline, setIsOffline] = useState(false)
 	const error = isOffline ? t('errors.offline') : state.error
