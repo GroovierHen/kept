@@ -251,6 +251,7 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		await expect(page.getByText('1 of 1 promise kept')).toBeVisible()
 		await expect(page.getByText('day 2', { exact: true })).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Getting bigger' })).toHaveCount(0)
+		await expect(page.getByText('Your key ideas show here')).toBeVisible()
 		await page.getByRole('link', { name: 'Back to today' }).click()
 		await expect(page).toHaveURL(/\/today$/)
 	})

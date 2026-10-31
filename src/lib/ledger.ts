@@ -1,5 +1,5 @@
 import { addDays, dayNumber, type KeptDay } from './kept-day'
-import type { ActionSize } from './learn/plan'
+import type { ActionSize, RecallProgress } from './learn/plan'
 import type { ReportAnswer } from './report'
 
 // The user's ledger (docs/product/walkthrough.md, "Day 5: the ledger"), worked out
@@ -8,6 +8,9 @@ import type { ReportAnswer } from './report'
 const WEEK_DAYS = 7
 const PARTLY_VALUE = 0.5
 const SIZES: readonly ActionSize[] = ['small', 'medium', 'large']
+// A stub in src/server/learn/learn.ts marks its ids this way. Sara's made-up
+// scores must never read as the user's own.
+const STUB_ID_PREFIX = 'stub-'
 
 export type LedgerEvent =
 	| {
@@ -133,4 +136,9 @@ export function nextMilestone<Milestone extends { readonly week: number }>({
 		.filter(({ week }) => week * WEEK_DAYS >= currentDay)
 		.toSorted((a, b) => a.week - b.week)
 	return next == null ? null : { ...next, daysLeft: next.week * WEEK_DAYS - currentDay }
+}
+
+/** Learn's recall progress without its stub's rows, so nothing changes when the real one lands. */
+export function ownRecallProgress({ ideas, leftOut }: RecallProgress): RecallProgress {
+	return { ideas: ideas.filter(({ keyIdeaId }) => !keyIdeaId.startsWith(STUB_ID_PREFIX)), leftOut }
 }

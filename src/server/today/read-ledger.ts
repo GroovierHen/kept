@@ -1,6 +1,6 @@
 import 'server-only'
 import { toKeptDay } from '@/lib/kept-day'
-import { buildLedger, nextMilestone } from '@/lib/ledger'
+import { buildLedger, nextMilestone, ownRecallProgress } from '@/lib/ledger'
 import { db } from '@/server/db/client'
 import { LEDGER_EVENT_NAMES, parseLedgerEvent } from '@/server/events/kept-events'
 import { getDueMilestone, getPlan, getRecallProgress } from '@/server/learn/learn'
@@ -37,6 +37,6 @@ export async function readLedger(userId: string) {
 			dueMilestone == null
 				? nextMilestone({ milestones: plan.milestones, signUpDay, today })
 				: { ...dueMilestone, daysLeft: 0 },
-		recallProgress
+		recallProgress: ownRecallProgress(recallProgress)
 	}
 }

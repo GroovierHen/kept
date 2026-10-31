@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { addDays } from './kept-day.ts'
-import { buildLedger, nextMilestone, type LedgerEvent } from './ledger.ts'
+import { buildLedger, nextMilestone, ownRecallProgress, type LedgerEvent } from './ledger.ts'
 
 const SIGN_UP_DAY = '2026-11-01'
 const RUN = 'action-run'
@@ -234,4 +234,23 @@ test('there is no next Milestone once the last has passed', () => {
 		nextMilestone({ milestones: MILESTONES, signUpDay: SIGN_UP_DAY, today: day(57) }),
 		null
 	)
+})
+
+const recalled = (keyIdeaId: string) => ({
+	keyIdeaId,
+	title: 'Run slow enough to talk',
+	first: { score: 1, keptDay: day(2) },
+	last: { score: 2, keptDay: day(4) }
+})
+
+test('Learn’s stub of Sara’s scores never reads as the user’s own', () => {
+	assert.deepEqual(ownRecallProgress({ ideas: [recalled('stub-key-idea-0')], leftOut: 0 }), {
+		ideas: [],
+		leftOut: 0
+	})
+})
+
+test('real recall progress passes through untouched', () => {
+	const progress = { ideas: [recalled('0190a1b2-real-id')], leftOut: 2 }
+	assert.deepEqual(ownRecallProgress(progress), progress)
 })
