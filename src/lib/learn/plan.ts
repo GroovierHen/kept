@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { KeptDay } from '@/lib/kept-day'
 import type { PlanStatus } from '@/lib/setup-step'
+import { MAX_ACTION_LENGTH } from './plan-limits'
 
 // The shape of a plan, and what Learn hands Act (docs/product/tasks.md, "Where
 // our halves meet"). The goal planner (#28) parses Gemini's answer with
@@ -11,7 +12,20 @@ export const KEY_IDEAS_PER_PLAN = 5
 export const CHOICES_PER_IDEA = 3
 
 const text = (max: number) => z.string().trim().min(1).max(max)
-const actionWording = text(160)
+const actionWording = text(MAX_ACTION_LENGTH)
+
+/** An action's three sizes, as Gemini writes them and as the person rewords them. */
+export const actionSizes = z.strictObject({
+	small: actionWording,
+	medium: actionWording,
+	large: actionWording
+})
+
+/** One submit of an action's edit form: reword its three sizes, or remove it. */
+export const planActionEdit = z.discriminatedUnion('intent', [
+	z.strictObject({ intent: z.literal('save'), actionId: z.uuid(), sizes: actionSizes }),
+	z.strictObject({ intent: z.literal('remove'), actionId: z.uuid() })
+])
 
 export function generatedPlanSchema({ weeks }: { weeks: number }) {
 	return z.strictObject({

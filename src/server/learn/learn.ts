@@ -79,6 +79,26 @@ export async function getPlan(userId: string): Promise<PlanForAct> {
 	}
 }
 
+/** The plan as the plan step shows it, before Confirm. Null without one: never Sara's. */
+export async function getPlanDraft(userId: string) {
+	const plan = await db.plan.findUnique({
+		where: { userId },
+		select: {
+			attempts: true,
+			goal: { select: { text: true, weeks: true } },
+			milestones: { orderBy: { position: 'asc' }, select: { id: true, week: true, text: true } },
+			actions: {
+				orderBy: { position: 'asc' },
+				select: { id: true, small: true, medium: true, large: true }
+			},
+			_count: { select: { keyIdeas: true } }
+		}
+	})
+	if (plan == null) return null
+	const { _count, ...draft } = plan
+	return { ...draft, keyIdeaCount: _count.keyIdeas, canRebuild: plan.attempts === 1 }
+}
+
 function saraPlanForAct(): PlanForAct {
 	return {
 		goal: { text: SARA_GOAL.text, weeks: SARA_GOAL.weeks },

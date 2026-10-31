@@ -5,6 +5,10 @@ import { db } from '@/server/db/client'
 import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
 import { recordEvent } from '@/server/events/record-event'
 
+// Serializable like the edits in edit-plan.ts, so an edit racing Confirm
+// either lands first or sees the plan locked.
+const SERIALIZABLE = { isolationLevel: 'Serializable' } as const
+
 /**
  * Locks the user's plan. Only an unconfirmed plan changes, so a double tap
  * confirms once, and its Event is saved in the same transaction with a
@@ -34,7 +38,7 @@ export function markPlanConfirmed(userId: string): Promise<boolean> {
 					}
 				})
 				return true
-			}),
+			}, SERIALIZABLE),
 		{ isRetryable: isTransientDbError, onRetry: logDbRetry }
 	)
 }
