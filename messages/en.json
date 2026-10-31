@@ -357,6 +357,7 @@
 		"plan": {
 			"eyebrow": "Your plan",
 			"weeks": "Over {weeks} weeks",
+			"keyIdeas": "{count, plural, one {# key idea} other {# key ideas}} to learn, one a day",
 			"milestones": "Milestones",
 			"week": "Week {week}:",
 			"actions": "Daily actions, starting small",
@@ -375,7 +376,31 @@
 			"confirm": "Confirm my plan",
 			"confirming": "Confirming…",
 			"confirmHint": "Once confirmed, your plan stays fixed for the test.",
-			"confirmFailed": "We couldn’t confirm your plan. Check your connection, then tap Confirm again."
+			"confirmFailed": "We couldn’t confirm your plan. Check your connection, then tap Confirm again.",
+			"edit": {
+				"open": "Edit",
+				"sizes": {
+					"small": "Start with",
+					"medium": "Then",
+					"large": "Then"
+				},
+				"save": "Save",
+				"saving": "Saving…",
+				"remove": "Remove this action",
+				"errors": {
+					"empty": "Each step needs a few words, up to 160 characters.",
+					"lastAction": "Your plan needs at least one action, so this one stays.",
+					"failed": "We couldn’t save that. Check your connection, then try again.",
+					"offline": "You’re offline, so nothing was saved. Try again once you’re connected."
+				}
+			},
+			"rebuild": {
+				"submit": "Try again",
+				"pending": "Writing a new plan…",
+				"hint": "Get a different plan instead. You can do this once.",
+				"failed": "We couldn’t make a new plan right now. This one is saved, and you can still try again.",
+				"offline": "You’re offline, so nothing was sent. Try again once you’re connected."
+			}
 		},
 		"card": {
 			"eyebrow": "Key idea",
