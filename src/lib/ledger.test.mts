@@ -12,17 +12,30 @@ const day = (n: number) => addDays({ day: SIGN_UP_DAY, days: n - 1 })
 function committed({
 	on,
 	actionId = RUN,
-	size = 'small',
-	promiseId = `promise-${on}`
+	size = 'small'
 }: {
 	on: number
 	actionId?: string | null
 	size?: 'small' | 'medium' | 'large' | null
-	promiseId?: string
 }): LedgerEvent {
 	return {
 		name: 'promise_committed',
-		details: { promiseId, promiseDay: day(on), actionId, size }
+		details: { promiseId: `promise-${on}`, promiseDay: day(on), actionId, size }
+	}
+}
+
+function changed({
+	on,
+	actionId = RUN,
+	size = 'small'
+}: {
+	on: number
+	actionId?: string | null
+	size?: 'small' | 'medium' | 'large' | null
+}): LedgerEvent {
+	return {
+		name: 'promise_changed',
+		details: { promiseId: `promise-${on}`, promiseDay: day(on), actionId, size }
 	}
 }
 
@@ -190,16 +203,61 @@ test('going back to an Action compares with its own last Size', () => {
 	assert.deepEqual(sizeChanges, [])
 })
 
-test('a Promise changed before 4am replaces that day’s commit', () => {
+test('a change moving a Promise to another Action leaves the first Action’s Size alone', () => {
 	const { sizeChanges } = buildLedger({
 		events: [
 			committed({ on: 2 }),
 			committed({ on: 3, size: 'medium' }),
-			committed({ on: 3, actionId: 'action-stretch', promiseId: 'promise-3-changed' })
+			changed({ on: 3, actionId: 'action-stretch' })
 		],
 		today: day(3)
 	})
 	assert.deepEqual(sizeChanges, [])
+})
+
+test('a change to another Size is the Size that counts', () => {
+	const events = [committed({ on: 2 }), committed({ on: 3 }), changed({ on: 3, size: 'medium' })]
+	assert.deepEqual(buildLedger({ events, today: day(3) }).sizeChanges, [
+		{ actionId: RUN, from: 'small', to: 'medium', direction: 'bigger', promiseDay: day(3) }
+	])
+})
+
+test('a change back to the committed Size is no change at all', () => {
+	const { sizeChanges } = buildLedger({
+		events: [
+			committed({ on: 2 }),
+			committed({ on: 3, size: 'medium' }),
+			changed({ on: 3, size: 'small' })
+		],
+		today: day(3)
+	})
+	assert.deepEqual(sizeChanges, [])
+})
+
+test('a change to a Typed promise leaves it with no Size to compare', () => {
+	const { sizeChanges } = buildLedger({
+		events: [
+			committed({ on: 2 }),
+			committed({ on: 3, size: 'medium' }),
+			changed({ on: 3, actionId: null, size: null })
+		],
+		today: day(3)
+	})
+	assert.deepEqual(sizeChanges, [])
+})
+
+test('a changed Promise still counts once', () => {
+	const ledger = buildLedger({
+		events: [
+			committed({ on: 2 }),
+			changed({ on: 2, actionId: 'action-stretch' }),
+			changed({ on: 2, size: 'medium' }),
+			reported({ on: 2, answer: 'yes' })
+		],
+		today: day(2)
+	})
+	assert.deepEqual(ledger.kept, [day(2)])
+	assert.deepEqual(ledger.week, { kept: 1, total: 1 })
 })
 
 const MILESTONES = [

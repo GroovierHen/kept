@@ -14,7 +14,7 @@ const STUB_ID_PREFIX = 'stub-'
 
 export type LedgerEvent =
 	| {
-			readonly name: 'promise_committed'
+			readonly name: 'promise_committed' | 'promise_changed'
 			readonly details: {
 				readonly promiseId: string
 				readonly promiseDay: KeptDay
@@ -60,22 +60,27 @@ function latestReports(events: readonly LedgerEvent[]) {
 }
 
 function sizeChanges(events: readonly LedgerEvent[]): SizeChange[] {
-	// A user has one Promise a Kept day, so a Promise changed before 4am replaces that
-	// day's earlier commit rather than counting as a change of Size.
-	const committedByDay = new Map<KeptDay, { actionId: string; size: ActionSize } | null>()
+	// The latest Event for a Promise describes it, so a change replaces what was
+	// committed rather than counting as a change of Size.
+	const promises = new Map<
+		string,
+		{ promiseDay: KeptDay; actionId: string; size: ActionSize } | null
+	>()
 	for (const { name, details } of events) {
-		if (name !== 'promise_committed') continue
-		const { promiseDay, actionId, size } = details
-		committedByDay.set(promiseDay, actionId == null || size == null ? null : { actionId, size })
+		if (name === 'report_made') continue
+		const { promiseId, promiseDay, actionId, size } = details
+		promises.set(
+			promiseId,
+			actionId == null || size == null ? null : { promiseDay, actionId, size }
+		)
 	}
 
-	const days = [...committedByDay.keys()].toSorted()
+	const inDayOrder = [...promises.values()]
+		.filter((promise) => promise != null)
+		.toSorted((a, b) => a.promiseDay.localeCompare(b.promiseDay))
 	const sizeOfAction = new Map<string, ActionSize>()
 	const latestChange = new Map<string, SizeChange>()
-	for (const promiseDay of days) {
-		const committed = committedByDay.get(promiseDay)
-		if (committed == null) continue
-		const { actionId, size: to } = committed
+	for (const { promiseDay, actionId, size: to } of inDayOrder) {
 		const from = sizeOfAction.get(actionId)
 		sizeOfAction.set(actionId, to)
 		if (from == null || from === to) continue

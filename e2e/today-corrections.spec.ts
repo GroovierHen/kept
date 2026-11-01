@@ -159,6 +159,14 @@ test('a user changes a Report and a Promise, and neither disturbs the other', as
 		expect(await latestReports(email)).toHaveLength(2)
 	})
 
+	await test.step('the ledger reads the changed Promise', async () => {
+		// A fresh load: the re-sent submission above breaks this page's dev-mode stream.
+		await page.goto('/today')
+		await page.getByRole('link', { name: 'See your ledger' }).click()
+		await expect(page).toHaveURL(/\/ledger$/)
+		await expect(page.getByRole('heading', { name: 'Your ledger' })).toBeVisible()
+	})
+
 	await test.step('after 4am neither can be changed', async () => {
 		await daysPass({ email, days: 1 })
 		await page.goto('/today')
