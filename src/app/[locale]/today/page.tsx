@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The check-in, one step at a time. The Act loop (src/lib/check-in.ts) picks the
-// step. Sign-up, sign-in and the daily reminder all land here.
+// step. The daily reminder lands here, and sign-in once setup is finished.
 export default async function TodayPage() {
 	const locale = await getLocale()
 	const user = await getSignedInUser()

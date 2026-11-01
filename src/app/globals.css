@@ -121,6 +121,103 @@ body {
 	}
 }
 
+/* The loading tally (tally-mark.tsx). Each stroke has its own window in one
+   shared cycle, so the whole tally clears at once and starts over. */
+.tally-mark path {
+	stroke-dasharray: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.page-loading {
+		/* A page that's ready in a moment never flashes this. */
+		animation: page-loading-arrive 240ms var(--ease-out) 120ms both;
+	}
+	.tally-mark {
+		animation: tally-clear 2400ms linear infinite;
+	}
+	.tally-mark path {
+		animation: 2400ms var(--ease-out) infinite;
+	}
+	.tally-mark path:nth-child(1) {
+		animation-name: tally-stroke-1;
+	}
+	.tally-mark path:nth-child(2) {
+		animation-name: tally-stroke-2;
+	}
+	.tally-mark path:nth-child(3) {
+		animation-name: tally-stroke-3;
+	}
+	.tally-mark path:nth-child(4) {
+		animation-name: tally-stroke-4;
+	}
+	.tally-mark path:nth-child(5) {
+		animation-name: tally-stroke-5;
+	}
+}
+@keyframes page-loading-arrive {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes tally-clear {
+	0%,
+	88% {
+		opacity: 1;
+	}
+	97%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes tally-stroke-1 {
+	0% {
+		stroke-dashoffset: 1;
+	}
+	12%,
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+@keyframes tally-stroke-2 {
+	0%,
+	13% {
+		stroke-dashoffset: 1;
+	}
+	25%,
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+@keyframes tally-stroke-3 {
+	0%,
+	26% {
+		stroke-dashoffset: 1;
+	}
+	38%,
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+@keyframes tally-stroke-4 {
+	0%,
+	39% {
+		stroke-dashoffset: 1;
+	}
+	51%,
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+@keyframes tally-stroke-5 {
+	0%,
+	56% {
+		stroke-dashoffset: 1;
+	}
+	72%,
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+
 /* The one moving picture: a slow drift on the ledger cover. */
 @keyframes drift {
 	from {

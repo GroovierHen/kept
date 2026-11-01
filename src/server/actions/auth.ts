@@ -13,6 +13,7 @@ import { credentials } from '@/server/auth/credentials'
 import { provisionOrSignOut } from '@/server/auth/provision-or-sign-out'
 import { provisionUser } from '@/server/auth/provision-user'
 import { START_EMAIL_COOKIE, START_EMAIL_MAX_AGE_SECONDS } from '@/server/auth/start-email'
+import { readSetupStep } from '@/server/setup/progress'
 import { validatedAction } from './validated-action'
 
 // Email and password sign-up, sign-in and sign-out (docs/product/walkthrough.md:
@@ -65,6 +66,12 @@ function readCredentials(formData: FormData, t: AuthErrors, requestTimeZone: str
 	return { email, data: null, error: issue.code === 'too_big' ? t('passwordLong') : t('password') }
 }
 
+// Straight to the screen this person belongs on, so they don't pass through
+// /today, and its loading screen, on the way to setup.
+async function landingPage(userId: string): Promise<'/setup' | '/today'> {
+	return (await readSetupStep(userId)) == null ? '/today' : '/setup'
+}
+
 const createAccount = validatedAction({
 	input: credentials,
 	handler: async ({ email, password, timeZone }) => {
@@ -85,6 +92,7 @@ const createAccount = validatedAction({
 			provision: () => provisionUser({ id: userId, email, timeZone }),
 			signOut: () => closeSession(supabase)
 		})
+		return landingPage(userId)
 	}
 })
 
@@ -104,6 +112,7 @@ const openSession = validatedAction({
 			provision: () => provisionUser({ id: data.user.id, email, timeZone }),
 			signOut: () => closeSession(supabase)
 		})
+		return landingPage(data.user.id)
 	}
 })
 
@@ -127,7 +136,7 @@ async function submit(run: typeof createAccount, formData: FormData): Promise<Au
 
 	const cookieStore = await cookies()
 	cookieStore.delete(START_EMAIL_COOKIE)
-	return redirect({ href: '/today', locale: await getLocale() })
+	return redirect({ href: result.data, locale: await getLocale() })
 }
 
 export async function signUp(_previous: AuthFormState, formData: FormData): Promise<AuthFormState> {

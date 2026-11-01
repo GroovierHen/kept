@@ -264,6 +264,9 @@
 		"switch": "New to Kept?",
 		"switchLink": "Create an account"
 	},
+	"Loading": {
+		"label": "Getting Kept ready"
+	},
 	"SetupPage": {
 		"meta": {
 			"title": "Set up Kept"

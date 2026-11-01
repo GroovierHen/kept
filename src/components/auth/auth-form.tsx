@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TallyMark } from '@/components/ui/tally-mark'
 import type { AuthFormState } from '@/server/actions/auth'
 import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/lib/credential-limits'
 
@@ -98,7 +99,14 @@ export function AuthForm({
 
 			<div data-reveal className="delay-[280ms]">
 				<Button type="submit" size="lg" disabled={pending} className="text-body h-12 w-full">
-					{pending ? pendingLabel : submitLabel}
+					{pending ? (
+						<>
+							<TallyMark className="size-5" />
+							{pendingLabel}
+						</>
+					) : (
+						submitLabel
+					)}
 				</Button>
 			</div>
 		</form>
