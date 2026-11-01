@@ -61,7 +61,7 @@ kept/
 │   ├── rules/                one file per engineering rule (see below)
 │   ├── STANDARDS.md          what every repo from this template carries, and the check that proves it
 │   └── CI_CD_SETUP.md        GitHub secrets/environments + Vercel setup
-├── e2e/                     Playwright — the Day 1 test, against a local database
+├── e2e/                     Playwright — the first check-in test, against a local database
 ├── messages/en.json         i18n strings
 ├── prisma/schema/            multi-file schema — the only thing you hand-edit
 │   └── migrations/           CI-generated only, never by hand

@@ -1,6 +1,6 @@
 import 'server-only'
 import { z } from 'zod'
-import { keptDayDate, keptDayOf, type KeptDay } from '@/lib/kept-day'
+import { keptDayDate, keptDayFromDate, type KeptDay } from '@/lib/kept-day'
 import {
 	planStatusOf,
 	type DueMilestone,
@@ -151,7 +151,7 @@ export async function getTodaysLesson(userId: string, keptDay: KeptDay): Promise
 
 	const ideas = plan.keyIdeas.map((idea) => ({
 		...idea,
-		taughtOn: idea.taughtOn == null ? null : keptDayOf(idea.taughtOn)
+		taughtOn: idea.taughtOn == null ? null : keptDayFromDate(idea.taughtOn)
 	}))
 	const id = todaysKeyIdea({ ideas, keptDay, dueRecalls })
 	const idea = ideas.find((candidate) => candidate.id === id)

@@ -9,7 +9,7 @@ import { getSignedInUser } from '@/server/auth/session'
 import { addReminder } from '@/server/setup/add-reminder'
 import { commitFirstPromise } from '@/server/setup/commit-first-promise'
 import { readSetupStep } from '@/server/setup/progress'
-import { validatedAction } from './validated-action'
+import { saveFailedMessage, validatedAction } from './validated-action'
 
 export interface PromiseFormState {
 	readonly error: string | null
@@ -37,7 +37,7 @@ export async function commitPromise(
 	if (!parsed.success) return { error: t('invalid') }
 
 	const result = await commit({ userId: user.id, choice: parsed.data })
-	if (!result.ok) return { error: result.status >= 500 ? t('failed') : result.error }
+	if (!result.ok) return { error: saveFailedMessage({ result, fallback: t('failed') }) }
 	return redirect({ href: '/setup', locale })
 }
 

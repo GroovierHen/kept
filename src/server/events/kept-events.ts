@@ -9,7 +9,7 @@ import { z } from 'zod'
 const entityId = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/)
 const keptDay = z.iso.date()
 // Unique per user in the events table, so a repeated submission saves once.
-// Built from names and ids, such as `report_made:<promiseId>`.
+// Built from names and ids, such as `report_made:<reportId>`.
 const idempotencyKey = z.string().regex(/^[a-z0-9][a-z0-9_:-]{0,127}$/)
 
 const size = z.enum(['small', 'medium', 'large'])
@@ -18,6 +18,16 @@ const answer = z.enum(['yes', 'partly', 'no'])
 const recallScore = z.union([z.literal(0), z.literal(1), z.literal(2)])
 
 const noDetails = z.strictObject({})
+
+// A Typed promise has no Action or Size, so both are null.
+const promiseDetails = z.strictObject({
+	promiseId: entityId,
+	promiseDay: keptDay,
+	actionId: entityId.nullable(),
+	size: size.nullable(),
+	moment
+})
+const reportMadeDetails = z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
 
 // An Event's own keptDay is the day the tap happened. A Promise can be for a later
 // day ("commit a Promise for tomorrow"), so its Events also carry promiseDay.
@@ -47,21 +57,11 @@ const keptEvent = z.discriminatedUnion('name', [
 	}),
 	eventContract({ name: 'plan_confirmed', details: noDetails }),
 	eventContract({ name: 'reminder_added', details: noDetails }),
-	// A Typed promise has no Action or Size, so both are null.
-	eventContract({
-		name: 'promise_committed',
-		details: z.strictObject({
-			promiseId: entityId,
-			promiseDay: keptDay,
-			actionId: entityId.nullable(),
-			size: size.nullable(),
-			moment
-		})
-	}),
-	eventContract({
-		name: 'report_made',
-		details: z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
-	}),
+	eventContract({ name: 'promise_committed', details: promiseDetails }),
+	// The Promise as it now stands, after a change before the 4am it closes at. The
+	// latest Event for a promiseId describes it. promiseDay stays as committed.
+	eventContract({ name: 'promise_changed', details: promiseDetails }),
+	eventContract({ name: 'report_made', details: reportMadeDetails }),
 	eventContract({ name: 'lesson_taught', details: z.strictObject({ keyIdeaId: entityId }) }),
 	eventContract({
 		name: 'recall_graded',
@@ -77,4 +77,17 @@ export type KeptEvent = z.input<typeof keptEvent>
 
 export function parseEvent(input: unknown): z.output<typeof keptEvent> {
 	return keptEvent.parse(input)
+}
+
+// The saved Events the ledger reads, checked against the contracts they were written with.
+export const LEDGER_EVENT_NAMES = ['promise_committed', 'promise_changed', 'report_made'] as const
+
+const savedLedgerEvent = z.discriminatedUnion('name', [
+	z.object({ name: z.literal('promise_committed'), details: promiseDetails }),
+	z.object({ name: z.literal('promise_changed'), details: promiseDetails }),
+	z.object({ name: z.literal('report_made'), details: reportMadeDetails })
+])
+
+export function parseLedgerEvent(row: { name: string; details: unknown }) {
+	return savedLedgerEvent.parse(row)
 }

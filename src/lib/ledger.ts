@@ -1,0 +1,149 @@
+import { addDays, dayNumber, type KeptDay } from './kept-day'
+import type { ActionSize, RecallProgress } from './learn/plan'
+import type { ReportAnswer } from './report'
+
+// The user's ledger (docs/product/walkthrough.md, "Day 5: the ledger"), worked out
+// from Events and the Kept day it's given, never stored (ADR 0001).
+
+const WEEK_DAYS = 7
+const PARTLY_VALUE = 0.5
+const SIZES: readonly ActionSize[] = ['small', 'medium', 'large']
+// A stub in src/server/learn/learn.ts marks its ids this way. Sara's made-up
+// scores must never read as the user's own.
+const STUB_ID_PREFIX = 'stub-'
+
+export type LedgerEvent =
+	| {
+			readonly name: 'promise_committed' | 'promise_changed'
+			readonly details: {
+				readonly promiseId: string
+				readonly promiseDay: KeptDay
+				readonly actionId: string | null
+				readonly size: ActionSize | null
+			}
+	  }
+	| {
+			readonly name: 'report_made'
+			readonly details: {
+				readonly promiseId: string
+				readonly promiseDay: KeptDay
+				readonly answer: ReportAnswer
+			}
+	  }
+
+export interface SizeChange {
+	readonly actionId: string
+	readonly from: ActionSize
+	readonly to: ActionSize
+	readonly direction: 'bigger' | 'smaller'
+	readonly promiseDay: KeptDay
+}
+
+export interface Ledger {
+	/** The Kept days of the Promises with each latest Report, oldest first. */
+	readonly kept: readonly KeptDay[]
+	readonly partly: readonly KeptDay[]
+	readonly slipped: readonly KeptDay[]
+	/** Each Action's latest change of Size, newest first. */
+	readonly sizeChanges: readonly SizeChange[]
+	/** Kept is worth 1 and Partly half, out of the Promises reported in the Week. */
+	readonly week: { readonly kept: number; readonly total: number }
+}
+
+/** A changed Report is a new Event, so the last one for each Promise counts. */
+function latestReports(events: readonly LedgerEvent[]) {
+	const reports = new Map<string, { promiseDay: KeptDay; answer: ReportAnswer }>()
+	for (const { name, details } of events) {
+		if (name === 'report_made') reports.set(details.promiseId, details)
+	}
+	return [...reports.values()].toSorted((a, b) => a.promiseDay.localeCompare(b.promiseDay))
+}
+
+function sizeChanges(events: readonly LedgerEvent[]): SizeChange[] {
+	// The latest Event for a Promise describes it, so a change replaces what was
+	// committed rather than counting as a change of Size.
+	const promises = new Map<
+		string,
+		{ promiseDay: KeptDay; actionId: string; size: ActionSize } | null
+	>()
+	for (const { name, details } of events) {
+		if (name === 'report_made') continue
+		const { promiseId, promiseDay, actionId, size } = details
+		promises.set(
+			promiseId,
+			actionId == null || size == null ? null : { promiseDay, actionId, size }
+		)
+	}
+
+	const inDayOrder = [...promises.values()]
+		.filter((promise) => promise != null)
+		.toSorted((a, b) => a.promiseDay.localeCompare(b.promiseDay))
+	const sizeOfAction = new Map<string, ActionSize>()
+	const latestChange = new Map<string, SizeChange>()
+	for (const { promiseDay, actionId, size: to } of inDayOrder) {
+		const from = sizeOfAction.get(actionId)
+		sizeOfAction.set(actionId, to)
+		if (from == null || from === to) continue
+		const direction = SIZES.indexOf(to) > SIZES.indexOf(from) ? 'bigger' : 'smaller'
+		latestChange.set(actionId, { actionId, from, to, direction, promiseDay })
+	}
+	return [...latestChange.values()].toSorted((a, b) => b.promiseDay.localeCompare(a.promiseDay))
+}
+
+const reportValue = { yes: 1, partly: PARTLY_VALUE, no: 0 } satisfies Record<ReportAnswer, number>
+
+/**
+ * `events` run oldest first. A Promise with no Report isn't counted at all, so an
+ * Unreported one is neither kept nor slipped and doesn't lower the Week.
+ */
+export function buildLedger({
+	events,
+	today
+}: {
+	events: readonly LedgerEvent[]
+	today: KeptDay
+}): Ledger {
+	const reports = latestReports(events)
+	const daysAnswered = (answer: ReportAnswer) =>
+		reports.filter((report) => report.answer === answer).map((report) => report.promiseDay)
+	const weekStart = addDays({ day: today, days: 1 - WEEK_DAYS })
+	const reportsThisWeek = reports.filter(
+		({ promiseDay }) => promiseDay >= weekStart && promiseDay <= today
+	)
+
+	return {
+		kept: daysAnswered('yes'),
+		partly: daysAnswered('partly'),
+		slipped: daysAnswered('no'),
+		sizeChanges: sizeChanges(events),
+		week: {
+			kept: reportsThisWeek.reduce((sum, { answer }) => sum + reportValue[answer], 0),
+			total: reportsThisWeek.length
+		}
+	}
+}
+
+/**
+ * The first Milestone still to come. A Milestone for week N is due on Day 7N, so
+ * week 2 is 9 days away on Day 5.
+ */
+export function nextMilestone<Milestone extends { readonly week: number }>({
+	milestones,
+	signUpDay,
+	today
+}: {
+	milestones: readonly Milestone[]
+	signUpDay: KeptDay
+	today: KeptDay
+}): (Milestone & { readonly daysLeft: number }) | null {
+	const currentDay = dayNumber({ signUpDay, today })
+	const [next] = milestones
+		.filter(({ week }) => week * WEEK_DAYS >= currentDay)
+		.toSorted((a, b) => a.week - b.week)
+	return next == null ? null : { ...next, daysLeft: next.week * WEEK_DAYS - currentDay }
+}
+
+/** Learn's recall progress without its stub's rows, so nothing changes when the real one lands. */
+export function ownRecallProgress({ ideas, leftOut }: RecallProgress): RecallProgress {
+	return { ideas: ideas.filter(({ keyIdeaId }) => !keyIdeaId.startsWith(STUB_ID_PREFIX)), leftOut }
+}

@@ -3,6 +3,7 @@ export type KeptDay = string
 
 export const ROLLOVER_HOUR = 4
 const FALLBACK_TIME_ZONE = 'Europe/London'
+const DAY_MS = 24 * 60 * 60 * 1000
 
 /** The first valid time zone among `candidates`, in canonical form, else Europe/London. */
 export function resolveTimeZone(...candidates: unknown[]): string {
@@ -23,14 +24,17 @@ export function addDays({ day, days }: { day: KeptDay; days: number }): KeptDay 
 	return date.toISOString().slice(0, 10)
 }
 
-/** A Kept day as a `@db.Date` column takes it: midnight UTC. */
-export function keptDayDate(day: KeptDay): Date {
-	return new Date(`${day}T00:00:00Z`)
+export function dayNumber({ signUpDay, today }: { signUpDay: KeptDay; today: KeptDay }): number {
+	const daysBetween = Date.parse(`${today}T00:00:00Z`) - Date.parse(`${signUpDay}T00:00:00Z`)
+	return daysBetween / DAY_MS + 1
 }
 
-/** A `@db.Date` column read back as a Kept day. */
-export function keptDayOf(date: Date): KeptDay {
-	return date.toISOString().slice(0, 10)
+/** A Kept day read back from a date column. */
+export const keptDayFromDate = (date: Date): KeptDay => date.toISOString().slice(0, 10)
+
+/** A Kept day as a date column takes it: midnight UTC. */
+export function keptDayDate(day: KeptDay): Date {
+	return new Date(`${day}T00:00:00Z`)
 }
 
 export type PromiseStatus = 'upcoming' | 'dueToday' | 'dueYesterday' | 'unreported'
@@ -46,6 +50,11 @@ export function promiseStatus({
 	if (promiseDay === today) return 'dueToday'
 	if (addDays({ day: promiseDay, days: 1 }) === today) return 'dueYesterday'
 	return 'unreported'
+}
+
+/** A Promise can be reported on its own Kept day and the one after, then it closes. */
+export function isReportOpen(status: PromiseStatus): boolean {
+	return status === 'dueToday' || status === 'dueYesterday'
 }
 
 /**
@@ -75,6 +84,22 @@ export function isReportEditable({
 	today: KeptDay
 }): boolean {
 	return reportedOn === today
+}
+
+/**
+ * A Review waits until it's answered, so a Recall skipped by a gap or an
+ * unfinished check-in is still there at the next one.
+ */
+export function isReviewDue({
+	dueOn,
+	isAnswered,
+	today
+}: {
+	dueOn: KeptDay
+	isAnswered: boolean
+	today: KeptDay
+}): boolean {
+	return !isAnswered && dueOn <= today
 }
 
 /**

@@ -57,6 +57,21 @@ export async function teachLesson({
 	)
 }
 
+/** Whether a key idea was taught on this Kept day, so the Today screen moves past it. */
+export async function hasLearnedOn({
+	userId,
+	today
+}: {
+	userId: string
+	today: KeptDay
+}): Promise<boolean> {
+	const taught = await db.keyIdea.findFirst({
+		where: { taughtOn: keptDayDate(today), plan: { userId } },
+		select: { id: true }
+	})
+	return taught != null
+}
+
 /** Today's Kept day in the user's own time zone. */
 export async function keptDayFor(userId: string): Promise<KeptDay> {
 	const { timeZone } = await db.user.findUniqueOrThrow({

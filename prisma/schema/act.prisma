@@ -72,7 +72,8 @@ enum PromiseMoment {
 }
 
 // One Action on one Kept day (GLOSSARY.md). Wording and size are copied in when
-// it's made, so it stays what the user promised. A Typed promise has no
+// it's made, so it stays what the user promised. It can only be rewritten until
+// the 4am after it's made, with a promise_changed Event. A Typed promise has no
 // planActionId or size. The moment is kept apart so a screen can word the sentence.
 model Promise {
 	id           String        @id @default(uuid(7)) @db.Uuid
@@ -85,8 +86,29 @@ model Promise {
 	createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 	user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 	planAction   PlanAction?   @relation(fields: [planActionId], references: [id], onDelete: Cascade)
+	reports      Report[]
 
 	@@unique([userId, promiseDay])
 	@@index([planActionId])
 	@@map("promises")
+}
+
+enum ReportAnswer {
+	yes
+	partly
+	no
+}
+
+// Added to, never edited: the latest row for a Promise is the one that counts.
+// The id comes from the screen that asked, so a repeated submission saves once
+// (ADR 0002).
+model Report {
+	id        String       @id @db.Uuid
+	promiseId String       @map("promise_id") @db.Uuid
+	answer    ReportAnswer
+	createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+	promise   Promise      @relation(fields: [promiseId], references: [id], onDelete: Cascade)
+
+	@@index([promiseId, createdAt])
+	@@map("reports")
 }

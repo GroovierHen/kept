@@ -159,3 +159,34 @@ test('a plan generated Event says which build of the plan it was', () => {
 		)
 	}
 })
+
+test('a promise changed Event describes the Promise as it now stands', () => {
+	const details = {
+		promiseId,
+		promiseDay: '2026-10-31',
+		actionId: null,
+		size: null,
+		moment: 'before_bed'
+	}
+	assert.deepEqual(
+		parseEvent({
+			userId,
+			name: 'promise_changed',
+			keptDay: '2026-10-30',
+			details,
+			idempotencyKey: `promise_changed:${promiseId}`
+		}).details,
+		details
+	)
+})
+
+test('Unreported has no Event, so a gap can’t leave a ledger entry', () => {
+	assert.throws(() =>
+		parseEvent({
+			userId,
+			name: 'promise_unreported',
+			keptDay: '2026-10-30',
+			details: { promiseId, promiseDay: '2026-10-29' }
+		})
+	)
+})

@@ -31,3 +31,14 @@ test('a Typed promise can be as long as an action and no longer', () => {
 	assert.doesNotThrow(() => promiseChoice.parse(choice(MAX_PROMISE_LENGTH)))
 	assert.throws(() => promiseChoice.parse(choice(MAX_PROMISE_LENGTH + 1)))
 })
+
+test('a choice can’t carry a Size, or wording for an action', () => {
+	const choice = promiseChoice.parse({
+		kind: 'action',
+		moment: 'lunch',
+		actionId,
+		size: 'large',
+		wording: 'run a marathon'
+	})
+	assert.deepEqual(choice, { kind: 'action', moment: 'lunch', actionId })
+})
