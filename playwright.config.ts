@@ -8,6 +8,8 @@ export default defineConfig({
 	// than Playwright's 30s default before anything is warm — an expiry there
 	// reads as a spurious failure rather than a real one.
 	timeout: 60_000,
+	// The same cold compiles sit behind a redirect, past the 5s default.
+	expect: { timeout: 30_000 },
 	forbidOnly: Boolean(process.env.CI),
 	retries: process.env.CI ? 2 : 0,
 	reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',

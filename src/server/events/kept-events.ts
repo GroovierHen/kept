@@ -20,7 +20,7 @@ const recallScore = z.union([z.literal(0), z.literal(1), z.literal(2)])
 const noDetails = z.strictObject({})
 
 // A Typed promise has no Action or Size, so both are null.
-const promiseCommittedDetails = z.strictObject({
+const promiseDetails = z.strictObject({
 	promiseId: entityId,
 	promiseDay: keptDay,
 	actionId: entityId.nullable(),
@@ -57,7 +57,10 @@ const keptEvent = z.discriminatedUnion('name', [
 	}),
 	eventContract({ name: 'plan_confirmed', details: noDetails }),
 	eventContract({ name: 'reminder_added', details: noDetails }),
-	eventContract({ name: 'promise_committed', details: promiseCommittedDetails }),
+	eventContract({ name: 'promise_committed', details: promiseDetails }),
+	// The Promise as it now stands, after a change before the 4am it closes at. The
+	// latest Event for a promiseId describes it. promiseDay stays as committed.
+	eventContract({ name: 'promise_changed', details: promiseDetails }),
 	eventContract({ name: 'report_made', details: reportMadeDetails }),
 	eventContract({
 		name: 'lesson_taught',
@@ -80,10 +83,11 @@ export function parseEvent(input: unknown): z.output<typeof keptEvent> {
 }
 
 // The saved Events the ledger reads, checked against the contracts they were written with.
-export const LEDGER_EVENT_NAMES = ['promise_committed', 'report_made'] as const
+export const LEDGER_EVENT_NAMES = ['promise_committed', 'promise_changed', 'report_made'] as const
 
 const savedLedgerEvent = z.discriminatedUnion('name', [
-	z.object({ name: z.literal('promise_committed'), details: promiseCommittedDetails }),
+	z.object({ name: z.literal('promise_committed'), details: promiseDetails }),
+	z.object({ name: z.literal('promise_changed'), details: promiseDetails }),
 	z.object({ name: z.literal('report_made'), details: reportMadeDetails })
 ])
 

@@ -36,6 +36,11 @@ export async function LandingFooter() {
 								{nav('signIn')}
 							</Link>
 						</li>
+						<li>
+							<Link href="/results" className={linkClass}>
+								{nav('results')}
+							</Link>
+						</li>
 						{links.map((link) => (
 							<li key={link.href}>
 								<a href={link.href} className={linkClass}>

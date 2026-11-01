@@ -82,6 +82,22 @@ export function isReportEditable({
 }
 
 /**
+ * A Review waits until it's answered, so a Recall skipped by a gap or an
+ * unfinished check-in is still there at the next one.
+ */
+export function isReviewDue({
+	dueOn,
+	isAnswered,
+	today
+}: {
+	dueOn: KeptDay
+	isAnswered: boolean
+	today: KeptDay
+}): boolean {
+	return !isAnswered && dueOn <= today
+}
+
+/**
  * The one place Kept turns an instant into local time: a Kept day is local by definition.
  * Works from the local wall-clock hour rather than subtracting hours from the
  * instant, which would land on the wrong day on clock-change nights.

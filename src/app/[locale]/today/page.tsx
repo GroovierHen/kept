@@ -4,11 +4,12 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { Link, redirect } from '@/i18n/routing'
 import { LearnCard } from '@/components/learn/learn-card'
 import { SiteNav } from '@/components/landing/site-nav'
-import { CommitStep } from '@/components/today/commit-step'
+import { ChangeReport } from '@/components/today/change-report'
+import { ChangePromise, CommitStep } from '@/components/today/commit-step'
 import { ReportForm } from '@/components/today/report-form'
 import { Button } from '@/components/ui/button'
 import { StepCard } from '@/components/ui/step-card'
-import { checkInStep } from '@/lib/check-in'
+import { canChangePromise, checkInStep, closedAsUnreported } from '@/lib/check-in'
 import { reportQuestionWording } from '@/lib/report'
 import { signOut } from '@/server/actions/auth'
 import { finishLearning } from '@/server/actions/today'
@@ -34,7 +35,10 @@ export default async function TodayPage() {
 		return redirect({ href: '/setup', locale })
 	}
 
-	const { today, day, latestPromise } = await readCheckIn({ client: db, userId: user.id })
+	const { today, day, latestPromise, changeableReport } = await readCheckIn({
+		client: db,
+		userId: user.id
+	})
 	const [lesson, hasLearnedToday, t, tPromise] = await Promise.all([
 		getTodaysLesson(user.id, today),
 		hasLearnedOn({ userId: user.id, today }),
@@ -53,6 +57,10 @@ export default async function TodayPage() {
 			<SiteNav />
 			<main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-(--page-margin) pb-24">
 				<h1 className="text-lead font-medium">{t('day', { day })}</h1>
+
+				{closedAsUnreported({ today, latestPromise }) && (
+					<p className="text-body text-text-muted">{t('unreportedNote')}</p>
+				)}
 
 				{step === 'report' && latestPromise != null && (
 					<StepCard
@@ -97,9 +105,19 @@ export default async function TodayPage() {
 								</div>
 							)}
 							<p className="text-small text-text-muted">{t('done.nextCheckIn')}</p>
+							{latestPromise != null && canChangePromise({ ...latestPromise, today }) && (
+								<ChangePromise userId={user.id} promise={latestPromise} />
+							)}
 						</StepCard>
 						{hasLearnedToday && lesson != null && <LearnCard lesson={lesson} mode="summary" />}
 					</>
+				)}
+
+				{changeableReport?.latestAnswer != null && (
+					<ChangeReport
+						report={{ ...changeableReport, latestAnswer: changeableReport.latestAnswer }}
+						today={today}
+					/>
 				)}
 
 				<Button asChild variant="secondary" className="self-start">
