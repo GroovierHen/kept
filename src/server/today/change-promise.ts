@@ -42,7 +42,12 @@ export async function changePromise({
 					throw new AppError(t('closed'), { status: 409, code: 'promise_closed' })
 				}
 
-				const chosen = await chosenPromise({ tx, userId, choice })
+				// The same Action stays as committed: a Report changed since then counts
+				// from the next commit, not by resizing this Promise.
+				const chosen =
+					choice.kind === 'action' && choice.actionId === promise.planActionId
+						? { planActionId: promise.planActionId, size: promise.size, wording: promise.wording }
+						: await chosenPromise({ tx, userId, choice })
 				const isSame =
 					chosen.planActionId === promise.planActionId &&
 					chosen.wording === promise.wording &&

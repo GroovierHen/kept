@@ -26,6 +26,7 @@ export async function readCheckIn({
 					id: true,
 					promiseDay: true,
 					planActionId: true,
+					size: true,
 					wording: true,
 					moment: true,
 					createdAt: true,

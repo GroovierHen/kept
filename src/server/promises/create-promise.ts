@@ -1,11 +1,14 @@
 import 'server-only'
 import { getTranslations } from 'next-intl/server'
+import { workedOutSize } from '@/lib/adaptive'
 import { AppError } from '@/lib/errors/app-error'
 import { nextPromiseDay, type KeptDay } from '@/lib/kept-day'
 import type { PromiseChoice } from '@/lib/promise'
 import type { Prisma } from '@/server/db/client'
 import { recordEvent } from '@/server/events/record-event'
+import { readPromiseHistory } from './read-promise-history'
 
+/** What a choice saves as. The Size is always worked out here, never taken from the form. */
 export async function chosenPromise({
 	tx,
 	userId,
@@ -18,17 +21,17 @@ export async function chosenPromise({
 	if (choice.kind === 'typed') {
 		return { planActionId: null, size: null, wording: choice.wording }
 	}
-	// Every action starts at small (docs/product/walkthrough.md, Day 1). Nothing
-	// changes a size until the adaptive engine lands (#18).
 	const action = await tx.planAction.findFirst({
 		where: { id: choice.actionId, plan: { userId, confirmedAt: { not: null } } },
-		select: { id: true, small: true }
+		select: { id: true, small: true, medium: true, large: true }
 	})
 	if (action == null) {
 		const t = await getTranslations('SetupPage.promise.errors')
 		throw new AppError(t('actionGone'), { status: 404, code: 'action_not_found' })
 	}
-	return { planActionId: action.id, size: 'small' as const, wording: action.small }
+	const history = await readPromiseHistory({ client: tx, userId })
+	const size = workedOutSize({ history, actionId: action.id })
+	return { planActionId: action.id, size, wording: action[size] }
 }
 
 /** Saves a Promise with its Event in the caller's transaction (ADR 0001). */

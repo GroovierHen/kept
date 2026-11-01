@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { test, expect, type Page, type Request } from '@playwright/test'
+import { daysPass as passDays } from './support/days-pass'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
 import { choose, HYDRATION_CHECK_MS, TIME_ZONE, walkToPromiseStep } from './support/walk-setup'
 
@@ -16,41 +17,7 @@ test.use({ timezoneId: TIME_ZONE })
 test.skip(RUNS_AGAINST_LIVE_URL, 'Needs the local database and fake services')
 test.afterAll(() => db.$disconnect())
 
-const earlier = (date: Date, days: number) => new Date(date.getTime() - days * DAY_MS)
-
-// Moves everything saved back in time, which is the same as the days passing.
-async function daysPass({ email, days }: { email: string; days: number }) {
-	const user = await db.user.findFirstOrThrow({
-		where: { email },
-		include: { promises: { include: { reports: true } }, events: true }
-	})
-	await db.$transaction([
-		db.user.update({ where: { id: user.id }, data: { createdAt: earlier(user.createdAt, days) } }),
-		...user.promises.map((promise) =>
-			db.promise.update({
-				where: { id: promise.id },
-				data: {
-					promiseDay: earlier(promise.promiseDay, days),
-					createdAt: earlier(promise.createdAt, days)
-				}
-			})
-		),
-		...user.promises.flatMap((promise) =>
-			promise.reports.map((report) =>
-				db.report.update({
-					where: { id: report.id },
-					data: { createdAt: earlier(report.createdAt, days) }
-				})
-			)
-		),
-		...user.events.map((event) =>
-			db.event.update({
-				where: { id: event.id },
-				data: { keptDay: earlier(event.keptDay, days), occurredAt: earlier(event.occurredAt, days) }
-			})
-		)
-	])
-}
+const daysPass = (input: { email: string; days: number }) => passDays({ db, ...input })
 
 async function commitFirstPromise(page: Page) {
 	await choose({ page, name: SECOND_ACTION })
