@@ -330,6 +330,17 @@
 		},
 		"day": "Day {day}",
 		"signOut": "Sign out",
+		"unreportedNote": "Your last promise closed as Unreported. It doesn’t count for or against you.",
+		"changeReport": {
+			"summary": "You answered {answer}. Change my answer",
+			"hint": "You can change it until 4am."
+		},
+		"changePromise": {
+			"summary": "Change this promise",
+			"hint": "You can change it until 4am.",
+			"submit": "Change my promise",
+			"closed": "It’s past 4am, so that promise can’t be changed any more."
+		},
 		"report": {
 			"question": {
 				"today": "Did you {wording} today?",
@@ -344,6 +355,7 @@
 				"invalid": "Pick Yes, Partly or No.",
 				"promiseGone": "We can’t find that promise. Refresh the page and try again.",
 				"closed": "That promise can’t be reported on any more.",
+				"changeClosed": "It’s past 4am, so that report can’t be changed any more.",
 				"failed": "We couldn’t save your report. Check your connection, then try again.",
 				"offline": "You’re offline. Try again when you’re back."
 			}

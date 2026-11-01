@@ -6,7 +6,7 @@ import type { PromiseChoice } from '@/lib/promise'
 import type { Prisma } from '@/server/db/client'
 import { recordEvent } from '@/server/events/record-event'
 
-async function chosenPromise({
+export async function chosenPromise({
 	tx,
 	userId,
 	choice

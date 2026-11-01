@@ -1,6 +1,10 @@
 import 'server-only'
-import { dayNumber, keptDayFromDate, toKeptDay } from '@/lib/kept-day'
+import { dayNumber, isReportEditable, keptDayFromDate, toKeptDay } from '@/lib/kept-day'
 import type { Prisma } from '@/server/db/client'
+
+// The latest two: once the next Promise is committed, the Report made today is on
+// the one before it.
+const PROMISES_READ = 2
 
 /** Where the user's check-in stands right now, read inside `client`'s transaction if it has one. */
 export async function readCheckIn({
@@ -17,7 +21,7 @@ export async function readCheckIn({
 			createdAt: true,
 			promises: {
 				orderBy: { promiseDay: 'desc' },
-				take: 1,
+				take: PROMISES_READ,
 				select: {
 					id: true,
 					promiseDay: true,
@@ -25,7 +29,11 @@ export async function readCheckIn({
 					wording: true,
 					moment: true,
 					createdAt: true,
-					reports: { orderBy: { createdAt: 'desc' }, take: 1, select: { answer: true } }
+					reports: {
+						orderBy: { createdAt: 'desc' },
+						take: 1,
+						select: { answer: true, createdAt: true }
+					}
 				}
 			}
 		}
@@ -33,17 +41,25 @@ export async function readCheckIn({
 	const { timeZone } = user
 	const today = toKeptDay({ instant: new Date(), timeZone })
 	const signUpDay = toKeptDay({ instant: user.createdAt, timeZone })
-	const [promise] = user.promises
-	const latestPromise =
-		promise == null
-			? null
-			: {
-					...promise,
-					promiseDay: keptDayFromDate(promise.promiseDay),
-					committedOn: toKeptDay({ instant: promise.createdAt, timeZone }),
-					hasReport: promise.reports.length > 0,
-					latestAnswer: promise.reports[0]?.answer ?? null
-				}
+	const promises = user.promises.map((promise) => {
+		const [latestReport] = promise.reports
+		return {
+			...promise,
+			promiseDay: keptDayFromDate(promise.promiseDay),
+			committedOn: toKeptDay({ instant: promise.createdAt, timeZone }),
+			reportedOn:
+				latestReport == null ? null : toKeptDay({ instant: latestReport.createdAt, timeZone }),
+			latestAnswer: latestReport?.answer ?? null
+		}
+	})
+	const changeableReport = promises.find(
+		({ reportedOn }) => reportedOn != null && isReportEditable({ reportedOn, today })
+	)
 
-	return { today, day: dayNumber({ signUpDay, today }), latestPromise }
+	return {
+		today,
+		day: dayNumber({ signUpDay, today }),
+		latestPromise: promises[0] ?? null,
+		changeableReport: changeableReport ?? null
+	}
 }

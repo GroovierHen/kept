@@ -4,4 +4,4 @@ The daily loop reads and writes ordinary `Promise` and `Report` tables, while th
 
 ## Consequences
 
-Two records of the same taps exist on purpose, so a report change has to reach both, inside one transaction. Unreported is worked out from dates and has no event.
+Two records of the same taps exist on purpose, so a report change or a promise change has to reach both, inside one transaction. Unreported is worked out from dates and has no event.

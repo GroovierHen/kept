@@ -13,12 +13,14 @@ const INITIAL_STATE: PromiseFormState = { error: null }
 export function PromiseForm({
 	actions,
 	submit,
-	initial
+	initial,
+	submitLabel
 }: {
 	actions: { id: string; wording: string }[]
 	submit: (previous: PromiseFormState, formData: FormData) => Promise<PromiseFormState>
 	/** What comes pre-selected. Setup leaves it out, so the first action is selected. */
 	initial?: { actionId?: string; typed?: string; moment: PromiseMoment }
+	submitLabel?: string
 }) {
 	const t = useTranslations('SetupPage.promise')
 	const id = useId()
@@ -107,7 +109,7 @@ export function PromiseForm({
 				disabled={pending || moment == null || wording == null || wording === ''}
 				className="text-body h-12 w-full"
 			>
-				{pending ? t('saving') : t('commit')}
+				{pending ? t('saving') : (submitLabel ?? t('commit'))}
 			</Button>
 		</form>
 	)

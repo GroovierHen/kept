@@ -1,28 +1,18 @@
 import { PrismaClient } from '@prisma/client'
 import { test, expect, type Page, type Request } from '@playwright/test'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
+import { choose, HYDRATION_CHECK_MS, TIME_ZONE } from './support/walk-setup'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
 const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
 
-const TIME_ZONE = 'Asia/Karachi'
 // The second action of the plan the fake Gemini returns, so the test can't pass
 // on the form's default choice.
 const CHOSEN_ACTION = 'put my running shoes by the door'
 const GOAL = 'I want to run 5k without stopping.'
 // A cold run compiles each route on first visit.
 const TEST_TIMEOUT_MS = 180_000
-const HYDRATION_CHECK_MS = 500
 const DAY_MS = 24 * 60 * 60 * 1000
-
-// A radio does nothing until the page has hydrated, so keep tapping until it takes.
-async function choose({ page, name }: { page: Page; name: string }) {
-	const radio = page.getByRole('radio', { name })
-	await expect(async () => {
-		await radio.click()
-		await expect(radio).toBeChecked({ timeout: HYDRATION_CHECK_MS })
-	}).toPass()
-}
 
 async function answerGoalQuestion({
 	page,
@@ -164,7 +154,8 @@ test('a new user goes from sign-up through their first check-in, and each save m
 	await test.step('Day 1 is already done', async () => {
 		await expect(page.getByRole('heading', { name: 'Day 1' })).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
-		await expect(page.getByText(`After work, I will ${CHOSEN_ACTION}.`)).toBeVisible()
+		// The closed change panel holds the same sentence, so take the summary's.
+		await expect(page.getByText(`After work, I will ${CHOSEN_ACTION}.`).first()).toBeVisible()
 	})
 
 	await test.step('a day passes', async () => {

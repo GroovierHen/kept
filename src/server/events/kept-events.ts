@@ -58,6 +58,18 @@ const keptEvent = z.discriminatedUnion('name', [
 			moment
 		})
 	}),
+	// The Promise as it now stands, after a change before the 4am it closes at. The
+	// latest Event for a promiseId describes it. promiseDay stays as committed.
+	eventContract({
+		name: 'promise_changed',
+		details: z.strictObject({
+			promiseId: entityId,
+			promiseDay: keptDay,
+			actionId: entityId.nullable(),
+			size: size.nullable(),
+			moment
+		})
+	}),
 	eventContract({
 		name: 'report_made',
 		details: z.strictObject({ promiseId: entityId, promiseDay: keptDay, answer })
