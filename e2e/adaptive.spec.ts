@@ -228,6 +228,14 @@ test('a changed Report moves the next commit and leaves a committed Promise alon
 			size: 'medium',
 			wording: RUN.medium
 		})
+		const changed = await db.event.findFirstOrThrow({
+			where: {
+				name: 'promise_changed',
+				user: { email },
+				details: { path: ['promiseId'], equals: before.id }
+			}
+		})
+		expect(changed.details).toMatchObject({ size: 'medium', moment: 'before_bed' })
 	})
 })
 

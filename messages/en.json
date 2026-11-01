@@ -10,6 +10,7 @@
 			"plan": "Your plan",
 			"questions": "Questions",
 			"signIn": "Sign in",
+			"results": "Results",
 			"start": "Start"
 		},
 		"hero": {
@@ -144,6 +145,49 @@
 			"linksLabel": "More",
 			"credit": "Ledger pictures: The Metropolitan Museum of Art, public domain.",
 			"legal": "Education, not financial advice. Habits after Tom Corley’s Rich Habits."
+		}
+	},
+	"ResultsPage": {
+		"meta": {
+			"title": "Kept results: live numbers from every tester",
+			"description": "Raw, live counts from everyone testing Kept: who signed up, who still checks in, promises kept and recall scores. No names, emails or goals."
+		},
+		"heading": "What our testers actually did.",
+		"intro": "Raw counts from everyone testing Kept, people who stopped included, updated about once a minute. They come from the same saved events as each person’s ledger. No names, emails or goals. The demo account and our own accounts aren’t counted.",
+		"people": {
+			"heading": "People",
+			"note": "Started means they finished setup.",
+			"signedUp": "Signed up",
+			"started": "Started"
+		},
+		"checkingIn": {
+			"heading": "Still checking in",
+			"note": "Testers who submitted a report on that day, counted from their own sign-up day. Day 1 is setup, so the first report comes on Day 2. The latest days can still go up.",
+			"empty": "No tester has reached Day 2 yet.",
+			"day": "Day",
+			"checkedIn": "Checked in",
+			"reached": "Started and reached this day"
+		},
+		"promises": {
+			"heading": "Promises",
+			"note": "The latest report for each promise. A promise nobody reported on counts as neither kept nor slipped.",
+			"kept": "Kept",
+			"partly": "Partly",
+			"slipped": "Slipped"
+		},
+		"milestones": {
+			"heading": "Milestones",
+			"note": "Answers of Yes on the day a milestone was due.",
+			"reached": "Reached"
+		},
+		"recall": {
+			"heading": "Recall scores",
+			"note": "Each key idea’s score out of 2 the first time it came back against the last time. Only ideas recalled at least twice are compared.",
+			"empty": "No key idea has been recalled twice yet.",
+			"idea": "Key idea",
+			"first": "First",
+			"last": "Last",
+			"leftOut": "Left out, recalled fewer than twice"
 		}
 	},
 	"Fragments": {
