@@ -7,7 +7,7 @@ import { ProgressBar } from '@/components/ui/progress-bar'
 import { StepCard } from '@/components/ui/step-card'
 import { dayNumber, type KeptDay } from '@/lib/kept-day'
 import { getSignedInUser } from '@/server/auth/session'
-import { readSetupStep } from '@/server/setup/stub-progress'
+import { readSetupStep } from '@/server/setup/progress'
 import { readLedger } from '@/server/today/read-ledger'
 
 export async function generateMetadata(): Promise<Metadata> {

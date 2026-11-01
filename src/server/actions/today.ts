@@ -11,7 +11,7 @@ import { changePromise } from '@/server/today/change-promise'
 import { commitNextPromise } from '@/server/today/commit-next-promise'
 import { makeReport } from '@/server/today/make-report'
 import { readCheckIn } from '@/server/today/read-check-in'
-import { saveLearnedOn } from '@/server/today/stub-learned'
+import { teachLesson } from '@/server/learn/teach-lesson'
 import type { PromiseFormState } from './setup'
 import { saveFailedMessage, validatedAction } from './validated-action'
 
@@ -46,12 +46,19 @@ export async function submitReport(
 	return redirect({ href: '/today', locale })
 }
 
-// TEMPORARY, with the cookie it saves (src/server/today/stub-learned.ts).
-export async function finishLearning(): Promise<void> {
+const learn = validatedAction({
+	input: z.object({ userId: z.uuid(), keyIdeaId: z.uuid() }),
+	handler: async ({ userId, keyIdeaId }) => {
+		const { today } = await readCheckIn({ client: db, userId })
+		await teachLesson({ userId, keyIdeaId, keptDay: today })
+	}
+})
+
+// If saving fails, the same lesson comes back, since it still isn't taught.
+export async function finishLearning(formData: FormData): Promise<void> {
 	const { user, locale } = await requireSignedIn()
 
-	const { today } = await readCheckIn({ client: db, userId: user.id })
-	await saveLearnedOn({ userId: user.id, today })
+	await learn({ userId: user.id, keyIdeaId: formData.get('keyIdeaId') })
 	return redirect({ href: '/today', locale })
 }
 

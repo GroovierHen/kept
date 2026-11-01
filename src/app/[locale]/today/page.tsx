@@ -16,9 +16,9 @@ import { finishLearning } from '@/server/actions/today'
 import { getSignedInUser } from '@/server/auth/session'
 import { db } from '@/server/db/client'
 import { getTodaysLesson } from '@/server/learn/learn'
-import { readSetupStep } from '@/server/setup/stub-progress'
+import { hasLearnedOn } from '@/server/learn/teach-lesson'
+import { readSetupStep } from '@/server/setup/progress'
 import { readCheckIn } from '@/server/today/read-check-in'
-import { hasLearnedOn } from '@/server/today/stub-learned'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('TodayPage.meta')
@@ -81,6 +81,7 @@ export default async function TodayPage() {
 						mode="step"
 						footer={
 							<form action={finishLearning}>
+								<input type="hidden" name="keyIdeaId" value={lesson.keyIdeaId} />
 								<Button type="submit" size="lg" className="text-body h-12 w-full">
 									{t('learn.continue')}
 								</Button>

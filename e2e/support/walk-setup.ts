@@ -51,7 +51,17 @@ export async function walkToPromiseStep({ page, email }: { page: Page; email: st
 	await page.getByRole('button', { name: 'Make my plan' }).click()
 	await page.getByRole('button', { name: 'Confirm my plan' }).click()
 
-	// TEMPORARY: a placeholder until the key idea step lands (#31).
-	await expect(page.getByText('Your first key idea')).toBeVisible()
+	// The first key idea of the plan the fake Gemini returns.
+	await expect(page.getByRole('heading', { name: 'Run slow enough to talk' })).toBeVisible()
 	await page.getByRole('button', { name: 'Continue' }).click()
+}
+
+/**
+ * Passes today's learn card, if there is one. A plan has 5 ideas, and a day with
+ * 2 recalls due teaches none, so a long run of days doesn't see one every day.
+ */
+export async function passLearnCard(page: Page) {
+	const learned = page.getByRole('button', { name: 'Continue' })
+	await expect(learned.or(page.getByRole('heading', { name: 'Your next promise' }))).toBeVisible()
+	if (await learned.isVisible()) await learned.click()
 }

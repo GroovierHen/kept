@@ -2,7 +2,13 @@ import { PrismaClient } from '@prisma/client'
 import { test, expect, type Page, type Request } from '@playwright/test'
 import { daysPass as passDays } from './support/days-pass'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
-import { choose, HYDRATION_CHECK_MS, TIME_ZONE, walkToPromiseStep } from './support/walk-setup'
+import {
+	choose,
+	HYDRATION_CHECK_MS,
+	passLearnCard,
+	TIME_ZONE,
+	walkToPromiseStep
+} from './support/walk-setup'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
 const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
@@ -65,7 +71,7 @@ test('a user changes a Report and a Promise, and neither disturbs the other', as
 	await test.step('report Yes, pass the learn card, commit the next Promise', async () => {
 		await page.goto('/today')
 		await page.getByRole('button', { name: 'Yes' }).click()
-		await page.getByRole('button', { name: 'Continue' }).click()
+		await passLearnCard(page)
 		await page.getByRole('button', { name: 'Make my promise' }).click()
 		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
 	})
@@ -169,7 +175,7 @@ test('a late Report is accepted, and a Promise nobody reports closes with a note
 	})
 
 	await test.step('the next Promise is for that same day, and the note goes', async () => {
-		await page.getByRole('button', { name: 'Continue' }).click()
+		await passLearnCard(page)
 		await page.getByRole('button', { name: 'Make my promise' }).click()
 		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
 		await expect(page.getByText('Your last promise closed as Unreported.')).toBeHidden()

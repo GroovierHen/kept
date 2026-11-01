@@ -1,6 +1,6 @@
 import 'server-only'
 import { z } from 'zod'
-import type { KeptDay } from '@/lib/kept-day'
+import { keptDayDate, keptDayFromDate, type KeptDay } from '@/lib/kept-day'
 import {
 	planStatusOf,
 	type DueMilestone,
@@ -11,12 +11,13 @@ import {
 	type RecallProgress
 } from '@/lib/learn/plan'
 import type { GoalAnswers } from '@/lib/learn/goal'
+import { MAX_RECALLS_PER_DAY, todaysKeyIdea } from '@/lib/learn/lesson'
 import { SARA_GENERATED_PLAN, SARA_GOAL } from '@/lib/learn/sara-plan'
 import type { PlanStatus } from '@/lib/setup-step'
 import { db } from '@/server/db/client'
 
 // What Learn gives Act (docs/product/tasks.md, "Where our halves meet").
-// getPlanStatus and getPlan read the database. The rest are TEMPORARY stubs
+// getPlanStatus, getPlan and getTodaysLesson read the database. The rest are TEMPORARY stubs
 // returning Sara's data from the walkthrough, so Act can build against them;
 // each names the issue that makes it real. Stub ids start with `stub-`.
 
@@ -119,11 +120,42 @@ function saraFirstKeyIdea() {
 	return { keyIdeaId: 'stub-key-idea-0', ...idea }
 }
 
-/** TEMPORARY (#31): always Sara's first key idea, the one setup teaches. */
+/**
+ * Today's key idea from the user's confirmed plan: the one taught today, else
+ * the next untaught, or null on a day with 2 recalls due. Only reads: teaching
+ * it is teachLesson, when the person has seen it.
+ */
 export async function getTodaysLesson(userId: string, keptDay: KeptDay): Promise<Lesson | null> {
 	callerInput.parse({ userId, keptDay })
-	const { keyIdeaId, title, lesson } = saraFirstKeyIdea()
-	return { keyIdeaId, title, lesson }
+	const day = keptDayDate(keptDay)
+	const [plan, dueRecalls] = await Promise.all([
+		db.plan.findUnique({
+			where: { userId },
+			select: {
+				confirmedAt: true,
+				keyIdeas: {
+					select: { id: true, position: true, title: true, lesson: true, taughtOn: true }
+				}
+			}
+		}),
+		// At most 2 are ever shown, so counting past 2 is wasted work.
+		db.review
+			.findMany({
+				where: { userId, dueOn: { lte: day }, recallAttemptId: null },
+				select: { id: true },
+				take: MAX_RECALLS_PER_DAY
+			})
+			.then((rows) => rows.length)
+	])
+	if (plan?.confirmedAt == null) return null
+
+	const ideas = plan.keyIdeas.map((idea) => ({
+		...idea,
+		taughtOn: idea.taughtOn == null ? null : keptDayFromDate(idea.taughtOn)
+	}))
+	const id = todaysKeyIdea({ ideas, keptDay, dueRecalls })
+	const idea = ideas.find((candidate) => candidate.id === id)
+	return idea == null ? null : { keyIdeaId: idea.id, title: idea.title, lesson: idea.lesson }
 }
 
 /** TEMPORARY (#32): always Sara's first key idea coming back, as on her Day 2. */

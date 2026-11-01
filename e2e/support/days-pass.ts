@@ -19,7 +19,9 @@ export async function daysPass({
 		// Oldest first, so no Promise lands on a Kept day another still holds.
 		include: {
 			promises: { orderBy: { promiseDay: 'asc' }, include: { reports: true } },
-			events: true
+			events: true,
+			reviews: true,
+			plan: { include: { keyIdeas: { where: { taughtOn: { not: null } } } } }
 		}
 	})
 	await db.$transaction([
@@ -40,6 +42,15 @@ export async function daysPass({
 					data: { createdAt: earlier(report.createdAt, days) }
 				})
 			)
+		),
+		...(user.plan?.keyIdeas ?? []).map((idea) =>
+			db.keyIdea.update({
+				where: { id: idea.id },
+				data: { taughtOn: earlier(idea.taughtOn ?? new Date(), days) }
+			})
+		),
+		...user.reviews.map((review) =>
+			db.review.update({ where: { id: review.id }, data: { dueOn: earlier(review.dueOn, days) } })
 		),
 		...user.events.map((event) =>
 			db.event.update({

@@ -32,6 +32,11 @@ export function dayNumber({ signUpDay, today }: { signUpDay: KeptDay; today: Kep
 /** A Kept day read back from a date column. */
 export const keptDayFromDate = (date: Date): KeptDay => date.toISOString().slice(0, 10)
 
+/** A Kept day as a date column takes it: midnight UTC. */
+export function keptDayDate(day: KeptDay): Date {
+	return new Date(`${day}T00:00:00Z`)
+}
+
 export type PromiseStatus = 'upcoming' | 'dueToday' | 'dueYesterday' | 'unreported'
 
 export function promiseStatus({

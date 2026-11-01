@@ -277,7 +277,6 @@
 			"promise": "Your promise for tomorrow",
 			"reminder": "Your daily reminder"
 		},
-		"stub": "This step is still being built. Continue to see the next one.",
 		"continue": "Continue",
 		"saveFailed": "We couldn’t save that step. Check your connection, then tap Continue again.",
 		"promise": {
@@ -505,7 +504,10 @@
 		},
 		"card": {
 			"eyebrow": "Key idea",
-			"learned": "Learned today"
+			"learned": "Learned today",
+			"continue": "Continue",
+			"saving": "Saving…",
+			"saveFailed": "We couldn’t save that. Check your connection, then tap Continue again."
 		}
 	}
 }

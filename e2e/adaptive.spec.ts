@@ -2,7 +2,13 @@ import { PrismaClient } from '@prisma/client'
 import { test, expect, type Page } from '@playwright/test'
 import { daysPass } from './support/days-pass'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
-import { choose, HYDRATION_CHECK_MS, TIME_ZONE, walkToPromiseStep } from './support/walk-setup'
+import {
+	choose,
+	HYDRATION_CHECK_MS,
+	passLearnCard,
+	TIME_ZONE,
+	walkToPromiseStep
+} from './support/walk-setup'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
 const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
@@ -67,11 +73,9 @@ async function reportNextDay({
 	answer: Answer
 }) {
 	await daysPass({ db, email, days: 1 })
-	// The stand-in for Learn's saved card is a cookie holding today's real date.
-	await page.context().clearCookies({ name: /^kept_today_learned_/ })
 	await page.goto('/today')
 	await page.getByRole('button', { name: answer, exact: true }).click()
-	await page.getByRole('button', { name: 'Continue' }).click()
+	await passLearnCard(page)
 	await expect(page.getByRole('heading', { name: 'Your next promise' })).toBeVisible()
 }
 
@@ -161,10 +165,9 @@ test('a Run grows a Promise, shrinks it at two Noes, and offers another Action a
 	await test.step('No, Unreported, No moves it down', async () => {
 		// Past the day after its own, so the Promise closes Unreported.
 		await daysPass({ db, email, days: 3 })
-		await page.context().clearCookies({ name: /^kept_today_learned_/ })
 		await page.goto('/today')
 		await expect(page.getByText('Your last promise closed as Unreported.')).toBeVisible()
-		await page.getByRole('button', { name: 'Continue' }).click()
+		await passLearnCard(page)
 		await commit(page)
 		expect(await latestPromise(email)).toMatchObject({ size: 'medium', wording: RUN.medium })
 

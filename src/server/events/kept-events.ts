@@ -62,10 +62,7 @@ const keptEvent = z.discriminatedUnion('name', [
 	// latest Event for a promiseId describes it. promiseDay stays as committed.
 	eventContract({ name: 'promise_changed', details: promiseDetails }),
 	eventContract({ name: 'report_made', details: reportMadeDetails }),
-	eventContract({
-		name: 'lesson_taught',
-		details: z.strictObject({ lessonId: entityId, skillId: entityId })
-	}),
+	eventContract({ name: 'lesson_taught', details: z.strictObject({ keyIdeaId: entityId }) }),
 	eventContract({
 		name: 'recall_graded',
 		details: z.strictObject({ questionId: entityId, skillId: entityId, score: recallScore })

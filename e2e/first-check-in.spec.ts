@@ -10,6 +10,9 @@ const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
 // on the form's default choice.
 const CHOSEN_ACTION = 'put my running shoes by the door'
 const GOAL = 'I want to run 5k without stopping.'
+// The first two key ideas of the plan the fake Gemini returns, taught on Days 1 and 2.
+const FIRST_KEY_IDEA = 'Run slow enough to talk'
+const SECOND_KEY_IDEA = 'Add about 10% a week'
 // A cold run compiles each route on first visit.
 const TEST_TIMEOUT_MS = 180_000
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -89,9 +92,8 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		await page.getByRole('button', { name: 'Confirm my plan' }).click()
 	})
 
-	// TEMPORARY: a placeholder until the key idea step lands (#31).
-	await test.step('pass the key idea', async () => {
-		await expect(page.getByText('Your first key idea')).toBeVisible()
+	await test.step('learn the first key idea', async () => {
+		await expect(page.getByRole('heading', { name: FIRST_KEY_IDEA })).toBeVisible()
 		await page.getByRole('button', { name: 'Continue' }).click()
 	})
 
@@ -121,7 +123,13 @@ test('a new user goes from sign-up through their first check-in, and each save m
 	await test.step('the saved Promise and its Event agree', async () => {
 		const user = await db.user.findFirstOrThrow({
 			where: { email },
-			include: { goal: true, promises: { include: { planAction: true } }, events: true }
+			include: {
+				goal: true,
+				promises: { include: { planAction: true } },
+				events: true,
+				plan: { include: { keyIdeas: { where: { taughtOn: { not: null } } } } },
+				reviews: true
+			}
 		})
 		expect(user.goal).toMatchObject({ text: GOAL, weeks: 8 })
 		expect(user.timeZone).toBe(TIME_ZONE)
@@ -147,6 +155,14 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		// Tonight's Promise is for the next Kept day.
 		expect(promise.promiseDay.getTime() - committed.keptDay.getTime()).toBe(DAY_MS)
 
+		// The first key idea is taught on Day 1 and first comes back the next Kept day.
+		const taught = onlyOne(user.plan?.keyIdeas ?? [])
+		expect(taught.title).toBe(FIRST_KEY_IDEA)
+		expect(onlyOne(eventsNamed('lesson_taught')).details).toEqual({ keyIdeaId: taught.id })
+		const review = onlyOne(user.reviews)
+		expect(review.keyIdeaId).toBe(taught.id)
+		expect(review.dueOn.getTime() - (taught.taughtOn?.getTime() ?? 0)).toBe(DAY_MS)
+
 		onlyOne(eventsNamed('reminder_added'))
 		onlyOne(eventsNamed('setup_finished'))
 	})
@@ -169,6 +185,15 @@ test('a new user goes from sign-up through their first check-in, and each save m
 			where: { id: promise.id },
 			data: { promiseDay: dayBefore(promise.promiseDay), createdAt: dayBefore(promise.createdAt) }
 		})
+		const taught = await db.keyIdea.findFirstOrThrow({
+			where: { plan: { userId: user.id }, taughtOn: { not: null } }
+		})
+		await db.keyIdea.update({
+			where: { id: taught.id },
+			data: { taughtOn: dayBefore(taught.taughtOn ?? new Date()) }
+		})
+		const review = await db.review.findFirstOrThrow({ where: { userId: user.id } })
+		await db.review.update({ where: { id: review.id }, data: { dueOn: dayBefore(review.dueOn) } })
 		await page.goto('/today')
 		await expect(page.getByRole('heading', { name: 'Day 2' })).toBeVisible()
 	})
@@ -184,7 +209,8 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		await sendAgain({ page, sent: await submission })
 	})
 
-	await test.step('pass the learn card', async () => {
+	await test.step('learn the second key idea', async () => {
+		await expect(page.getByRole('heading', { name: SECOND_KEY_IDEA })).toBeVisible()
 		await page.getByRole('button', { name: 'Continue' }).click()
 	})
 
@@ -234,6 +260,14 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		})
 		expect(next.promiseDay.getTime() - reported.promiseDay.getTime()).toBe(DAY_MS)
 		expect(eventsNamed('promise_committed')).toHaveLength(2)
+
+		// Day 2 taught the second idea, booked its own first review and recorded it once.
+		const second = await db.keyIdea.findFirstOrThrow({
+			where: { plan: { userId: user.id }, title: SECOND_KEY_IDEA }
+		})
+		expect(second.taughtOn).toEqual(report.keptDay)
+		expect(eventsNamed('lesson_taught')).toHaveLength(2)
+		expect(await db.review.count({ where: { userId: user.id, keyIdeaId: second.id } })).toBe(1)
 	})
 
 	await test.step('the ledger is one tap away and counts the Report', async () => {
