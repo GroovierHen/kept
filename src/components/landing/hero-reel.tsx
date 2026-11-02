@@ -30,7 +30,9 @@ export function HeroReel({
 			const rect = section.getBoundingClientRect()
 			const travel = rect.height - window.innerHeight
 			const progress = travel > 0 ? Math.min(1, Math.max(0, -rect.top / travel)) : 0
-			setStep(Math.min(frames.length - 1, Math.floor(progress * frames.length)))
+			// Each step turns halfway between frames, so the first scroll moves the
+			// reel soon and the last frame is reached before the section ends.
+			setStep(Math.round(progress * (frames.length - 1)))
 		}
 		const onScroll = () => {
 			if (frame === 0) frame = requestAnimationFrame(read)
