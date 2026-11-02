@@ -1,21 +1,53 @@
-// Runs the goal planner against the real Gemini API on 10 different goals
-// (#28) and saves every plan, so a person can read them before testers do.
-// Each call is tracked and costed into the local ai_usage table like any
-// other. Needs GEMINI_API_KEY and DATABASE_URL in .env.local:
+// Runs the goal planner against the real AI on 10 different goals (#28), then
+// a Try again on each plan, and saves every plan, so a person can read them
+// before testers do. Each call is tracked and costed into the ai_usage table
+// like any other. Needs OPENROUTER_API_KEY and DATABASE_URL in .env.local:
 //
 //   pnpm eval:planner
 //
-// Exits 1 if any safe goal fails to produce a valid plan, or the unsafe goal
-// gets one, so it can gate a prompt change.
+// Exits 1 if any safe goal fails to produce a valid plan or a Try again, a
+// Try again comes back too close to the first plan, or the unsafe goal gets
+// one, so it can gate a prompt change.
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { db } from '../src/server/db/client.ts'
 import { generatePlan } from '../src/server/learn/generate-plan.ts'
-import type { PlannerGoal } from '../src/server/learn/planner.ts'
+import type { PlannerGoal, PreviousPlan } from '../src/server/learn/planner.ts'
+import type { GeneratedPlan } from '../src/lib/learn/plan.ts'
 
 const EVAL_USER_ID = '00000000-0000-4000-8000-00000000e7a1'
+
+// How alike two plans' actions are: the share of words the medium sizes have
+// in common (Jaccard), averaged over the first plan's actions against their
+// closest match. Two runs of the same prompt shared about 0.4 in the
+// benchmark; a Try again that asks for a different plan should share less.
+const MAX_ACTION_OVERLAP = 0.5
+
+function words(text: string): Set<string> {
+	return new Set(text.toLowerCase().match(/[a-z0-9']+/g) ?? [])
+}
+
+function jaccard(a: Set<string>, b: Set<string>): number {
+	const shared = [...a].filter((word) => b.has(word)).length
+	return shared / (a.size + b.size - shared || 1)
+}
+
+function actionOverlap(first: GeneratedPlan, second: GeneratedPlan): number {
+	const scores = first.actions.map(({ medium }) =>
+		Math.max(...second.actions.map((other) => jaccard(words(medium), words(other.medium))))
+	)
+	return scores.reduce((sum, score) => sum + score, 0) / scores.length
+}
+
+function asPrevious(plan: GeneratedPlan): PreviousPlan {
+	return {
+		milestones: plan.milestones,
+		actions: plan.actions,
+		keyIdeaTitles: plan.keyIdeas.map(({ title }) => title)
+	}
+}
 
 const GOALS: { name: string; isSafe: boolean; goal: PlannerGoal }[] = [
 	{
@@ -148,6 +180,27 @@ for (const { name, isSafe, goal } of GOALS) {
 			? `refused, safer: "${result.saferGoal}"`
 			: result.reason
 	console.log(`${passed ? 'pass' : 'FAIL'}  ${name.padEnd(18)} ${seconds}s  ${detail}`)
+	if (!result.ok) continue
+
+	const againStarted = Date.now()
+	const again = await generatePlan({
+		userId: EVAL_USER_ID,
+		goal,
+		previous: asPrevious(result.plan)
+	})
+	const againSeconds = ((Date.now() - againStarted) / 1000).toFixed(1)
+	writeFileSync(
+		join(outDir, `${name}-try-again.json`),
+		JSON.stringify({ goal, result: again }, null, 2)
+	)
+	const overlap = again.ok ? actionOverlap(result.plan, again.plan) : null
+	const isDifferent = overlap != null && overlap <= MAX_ACTION_OVERLAP
+	if (!isDifferent) failures += 1
+	console.log(
+		`${isDifferent ? 'pass' : 'FAIL'}  ${`${name} again`.padEnd(18)} ${againSeconds}s  ${
+			overlap == null ? (again.ok ? '' : again.reason) : `action overlap ${overlap.toFixed(2)}`
+		}`
+	)
 }
 
 console.log(`\nPlans saved in ${outDir}`)

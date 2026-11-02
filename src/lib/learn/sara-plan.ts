@@ -2,7 +2,7 @@ import type { GeneratedPlan } from './plan'
 
 // Sara's plan from docs/product/walkthrough.md: "I want to run 5k without
 // stopping" in 8 weeks. The stubs return it until the planner lands, and the
-// demo account (#35) saves it instead of asking Gemini.
+// demo account (#35) saves it instead of asking the AI.
 
 export const SARA_GOAL = {
 	text: 'I want to run 5k without stopping.',

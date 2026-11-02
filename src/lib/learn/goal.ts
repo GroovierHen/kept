@@ -8,7 +8,7 @@ import {
 
 // The four goal screens in setup (#29): one question each, saved as it's
 // answered, so the next one asked is always the first still unanswered.
-// All four together are what the planner sends to Gemini.
+// All four together are what the planner sends to the AI.
 
 export type GoalAnswers = { [Q in GoalQuestion]: Q extends 'weeks' ? number | null : string | null }
 

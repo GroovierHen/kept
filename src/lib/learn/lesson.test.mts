@@ -9,7 +9,7 @@ const idea = (id: string, position: number, taughtOn: string | null = null) => (
 	taughtOn
 })
 
-test('day 1 teaches the first key idea in Gemini order', () => {
+test('day 1 teaches the first key idea in plan order', () => {
 	const ideas = [idea('b', 1), idea('a', 0), idea('c', 2)]
 	assert.equal(todaysKeyIdea({ ideas, keptDay, dueRecalls: 0 }), 'a')
 })

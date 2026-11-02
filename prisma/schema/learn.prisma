@@ -1,11 +1,11 @@
-// Learn's half of the schema (docs/product/tasks.md): the goal, the plan Gemini
+// Learn's half of the schema (docs/product/tasks.md): the goal, the plan the AI
 // makes from it, and what the user learns and recalls. Act's tables live in
 // act.prisma. New tables here need the RLS migration: docs/rules/auth.md.
 //
 // One Goal and one Plan per user, enforced by unique userId, so a double submit
 // or a retry can't make a second. Milestones, actions and key ideas keep
-// Gemini's order in position, unique per plan. Text the user types is capped
-// in the column; text Gemini writes is checked against src/lib/learn/plan.ts.
+// the AI's order in position, unique per plan. Text the user types is capped
+// in the column; text the AI writes is checked against src/lib/learn/plan.ts.
 
 // Filled one setup screen at a time, so every answer starts empty.
 // getPlanStatus says goal_saved only once all four are answered.
@@ -16,6 +16,10 @@ model Goal {
 	weeks         Int?
 	startingPoint String?  @map("starting_point") @db.VarChar(280)
 	obstacle      String?  @db.VarChar(280)
+	// When the first plan's build was claimed, so a refresh waits for it
+	// rather than building twice. Stale after the setup page's time limit
+	// (src/lib/learn/plan-build.ts).
+	planBuildStartedAt DateTime? @map("plan_build_started_at") @db.Timestamptz(6)
 	createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 	updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 	user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)

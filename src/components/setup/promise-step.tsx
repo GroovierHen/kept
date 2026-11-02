@@ -5,7 +5,7 @@ import { commitPromise } from '@/server/actions/setup'
 import { getPlan } from '@/server/learn/learn'
 import { PromiseForm } from './promise-form'
 
-// Setup's promise step (#13): the plan's actions in Gemini's order, each at
+// Setup's promise step (#13): the plan's actions in the AI's order, each at
 // small, the first one selected.
 export async function PromiseStep({ userId }: { userId: string }) {
 	const [plan, t] = await Promise.all([getPlan(userId), getTranslations('SetupPage')])

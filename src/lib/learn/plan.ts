@@ -4,7 +4,7 @@ import type { PlanStatus } from '@/lib/setup-step'
 import { MAX_ACTION_LENGTH } from './plan-limits'
 
 // The shape of a plan, and what Learn hands Act (docs/product/tasks.md, "Where
-// our halves meet"). The goal planner (#28) parses Gemini's answer with
+// our halves meet"). The goal planner (#28) parses the AI's answer with
 // generatedPlanSchema, so a plan that reaches the database always has this shape.
 
 export { PLAN_WEEKS } from './goal-questions'
@@ -14,7 +14,7 @@ export const CHOICES_PER_IDEA = 3
 const text = (max: number) => z.string().trim().min(1).max(max)
 const actionWording = text(MAX_ACTION_LENGTH)
 
-/** An action's three sizes, as Gemini writes them and as the person rewords them. */
+/** An action's three sizes, as the AI writes them and as the person rewords them. */
 export const actionSizes = z.strictObject({
 	small: actionWording,
 	medium: actionWording,
@@ -86,7 +86,7 @@ export function planStatusOf({
 
 export type ActionSize = 'small' | 'medium' | 'large'
 
-/** What getPlan gives Act: the goal, milestones, and actions in Gemini's order. */
+/** What getPlan gives Act: the goal, milestones, and actions in the AI's order. */
 export interface PlanForAct {
 	readonly goal: { readonly text: string; readonly weeks: number }
 	readonly milestones: readonly {

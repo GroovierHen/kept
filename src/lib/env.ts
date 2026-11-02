@@ -35,9 +35,11 @@ const envSchema = z.object({
 	NEXT_PUBLIC_POSTHOG_HOST: z.string().url().default('https://us.i.posthog.com'),
 	POSTHOG_PERSONAL_API_KEY: z.string().optional(),
 
-	// Read by src/server/ai/google.ts, the only Gemini caller. Optional so a
+	// Read by src/server/ai/openrouter.ts, the only AI caller. Optional so a
 	// build or preview without it boots; only an AI call fails.
-	GEMINI_API_KEY: z.string().optional(),
+	OPENROUTER_API_KEY: z.string().optional(),
+	// Only the e2e tests set this, to reach their fake. Unset means OpenRouter.
+	OPENROUTER_BASE_URL: z.string().url().optional().or(z.literal('')),
 
 	// Optional — captureError() no-ops on Slack alerting entirely without
 	// this. See docs/rules/error-handling.md.

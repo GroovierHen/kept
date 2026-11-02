@@ -39,16 +39,14 @@ const NO_TOKENS = {
 // --- the model map ---------------------------------------------------------
 
 test('maps a known model and leaves an unknown one unpriced', () => {
-	assert.equal(openRouterSlug('gemini-3.5-flash-lite'), 'google/gemini-3.5-flash-lite')
-	assert.equal(openRouterSlug('gemini-9-flash'), null)
+	assert.equal(openRouterSlug('openai/gpt-6-luna'), 'openai/gpt-6-luna')
+	assert.equal(openRouterSlug('openai/gpt-6-luna-20260922'), 'openai/gpt-6-luna')
+	assert.equal(openRouterSlug('openai/gpt-9-nova'), null)
 })
 
 test('batch is a separate upstream entry, fast is not', () => {
-	assert.equal(
-		openRouterSlug('gemini-3.5-flash-lite', 'batch'),
-		'google/gemini-3.5-flash-lite:batch'
-	)
-	assert.equal(openRouterSlug('gemini-3.5-flash-lite', 'fast'), 'google/gemini-3.5-flash-lite')
+	assert.equal(openRouterSlug('openai/gpt-6-luna', 'batch'), 'openai/gpt-6-luna:batch')
+	assert.equal(openRouterSlug('openai/gpt-6-luna', 'fast'), 'openai/gpt-6-luna')
 })
 
 // --- pricing ---------------------------------------------------------------
@@ -100,31 +98,29 @@ test('an override leaves the rates it does not declare alone', () => {
 
 // --- provider response extraction ------------------------------------------
 
-// Google's promptTokenCount INCLUDES cached tokens and tool results, and its
-// candidatesTokenCount EXCLUDES thinking (totalTokenCount is the sum of all
-// four; see GenerateContentResponseUsageMetadata in @google/genai). So cached
-// tokens are subtracted from input, and thinking is added to output, where
-// it is billed.
-test('google prompt count includes cache, so cached tokens are subtracted', () => {
-	const extracted = extractUsage('google', {
-		responseId: 'resp_01abc',
-		modelVersion: 'gemini-3.5-flash-lite',
-		candidates: [{ finishReason: 'STOP' }],
-		usageMetadata: {
-			promptTokenCount: 11_000,
-			cachedContentTokenCount: 10_000,
-			toolUsePromptTokenCount: 50,
-			candidatesTokenCount: 400,
-			thoughtsTokenCount: 100,
-			totalTokenCount: 11_550
+// OpenRouter reports usage in OpenAI's shape: prompt_tokens INCLUDES the
+// cached tokens in prompt_tokens_details, and completion_tokens INCLUDES the
+// reasoning tokens in completion_tokens_details. So cached tokens are
+// subtracted from input, and reasoning is left in output, where it is billed.
+test('openrouter prompt count includes cache, so cached tokens are subtracted', () => {
+	const extracted = extractUsage('openrouter', {
+		id: 'gen-01abc',
+		model: 'openai/gpt-6-luna',
+		choices: [{ finish_reason: 'stop', message: { content: '{}' } }],
+		usage: {
+			prompt_tokens: 11_000,
+			completion_tokens: 500,
+			total_tokens: 11_500,
+			prompt_tokens_details: { cached_tokens: 10_000 },
+			completion_tokens_details: { reasoning_tokens: 100 }
 		}
 	})
 	assert.deepEqual(extracted, {
-		model: 'gemini-3.5-flash-lite',
-		requestId: 'resp_01abc',
+		model: 'openai/gpt-6-luna',
+		requestId: 'gen-01abc',
 		status: 'ok',
 		tokens: {
-			inputTokens: 1050,
+			inputTokens: 1000,
 			outputTokens: 500,
 			cacheWriteTokens: 0,
 			cacheReadTokens: 10_000
@@ -132,9 +128,10 @@ test('google prompt count includes cache, so cached tokens are subtracted', () =
 	})
 })
 
-test('google counts with no cache or thinking leave nothing to adjust', () => {
-	const extracted = extractUsage('google', {
-		usageMetadata: { promptTokenCount: 300, candidatesTokenCount: 80 }
+test('openrouter counts with no details leave nothing to adjust', () => {
+	const extracted = extractUsage('openrouter', {
+		choices: [{ finish_reason: 'stop', message: { content: '{}' } }],
+		usage: { prompt_tokens: 300, completion_tokens: 80 }
 	})
 	assert.deepEqual(extracted?.tokens, {
 		inputTokens: 300,
@@ -145,48 +142,68 @@ test('google counts with no cache or thinking leave nothing to adjust', () => {
 })
 
 test('a refusal is recorded as a refusal, not as a plain success', () => {
-	const blockedPrompt = extractUsage('google', {
-		promptFeedback: { blockReason: 'SAFETY' },
-		usageMetadata: { promptTokenCount: 10 }
+	const refusedAnswer = extractUsage('openrouter', {
+		choices: [{ finish_reason: 'stop', message: { content: null, refusal: 'I can’t help.' } }],
+		usage: { prompt_tokens: 10, completion_tokens: 5 }
 	})
-	assert.equal(blockedPrompt?.status, 'refusal')
+	assert.equal(refusedAnswer?.status, 'refusal')
 
-	const blockedAnswer = extractUsage('google', {
-		candidates: [{ finishReason: 'PROHIBITED_CONTENT' }],
-		usageMetadata: { promptTokenCount: 10 }
+	const filteredAnswer = extractUsage('openrouter', {
+		choices: [{ finish_reason: 'content_filter', message: { content: '' } }],
+		usage: { prompt_tokens: 10, completion_tokens: 0 }
 	})
-	assert.equal(blockedAnswer?.status, 'refusal')
+	assert.equal(filteredAnswer?.status, 'refusal')
+})
+
+// A moderated model's input is checked before the model sees it, and flagged
+// input comes back as a 403 with the reasons, not as a completion. Nothing
+// was generated, so nothing is billed.
+test('input flagged by moderation is a refusal with no tokens', () => {
+	const flagged = extractUsage('openrouter', {
+		error: {
+			code: 403,
+			message: 'openai/gpt-6-luna requires moderation on OpenAI. Your input was flagged.',
+			metadata: {
+				reasons: ['self-harm'],
+				flagged_input: '…',
+				provider_name: 'OpenAI',
+				model_slug: 'openai/gpt-6-luna'
+			}
+		}
+	})
+	assert.deepEqual(flagged, { status: 'refusal', tokens: NO_TOKENS })
 })
 
 test('an unrecognised response shape yields no usage rather than throwing', () => {
-	assert.equal(extractUsage('google', { unexpected: true }), undefined)
-	assert.equal(extractUsage('google', null), undefined)
+	assert.equal(extractUsage('openrouter', { unexpected: true }), undefined)
+	assert.equal(extractUsage('openrouter', null), undefined)
 })
 
 // --- row building ----------------------------------------------------------
 
 const SPEC: AiCallSpec = {
-	provider: 'google',
-	model: 'gemini-3.5-flash-lite',
+	provider: 'openrouter',
+	model: 'openai/gpt-6-luna',
 	feature: 'goal_plan'
 }
 
 test('the model that served the call wins over the model that was asked for', () => {
 	const row = buildRow(
-		{ ...SPEC, model: 'gemini-3.5-flash-lite' },
+		{ ...SPEC, model: 'openai/gpt-6-luna' },
 		{
-			modelVersion: 'gemini-3.5-flash-lite-001',
-			usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1 }
+			model: 'openai/gpt-6-luna-20260922',
+			choices: [{ finish_reason: 'stop', message: { content: '{}' } }],
+			usage: { prompt_tokens: 1, completion_tokens: 1 }
 		},
 		{ status: 'ok', latencyMs: 12 }
 	)
-	assert.equal(row.model, 'gemini-3.5-flash-lite-001')
+	assert.equal(row.model, 'openai/gpt-6-luna-20260922')
 })
 
 test('a failed call still produces a row, with the requested model and no tokens', () => {
 	const row = buildRow(SPEC, undefined, { status: 'error', latencyMs: 12 })
 	assert.equal(row.status, 'error')
-	assert.equal(row.model, 'gemini-3.5-flash-lite')
+	assert.equal(row.model, 'openai/gpt-6-luna')
 	assert.deepEqual(
 		{
 			inputTokens: row.inputTokens,

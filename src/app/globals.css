@@ -218,6 +218,19 @@ body {
 	}
 }
 
+/* The plan wait's sentences (plan-waiting.tsx) rise in as each is added. */
+@media (prefers-reduced-motion: no-preference) {
+	.plan-waiting-line {
+		animation: plan-waiting-line 420ms var(--ease-out) both;
+	}
+}
+@keyframes plan-waiting-line {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+}
+
 /* The one moving picture: a slow drift on the ledger cover. */
 @keyframes drift {
 	from {
