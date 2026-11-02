@@ -6,8 +6,8 @@ import { SARA_GENERATED_PLAN } from '../../src/lib/learn/sara-plan'
 // Stands in for Supabase Auth and OpenRouter, the two outside services on Day 1. The
 // app reaches them on the server, where a browser test can't intercept, and CI
 // has no credentials for either. They are found through their normal base URLs,
-// so the app runs its real code with no test-only branch. Only what Day 1 calls
-// is here, and anything else fails the test with a 404.
+// so the app runs its real code with no test-only branch. Only what the tests
+// call is here, and anything else fails the test with a 404.
 
 const SESSION_SECONDS = 3600
 
@@ -51,12 +51,21 @@ function userFromToken(authorization: string | undefined) {
 	return authUser({ id: sub, email })
 }
 
-function aiPlan() {
-	const content = JSON.stringify({ isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN })
+export const FAKE_GRADE = {
+	score: 1,
+	reason: 'You got part of it. Easy runs also build your base.'
+}
+
+// The planner and the grader both ask for a chat completion; the prompt says which.
+function aiReply(body: unknown) {
+	const isGrader = JSON.stringify(body).includes('You are the grader')
+	const reply = isGrader ? FAKE_GRADE : { isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN }
 	return {
 		id: 'gen-fake',
 		model: 'openai/gpt-6-luna',
-		choices: [{ finish_reason: 'stop', message: { role: 'assistant', content } }],
+		choices: [
+			{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(reply) } }
+		],
 		usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }
 	}
 }
@@ -76,7 +85,7 @@ async function respond(request: IncomingMessage) {
 		return userFromToken(request.headers.authorization)
 	}
 	if (request.method === 'POST' && pathname === '/chat/completions') {
-		return aiPlan()
+		return aiReply(await readJson(request))
 	}
 	return null
 }

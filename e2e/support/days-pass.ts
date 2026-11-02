@@ -21,6 +21,7 @@ export async function daysPass({
 			promises: { orderBy: { promiseDay: 'asc' }, include: { reports: true } },
 			events: true,
 			reviews: true,
+			recallAttempts: true,
 			plan: { include: { keyIdeas: { where: { taughtOn: { not: null } } } } }
 		}
 	})
@@ -51,6 +52,15 @@ export async function daysPass({
 		),
 		...user.reviews.map((review) =>
 			db.review.update({ where: { id: review.id }, data: { dueOn: earlier(review.dueOn, days) } })
+		),
+		...user.recallAttempts.map((attempt) =>
+			db.recallAttempt.update({
+				where: { id: attempt.id },
+				data: {
+					keptDay: earlier(attempt.keptDay, days),
+					createdAt: earlier(attempt.createdAt, days)
+				}
+			})
 		),
 		...user.events.map((event) =>
 			db.event.update({

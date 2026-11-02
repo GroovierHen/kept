@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { test, expect, type Page, type Request } from '@playwright/test'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
+import { FAKE_GRADE } from './support/fake-services'
 import { choose, HYDRATION_CHECK_MS, TIME_ZONE } from './support/walk-setup'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
@@ -13,6 +14,7 @@ const GOAL = 'I want to run 5k without stopping.'
 // The first two key ideas of the plan the fake AI returns, taught on Days 1 and 2.
 const FIRST_KEY_IDEA = 'Run slow enough to talk'
 const SECOND_KEY_IDEA = 'Add about 10% a week'
+const FIRST_RECALL_QUESTION = 'Why should most of your runs feel easy?'
 // A cold run compiles each route on first visit.
 const TEST_TIMEOUT_MS = 180_000
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -204,9 +206,17 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		).toBeVisible()
 		const submission = page.waitForRequest((request) => request.method() === 'POST')
 		await page.getByRole('button', { name: 'Yes' }).click()
-		await expect(page.getByText('Key idea')).toBeVisible()
+		await expect(page.getByRole('heading', { name: FIRST_RECALL_QUESTION })).toBeVisible()
 
 		await sendAgain({ page, sent: await submission })
+	})
+
+	await test.step('recall the first key idea and see its mark', async () => {
+		await page.getByLabel('Your answer').fill("so you don't get too tired")
+		await page.getByRole('button', { name: 'Check my answer' }).click()
+		await expect(page.getByText('1 out of 2')).toBeVisible()
+		await expect(page.getByText(FAKE_GRADE.reason)).toBeVisible()
+		await page.getByRole('button', { name: 'Continue' }).click()
 	})
 
 	await test.step('learn the second key idea', async () => {
@@ -268,6 +278,21 @@ test('a new user goes from sign-up through their first check-in, and each save m
 		expect(second.taughtOn).toEqual(report.keptDay)
 		expect(eventsNamed('lesson_taught')).toHaveLength(2)
 		expect(await db.review.count({ where: { userId: user.id, keyIdeaId: second.id } })).toBe(1)
+
+		// The first idea was recalled on Day 2 for 1 out of 2, so it comes back on Day 4.
+		const first = await db.keyIdea.findFirstOrThrow({
+			where: { plan: { userId: user.id }, title: FIRST_KEY_IDEA },
+			include: { recallAttempts: true, reviews: { orderBy: { dueOn: 'asc' } } }
+		})
+		expect(onlyOne(first.recallAttempts)).toMatchObject({ score: 1, isMultipleChoice: false })
+		expect(onlyOne(eventsNamed('recall_graded')).details).toEqual({
+			keyIdeaId: first.id,
+			score: 1,
+			isMultipleChoice: false
+		})
+		const comesBack = first.reviews.at(-1)
+		expect(comesBack?.recallAttemptId).toBeNull()
+		expect((comesBack?.dueOn.getTime() ?? 0) - report.keptDay.getTime()).toBe(2 * DAY_MS)
 	})
 
 	await test.step('the ledger is one tap away and counts the Report', async () => {

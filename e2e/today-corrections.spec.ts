@@ -193,7 +193,8 @@ test('a user who reported and left starts at commit the next day, with a Promise
 
 	await page.goto('/today')
 	await page.getByRole('button', { name: 'Partly' }).click()
-	await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible()
+	// The report saved and the learn step opened, starting with Day 2's recall.
+	await expect(page.getByRole('button', { name: 'Check my answer' })).toBeVisible()
 
 	await daysPass({ email, days: 1 })
 	await page.goto('/today')

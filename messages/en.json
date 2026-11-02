@@ -518,6 +518,26 @@
 			"continue": "Continue",
 			"saving": "Saving…",
 			"saveFailed": "We couldn’t save that. Check your connection, then tap Continue again."
+		},
+		"recall": {
+			"eyebrow": "Remember: {title}",
+			"answerLabel": "Your answer",
+			"placeholder": "In your own words…",
+			"submit": "Check my answer",
+			"marking": "Marking…",
+			"score": "{score} out of 2",
+			"choiceRight": "Right.",
+			"choiceWrong": "Not this time. It comes back tomorrow.",
+			"modelAnswer": "Model answer",
+			"continue": "Continue",
+			"loading": "Loading…",
+			"choosingHint": "We can’t mark typed answers right now, so pick the best answer instead.",
+			"errors": {
+				"choose": "Pick one answer.",
+				"tooLong": "Keep it under 1,000 characters.",
+				"failed": "We couldn’t save your answer. Check your connection, then try again.",
+				"offline": "You’re offline, so nothing was sent. Try again once you’re connected."
+			}
 		}
 	}
 }

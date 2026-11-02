@@ -7,21 +7,19 @@ import {
 	type DueReview,
 	type Lesson,
 	type PlanForAct,
-	type RecallGrade,
 	type RecallProgress
 } from '@/lib/learn/plan'
 import type { GoalAnswers } from '@/lib/learn/goal'
 import { MAX_RECALLS_PER_DAY, todaysKeyIdea } from '@/lib/learn/lesson'
+import { recallsLeftToday } from '@/lib/learn/review-schedule'
 import { SARA_GENERATED_PLAN, SARA_GOAL } from '@/lib/learn/sara-plan'
 import type { PlanStatus } from '@/lib/setup-step'
 import { db } from '@/server/db/client'
 
 // What Learn gives Act (docs/product/tasks.md, "Where our halves meet").
-// getPlanStatus, getPlan and getTodaysLesson read the database. The rest are TEMPORARY stubs
+// getPlanStatus, getPlan, getTodaysLesson and getDueReviews read the database. The rest are TEMPORARY stubs
 // returning Sara's data from the walkthrough, so Act can build against them;
 // each names the issue that makes it real. Stub ids start with `stub-`.
-
-const MAX_ANSWER_LENGTH = 1000
 
 // Act calls these with a user id and a Kept day it worked out. A bad one is a
 // bug on the calling side, so it fails here rather than returning Sara's data.
@@ -127,8 +125,7 @@ function saraFirstKeyIdea() {
  */
 export async function getTodaysLesson(userId: string, keptDay: KeptDay): Promise<Lesson | null> {
 	callerInput.parse({ userId, keptDay })
-	const day = keptDayDate(keptDay)
-	const [plan, dueRecalls] = await Promise.all([
+	const [plan, recallDay] = await Promise.all([
 		db.plan.findUnique({
 			where: { userId },
 			select: {
@@ -138,14 +135,7 @@ export async function getTodaysLesson(userId: string, keptDay: KeptDay): Promise
 				}
 			}
 		}),
-		// At most 2 are ever shown, so counting past 2 is wasted work.
-		db.review
-			.findMany({
-				where: { userId, dueOn: { lte: day }, recallAttemptId: null },
-				select: { id: true },
-				take: MAX_RECALLS_PER_DAY
-			})
-			.then((rows) => rows.length)
+		readRecallDay(userId, keptDay)
 	])
 	if (plan?.confirmedAt == null) return null
 
@@ -153,16 +143,43 @@ export async function getTodaysLesson(userId: string, keptDay: KeptDay): Promise
 		...idea,
 		taughtOn: idea.taughtOn == null ? null : keptDayFromDate(idea.taughtOn)
 	}))
+	const dueRecalls = recallDay.answeredToday + recallDay.waiting.length
 	const id = todaysKeyIdea({ ideas, keptDay, dueRecalls })
 	const idea = ideas.find((candidate) => candidate.id === id)
 	return idea == null ? null : { keyIdeaId: idea.id, title: idea.title, lesson: idea.lesson }
 }
 
-/** TEMPORARY (#32): always Sara's first key idea coming back, as on her Day 2. */
+/**
+ * The key ideas coming back today, the ones learned first going first: at most
+ * 2 a check-in, counting any already answered today, so the rest wait a day.
+ */
 export async function getDueReviews(userId: string, keptDay: KeptDay): Promise<DueReview[]> {
 	callerInput.parse({ userId, keptDay })
-	const { keyIdeaId, title, question, choices } = saraFirstKeyIdea()
-	return [{ keyIdeaId, title, question, choices }]
+	const { waiting } = await readRecallDay(userId, keptDay)
+	return waiting.map(({ keyIdea }) => ({
+		keyIdeaId: keyIdea.id,
+		title: keyIdea.title,
+		question: keyIdea.question,
+		choices: keyIdea.choices
+	}))
+}
+
+// Today's recalls: how many are answered, and the ones still to ask, in order.
+async function readRecallDay(userId: string, keptDay: KeptDay) {
+	const day = keptDayDate(keptDay)
+	const [answeredToday, due] = await Promise.all([
+		db.recallAttempt.count({ where: { userId, keptDay: day } }),
+		db.review.findMany({
+			where: { userId, dueOn: { lte: day }, recallAttemptId: null },
+			orderBy: [{ keyIdea: { taughtOn: 'asc' } }, { keyIdea: { position: 'asc' } }],
+			select: {
+				keyIdea: { select: { id: true, title: true, question: true, choices: true } }
+			},
+			take: MAX_RECALLS_PER_DAY
+		})
+	])
+	const left = recallsLeftToday({ answeredToday, waiting: due.length })
+	return { answeredToday, waiting: due.slice(0, left) }
 }
 
 /** TEMPORARY (#34): no milestone is due during the test week. */
@@ -172,28 +189,6 @@ export async function getDueMilestone(
 ): Promise<DueMilestone | null> {
 	callerInput.parse({ userId, keptDay })
 	return null
-}
-
-/** TEMPORARY (#32): a fixed mark, 0 for an empty answer, else Sara's 1 out of 2. */
-export async function gradeRecall(
-	userId: string,
-	keyIdeaId: string,
-	answer: string
-): Promise<RecallGrade> {
-	callerInput.parse({ userId })
-	z.string().min(1).parse(keyIdeaId)
-	const { modelAnswer } = saraFirstKeyIdea()
-	const trimmed = answer.trim().slice(0, MAX_ANSWER_LENGTH)
-	if (trimmed === '') {
-		return { score: 0, reason: 'No answer was given.', modelAnswer, isMultipleChoice: false }
-	}
-	return {
-		score: 1,
-		reason:
-			'Partly. Easy runs also build the base that lets you run further, and they keep you from getting injured.',
-		modelAnswer,
-		isMultipleChoice: false
-	}
 }
 
 /** TEMPORARY (#33): Sara's first idea, 1 out of 2 on day 2 then 2 out of 2 on day 4. */
