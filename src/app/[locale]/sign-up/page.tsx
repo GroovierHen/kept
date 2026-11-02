@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from '@/i18n/routing'
 import { AuthForm } from '@/components/auth/auth-form'
@@ -8,7 +7,6 @@ import { PromiseFragment } from '@/components/landing/fragments'
 import ledgerCover from '../../../../public/landing/account-book-ledger.jpg'
 import { signUp } from '@/server/actions/auth'
 import { getSignedInUser } from '@/server/auth/session'
-import { START_EMAIL_COOKIE } from '@/server/auth/start-email'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('SignUpPage.meta')
@@ -19,12 +17,10 @@ export default async function SignUpPage() {
 	if ((await getSignedInUser()) != null)
 		return redirect({ href: '/today', locale: await getLocale() })
 
-	const [t, about, cookieStore] = await Promise.all([
+	const [t, about] = await Promise.all([
 		getTranslations('SignUpPage'),
-		getTranslations('HomePage.about'),
-		cookies()
+		getTranslations('HomePage.about')
 	])
-	const startEmail = cookieStore.get(START_EMAIL_COOKIE)?.value ?? ''
 
 	return (
 		<>
@@ -35,7 +31,7 @@ export default async function SignUpPage() {
 					<AuthForm
 						action={signUp}
 						mode="sign-up"
-						defaultEmail={startEmail}
+						defaultEmail=""
 						submitLabel={t('submit')}
 						pendingLabel={t('pending')}
 					/>

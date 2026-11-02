@@ -127,14 +127,6 @@
 				}
 			}
 		},
-		"cta": {
-			"before": "Sign me up as",
-			"after": "and",
-			"button": "start.",
-			"emailLabel": "Your email",
-			"placeholder": "you@email.com",
-			"note": "Next you pick a password. Then four short questions about your goal, and Kept writes your plan."
-		},
 		"footer": {
 			"invitation": "Two minutes, starting tonight.",
 			"start": "Start",

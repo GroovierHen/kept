@@ -5,7 +5,6 @@ import { PlanShowcase } from '@/components/landing/plan-showcase'
 import { SoundFamiliar } from '@/components/landing/sound-familiar'
 import { About } from '@/components/landing/about'
 import { Faq } from '@/components/landing/faq'
-import { Closing } from '@/components/landing/closing'
 import { LandingFooter } from '@/components/landing/landing-footer'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -15,7 +14,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 // The page is written for someone who has never heard of Kept, and argues in
 // order: what it is and what a check-in looks like, how little time it takes,
 // what it makes from a goal, the ways goals usually fail and what Kept does
-// about each, why it's called Kept, the honest answers, then the sign-up.
+// about each, why it's called Kept, then the honest answers. The footer
+// closes with the way to start.
 export default function HomePage() {
 	return (
 		<>
@@ -26,7 +26,6 @@ export default function HomePage() {
 				<SoundFamiliar />
 				<About />
 				<Faq />
-				<Closing />
 			</main>
 			<LandingFooter />
 		</>
