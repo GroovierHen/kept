@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage } from 'node:http'
 import { z } from 'zod'
 import { SARA_GENERATED_PLAN } from '../../src/lib/learn/sara-plan'
 
-// Stands in for Supabase Auth and Gemini, the two outside services on Day 1. The
+// Stands in for Supabase Auth and OpenRouter, the two outside services on Day 1. The
 // app reaches them on the server, where a browser test can't intercept, and CI
 // has no credentials for either. They are found through their normal base URLs,
 // so the app runs its real code with no test-only branch. Only what Day 1 calls
@@ -51,11 +51,13 @@ function userFromToken(authorization: string | undefined) {
 	return authUser({ id: sub, email })
 }
 
-function geminiPlan() {
-	const text = JSON.stringify({ isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN })
+function aiPlan() {
+	const content = JSON.stringify({ isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN })
 	return {
-		candidates: [{ content: { role: 'model', parts: [{ text }] }, finishReason: 'STOP' }],
-		usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 }
+		id: 'gen-fake',
+		model: 'openai/gpt-6-luna',
+		choices: [{ finish_reason: 'stop', message: { role: 'assistant', content } }],
+		usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }
 	}
 }
 
@@ -73,8 +75,8 @@ async function respond(request: IncomingMessage) {
 	if (request.method === 'GET' && pathname === '/auth/v1/user') {
 		return userFromToken(request.headers.authorization)
 	}
-	if (request.method === 'POST' && pathname.endsWith(':generateContent')) {
-		return geminiPlan()
+	if (request.method === 'POST' && pathname === '/chat/completions') {
+		return aiPlan()
 	}
 	return null
 }

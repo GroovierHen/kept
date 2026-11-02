@@ -5,11 +5,12 @@ import { withRetry } from '@/lib/retry'
 import { db } from '@/server/db/client'
 import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
 import { recordEvent } from '@/server/events/record-event'
+import type { PreviousPlan } from './planner'
 import { planRows } from './save-plan'
 
-// The one Try again (#30). The retry is claimed before Gemini is called, by
+// The one Try again (#30). The retry is claimed before the AI is called, by
 // moving attempts from 1 to 2 only where it is still 1: a double tap or a
-// second tab finds nothing to claim, so Gemini is asked once. A failed call
+// second tab finds nothing to claim, so the AI is asked once. A failed call
 // hands the claim back. The new plan replaces the old one in one transaction,
 // and only while the plan is still unconfirmed.
 
@@ -28,7 +29,29 @@ export async function claimRebuild(userId: string): Promise<boolean> {
 	return count === 1
 }
 
-/** Gives the Try again back after Gemini failed, so the person can use it later. */
+/** The plan as the person has it now, edits included, for the AI to differ from. */
+export async function getPlanToReplace(userId: string): Promise<PreviousPlan | null> {
+	const plan = await withRetry(
+		() =>
+			db.plan.findUnique({
+				where: { userId },
+				select: {
+					milestones: { orderBy: { position: 'asc' }, select: { week: true, text: true } },
+					actions: {
+						orderBy: { position: 'asc' },
+						select: { small: true, medium: true, large: true }
+					},
+					keyIdeas: { orderBy: { position: 'asc' }, select: { title: true } }
+				}
+			}),
+		retried
+	)
+	if (plan == null) return null
+	const { milestones, actions, keyIdeas } = plan
+	return { milestones, actions, keyIdeaTitles: keyIdeas.map(({ title }) => title) }
+}
+
+/** Gives the Try again back after the AI failed, so the person can use it later. */
 export async function releaseRebuild(userId: string): Promise<void> {
 	await withRetry(
 		() =>
@@ -43,7 +66,7 @@ export async function releaseRebuild(userId: string): Promise<void> {
 /**
  * Swaps the plan's milestones, actions and key ideas for the new ones and
  * records plan_generated build 2. False, changing nothing, if the plan was
- * confirmed while Gemini was writing: the confirmed plan stands.
+ * confirmed while the AI was writing: the confirmed plan stands.
  */
 export function replacePlan({
 	userId,

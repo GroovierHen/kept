@@ -22,33 +22,36 @@ sitting at zero spend instead of a project that opted out.
 
 **`src/server/ai/<provider>.ts` owns the SDK.** It is the only file allowed
 to import a provider package, and the only file that calls `trackAiCall`.
-`src/server/ai/google.ts` is the reference pattern for this layer: read it
-before adding a provider, copy its shape as well as its file, and keep it
-around even before an SDK is installed, so the next person setting one up
-gets a working example instead of this paragraph.
+`src/server/ai/openrouter.ts` is the reference pattern for this layer: read
+it before adding a provider, and copy its shape as well as its file. It calls
+OpenRouter with plain `fetch` and parses every response with Zod, since
+OpenRouter's own settings (provider rules, reasoning) aren't in any SDK's
+types (docs/adr/0003).
 
-**Feature code calls that module.** It never imports an SDK and never sees
-`trackAiCall`:
+**Feature code calls that module.** It never imports an SDK, never names the
+provider's host and never sees `trackAiCall`:
 
 ```ts
-import { generateContent } from '@/server/ai/google'
+import { chatCompletion } from '@/server/ai/openrouter'
 
-const response = await generateContent(
-	{ feature: 'goal_plan', model: 'gemini-3.5-flash-lite', meta: { user_id: userId } },
-	{ contents: prompt, config: { responseMimeType: 'application/json' } }
+const reply = await chatCompletion(
+	{ feature: 'goal_plan', model: 'openai/gpt-6-luna', meta: { user_id: userId } },
+	{ messages: [{ role: 'user', content: prompt }] }
 )
 ```
 
-Note that `model` is passed once and used for both the SDK call and the
-usage row, so the two can't disagree about which model was billed. The
-response comes back untouched and SDK errors are rethrown untouched, so this
-drops into an existing call with no other change.
+Note that `model` is passed once and used for both the request and the
+usage row, so the two can't disagree about which model was billed. The reply
+is the model's text, or `flagged` when moderation stopped the input before
+the model saw it (recorded as a `refusal`); anything else throws after one
+retry.
 
-`no-restricted-imports` in `eslint.config.mjs` enforces the split, the same
-way it does for icons: importing `@anthropic-ai/sdk`, `openai`,
-`@google/genai`, `ai` or `@ai-sdk/*` anywhere outside `src/server/ai/` fails
-the build. An untracked AI call is therefore a lint error, not something
-anyone has to remember at review time.
+`eslint.config.mjs` enforces the split, the same way it does for icons:
+importing `@anthropic-ai/sdk`, `openai`, `@google/genai`, `ai` or
+`@ai-sdk/*`, or writing `openrouter.ai` in a string, anywhere outside
+`src/server/ai/` fails the build (the price list in `pricing.ts` is the one
+other file that may name the host). An untracked AI call is therefore a lint
+error, not something anyone has to remember at review time.
 
 Adding a method (embeddings, images, batches) means adding a wrapper to the
 provider module, not reaching for the SDK at the call site. Keep those
@@ -65,8 +68,8 @@ nothing a human typed. The spend dashboard reads this table with raw SQL, so tha
 the only thing keeping the column safe to share.
 
 **Streaming** records usage when the stream finishes, not when it starts.
-`streamMessage` in the example module shows the pattern: hand the stream to
-the caller immediately, and let `trackAiCall` wrap `finalMessage()`.
+Nothing streams today; a call that does hands the stream to the caller
+immediately, and lets `trackAiCall` wrap the promise of its final usage.
 
 `serviceTier` (`standard` | `fast` | `batch`) and `extract` (for a response
 shape the built-in extractors don't know) are the remaining optional fields

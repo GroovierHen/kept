@@ -49,7 +49,7 @@ test('milestones run in order and fit inside the weeks the user gave', () => {
 	assert.equal(eightWeeks.safeParse({ ...SARA_GENERATED_PLAN, milestones: tooLate }).success, false)
 })
 
-test('anything Gemini adds beyond the shape is refused', () => {
+test('anything the AI adds beyond the shape is refused', () => {
 	assert.equal(eightWeeks.safeParse({ ...SARA_GENERATED_PLAN, advice: 'eat less' }).success, false)
 })
 

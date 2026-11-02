@@ -22,8 +22,8 @@ const reportedModels = new Set<string>()
  *
  * ```ts
  * const response = await trackAiCall(
- *   { provider: 'google', model: 'gemini-3.5-flash-lite', feature: 'goal_plan' },
- *   () => gemini.models.generateContent({ model: 'gemini-3.5-flash-lite', ... })
+ *   { provider: 'openrouter', model: 'openai/gpt-6-luna', feature: 'goal_plan' },
+ *   () => send({ model: 'openai/gpt-6-luna', params })
  * )
  * ```
  *

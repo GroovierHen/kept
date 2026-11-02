@@ -25,7 +25,7 @@ The first check-in test writes to a real database, always the local one on port 
 docker run -d --rm --name kept-e2e-pg -e POSTGRES_PASSWORD=postgres -p 54329:5432 postgres:16
 ```
 
-Then run the tests. They apply the migrations, start fake Supabase Auth and Gemini services, and start their own app on port 3100 with `NODE_ENV=test`, which stops Next loading `.env.local`, because that file points at production:
+Then run the tests. They apply the migrations, start fake Supabase Auth and OpenRouter services, and start their own app on port 3100 with `NODE_ENV=test`, which stops Next loading `.env.local`, because that file points at production:
 
 ```bash
 pnpm test:e2e

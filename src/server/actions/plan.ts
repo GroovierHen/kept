@@ -13,13 +13,20 @@ import { removePlanAction, updatePlanAction } from '@/server/learn/edit-plan'
 import { generatePlan, PLANNER_MODEL } from '@/server/learn/generate-plan'
 import { getGoal, getPlanStatus } from '@/server/learn/learn'
 import { outcomeOf, type BuildPlanState } from '@/server/learn/plan-outcome'
-import { claimRebuild, releaseRebuild, replacePlan } from '@/server/learn/rebuild-plan'
+import { claimBuild, releaseBuild } from '@/server/learn/claim-build'
+import {
+	claimRebuild,
+	getPlanToReplace,
+	releaseRebuild,
+	replacePlan
+} from '@/server/learn/rebuild-plan'
 import { savePlan } from '@/server/learn/save-plan'
 import { validatedAction } from './validated-action'
 
 // The plan step (#30). Building only happens from the button, after the person
-// has seen that their goal goes to Gemini, and only while the goal is complete
-// and no plan exists: a repeat, a refresh or a second tab can't build twice.
+// has seen where their goal goes, and only while the goal is complete, no plan
+// exists and no build is running: the build is claimed first, so a repeat, a
+// refresh or a second tab waits for it instead of building twice.
 // Until Confirm, the person can reword or remove actions and Try again once.
 
 // Used with useActionState, which also passes the previous state and the
@@ -31,18 +38,23 @@ export async function buildPlan(): Promise<BuildPlanState> {
 
 	const [status, answers] = await Promise.all([getPlanStatus(user.id), getGoal(user.id)])
 	const goal = completeGoal(answers)
-	if (status !== 'goal_saved' || goal == null) return redirect({ href: '/setup', locale })
-
-	const outcome = outcomeOf(await generatePlan({ userId: user.id, goal }))
-	if ('state' in outcome) {
-		if (outcome.report != null) captureError(outcome.report)
-		return outcome.state
+	if (status !== 'goal_saved' || goal == null || !(await claimBuild(user.id))) {
+		return redirect({ href: '/setup', locale })
 	}
 
+	const outcome = outcomeOf(await generatePlan({ userId: user.id, goal }))
 	try {
+		if ('state' in outcome) {
+			if (outcome.report != null) captureError(outcome.report)
+			// A stuck claim only delays a retry until it goes stale; the
+			// person's answer (a safer goal, a reword) still matters more.
+			await releaseBuild(user.id).catch(captureError)
+			return outcome.state
+		}
 		await savePlan({ userId: user.id, goal, plan: outcome.save, model: PLANNER_MODEL })
 	} catch (error) {
 		captureError(error)
+		await releaseBuild(user.id).catch(captureError)
 		return { kind: 'failed' }
 	}
 	return redirect({ href: '/setup', locale })
@@ -65,17 +77,21 @@ export async function confirmPlan(): Promise<void> {
 	})
 }
 
-// Like buildPlan, for the one Try again. Every way it fails leaves the first
-// plan in place and gives the Try again back; a Gemini fault is reported.
+// Like buildPlan, for the one Try again, which sends the plan the person has
+// so the new one differs. Every way it fails leaves the first plan in place
+// and gives the Try again back; an AI fault is reported.
 export async function rebuildPlan(): Promise<BuildPlanState> {
 	const locale = await getLocale()
 	const user = await getSignedInUser()
 	if (user == null) return redirect({ href: '/sign-in', locale })
 
-	const goal = completeGoal(await getGoal(user.id))
-	if (goal == null || !(await claimRebuild(user.id))) return redirect({ href: '/setup', locale })
+	const [answers, previous] = await Promise.all([getGoal(user.id), getPlanToReplace(user.id)])
+	const goal = completeGoal(answers)
+	if (goal == null || previous == null || !(await claimRebuild(user.id))) {
+		return redirect({ href: '/setup', locale })
+	}
 
-	const outcome = outcomeOf(await generatePlan({ userId: user.id, goal, build: 2 }))
+	const outcome = outcomeOf(await generatePlan({ userId: user.id, goal, previous }))
 	try {
 		if ('state' in outcome) {
 			if (outcome.report != null) captureError(outcome.report)

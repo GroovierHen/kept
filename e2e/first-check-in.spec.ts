@@ -6,11 +6,11 @@ import { choose, HYDRATION_CHECK_MS, TIME_ZONE } from './support/walk-setup'
 // Its own client: `db` in src/ is server-only, so a test can't import it.
 const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
 
-// The second action of the plan the fake Gemini returns, so the test can't pass
+// The second action of the plan the fake AI returns, so the test can't pass
 // on the form's default choice.
 const CHOSEN_ACTION = 'put my running shoes by the door'
 const GOAL = 'I want to run 5k without stopping.'
-// The first two key ideas of the plan the fake Gemini returns, taught on Days 1 and 2.
+// The first two key ideas of the plan the fake AI returns, taught on Days 1 and 2.
 const FIRST_KEY_IDEA = 'Run slow enough to talk'
 const SECOND_KEY_IDEA = 'Add about 10% a week'
 // A cold run compiles each route on first visit.

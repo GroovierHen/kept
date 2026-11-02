@@ -1,6 +1,6 @@
 # Kept
 
-Kept is a daily goal coach: Gemini turns a user's goal into a Plan of small Actions and Key ideas, and each day the user reports on a small promise, recalls a Key idea, and commits the next promise.
+Kept is a daily goal coach: the AI turns a user's goal into a Plan of small Actions and Key ideas, and each day the user reports on a small promise, recalls a Key idea, and commits the next promise.
 
 ## Language
 
@@ -10,8 +10,12 @@ Kept is a daily goal coach: Gemini turns a user's goal into a Plan of small Acti
 What the user wants, in their own words, with how long they give themselves (4, 8 or 12 weeks), such as "I want to run 5k without stopping" in 8 weeks.
 _Avoid_: dream, wish, target
 
+**The AI**:
+The language model that writes a user's Plan at setup and marks their Recall answers. Which model it is, and which company runs it, can change without the term changing.
+_Avoid_: Gemini, GPT, Luna, the model, LLM
+
 **Plan**:
-What Gemini makes from the Goal at setup, in a fixed shape code checks: Milestones, Actions in three Sizes, and Key ideas. The user can edit it until they confirm it, and not after.
+What the AI makes from the Goal at setup, in a fixed shape code checks: Milestones, Actions in three Sizes, and Key ideas. The user can edit it until they confirm it, and not after.
 _Avoid_: roadmap, track, program
 
 **Milestone**:
@@ -19,11 +23,11 @@ A checkpoint in the Plan with a week number, such as "week 2: run 2 km without s
 _Avoid_: step, stage, sub-goal
 
 **Key idea**:
-One idea behind the Goal that the user learns and recalls, such as "run slow enough to talk". Each has a lesson, a recall question, a Model answer and three multiple choice options, all written by Gemini at setup.
+One idea behind the Goal that the user learns and recalls, such as "run slow enough to talk". Each has a lesson, a recall question, a Model answer and three multiple choice options, all written by the AI at setup.
 _Avoid_: skill, tip, lesson (the lesson is the text that teaches a Key idea)
 
 **Model answer**:
-The answer saved with a Key idea that Gemini marks the user's answer against.
+The answer saved with a Key idea that the AI marks the user's answer against.
 _Avoid_: right answer, solution
 
 ### The daily loop
@@ -79,7 +83,7 @@ _Avoid_: calendar week
 ### Learning
 
 **Recall**:
-One recall question on a Key idea, answered in the user's own words and marked 0, 1 or 2 out of 2 by Gemini against the Model answer. If Gemini is down, it is asked as multiple choice instead, and marked as such.
+One recall question on a Key idea, answered in the user's own words and marked 0, 1 or 2 out of 2 by the AI against the Model answer. If the AI is down, it is asked as multiple choice instead, and marked as such.
 _Avoid_: quiz, test, review (a review is the date a Key idea is due back)
 
 **Review**:
