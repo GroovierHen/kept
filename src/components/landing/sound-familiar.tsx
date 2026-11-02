@@ -4,40 +4,30 @@ import { useId, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/cn'
 
-// "Where does your money go?" from setup, as bands that switch on. Each band
-// is one of Sara's spends; switched on, it fills with colour and says what the
-// promise against it is worth, priced the way the promise coach prices it.
-const SPENDS = [
-	{ key: 'takeaway', yearly: 1900, field: 'bg-field-1 text-field-1-ink', knob: 'bg-field-1' },
-	{ key: 'coffee', yearly: 650, field: 'bg-field-2 text-field-2-ink', knob: 'bg-field-2' },
-	{ key: 'subscriptions', yearly: 240, field: 'bg-field-3 text-field-3-ink', knob: 'bg-field-3' },
-	// Moving money on payday saves nothing by itself: it locks in the month,
-	// so it adds nothing to the total.
-	{ key: 'payday', yearly: 0, field: 'bg-field-4 text-field-4-ink', knob: 'bg-field-4' }
+// The usual ways a goal falls apart, as bands that switch on. Switched on, a
+// band fills with colour and says what Kept does about it, so a visitor sees
+// their own reason for giving up answered.
+const PITFALLS = [
+	{ key: 'fade', field: 'bg-field-1 text-field-1-ink', knob: 'bg-field-1' },
+	{ key: 'stuck', field: 'bg-field-2 text-field-2-ink', knob: 'bg-field-2' },
+	{ key: 'forget', field: 'bg-field-3 text-field-3-ink', knob: 'bg-field-3' },
+	{ key: 'badDay', field: 'bg-field-4 text-field-4-ink', knob: 'bg-field-4' }
 ] as const
 
-type SpendKey = (typeof SPENDS)[number]['key']
+type PitfallKey = (typeof PITFALLS)[number]['key']
 
-const pounds = new Intl.NumberFormat('en-GB', {
-	style: 'currency',
-	currency: 'GBP',
-	maximumFractionDigits: 0
-})
-
-export function SpendSwitches() {
-	const t = useTranslations('HomePage.spends')
+export function SoundFamiliar() {
+	const t = useTranslations('HomePage.familiar')
 	const id = useId()
-	const [on, setOn] = useState<ReadonlySet<SpendKey>>(() => new Set(['takeaway', 'coffee']))
+	const [on, setOn] = useState<ReadonlySet<PitfallKey>>(() => new Set(['fade']))
 
-	const toggle = (key: SpendKey) =>
+	const toggle = (key: PitfallKey) =>
 		setOn((current) => {
 			const next = new Set(current)
 			if (next.has(key)) next.delete(key)
 			else next.add(key)
 			return next
 		})
-
-	const total = SPENDS.reduce((sum, spend) => (on.has(spend.key) ? sum + spend.yearly : sum), 0)
 
 	return (
 		<section aria-labelledby={`${id}-heading`} className="py-28 md:py-44">
@@ -58,15 +48,15 @@ export function SpendSwitches() {
 			</div>
 
 			<ul data-ui>
-				{SPENDS.map((spend) => {
-					const active = on.has(spend.key)
-					const labelId = `${id}-${spend.key}`
+				{PITFALLS.map((pitfall) => {
+					const active = on.has(pitfall.key)
+					const labelId = `${id}-${pitfall.key}`
 					return (
 						<li
-							key={spend.key}
+							key={pitfall.key}
 							className={cn(
 								'transition-colors duration-300',
-								active ? spend.field : 'text-text-muted'
+								active ? pitfall.field : 'text-text-muted'
 							)}
 						>
 							<div className="grid min-h-33 grid-cols-[1fr_auto] items-center gap-x-6 px-(--page-margin) py-6 md:min-h-[20vh] md:grid-cols-12 md:gap-x-(--gutter)">
@@ -75,16 +65,16 @@ export function SpendSwitches() {
 										id={labelId}
 										className="text-lead md:text-head font-medium tracking-[-0.04em] md:leading-[1.05]"
 									>
-										{t(`${spend.key}.sentence`)}
+										{t(`${pitfall.key}.sentence`)}
 									</h3>
-									{active ? <p className="text-body mt-2">{t(`${spend.key}.result`)}</p> : null}
+									{active ? <p className="text-body mt-2">{t(`${pitfall.key}.result`)}</p> : null}
 								</div>
 								<button
 									type="button"
 									role="switch"
 									aria-checked={active}
 									aria-labelledby={labelId}
-									onClick={() => toggle(spend.key)}
+									onClick={() => toggle(pitfall.key)}
 									className="group flex min-h-11 min-w-11 items-center justify-center justify-self-end rounded-full md:col-span-2"
 								>
 									<span
@@ -97,7 +87,7 @@ export function SpendSwitches() {
 										<span
 											className={cn(
 												'block size-[0.8em] rounded-full transition-transform duration-300 ease-(--ease-out) motion-reduce:transition-none',
-												active ? cn(spend.knob, 'translate-x-[0.9em]') : 'bg-current'
+												active ? cn(pitfall.knob, 'translate-x-[0.9em]') : 'bg-current'
 											)}
 										/>
 									</span>
@@ -112,7 +102,7 @@ export function SpendSwitches() {
 				aria-live="polite"
 				className="text-lead mt-12 px-(--page-margin) font-medium tracking-[-0.03em] md:mt-16"
 			>
-				{total > 0 ? t('total', { amount: pounds.format(total) }) : t('none')}
+				{on.size > 0 ? t('total', { count: on.size }) : t('none')}
 			</p>
 		</section>
 	)

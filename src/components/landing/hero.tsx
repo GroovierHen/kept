@@ -6,23 +6,25 @@ import { HeroReel } from './hero-reel'
 import { LearnFragment, LedgerFragment, PromiseFragment, ReportFragment } from './fragments'
 
 // The first screen: "Promises, kept." split in two, with a reel of the Today
-// screen passing through the gap. The section is 2.2 screens tall and its
-// stage is sticky, so scrolling steps the reel through one check-in while the
-// sentence holds. The h1 keeps a gap the size of the frame (a spacer on a
+// screen passing through the gap, in the order the days happen: Day 1's
+// promise, Day 2's report, a recall on Day 4 (when an idea comes back) and
+// Day 5's ledger, so no two frames share a day. The section is 1.6
+// screens tall and its stage is sticky, so scrolling steps the reel through
+// those days while the sentence holds. The h1 keeps a gap the size of the frame (a spacer on a
 // phone, where the halves stack; the space between the halves on a wide
 // screen), and the reel is laid over that gap.
 export async function Hero() {
 	const t = await getTranslations('HomePage.hero')
-	const captions = [t('steps.report'), t('steps.learn'), t('steps.promise'), t('steps.ledger')]
+	const captions = [t('steps.promise'), t('steps.report'), t('steps.learn'), t('steps.ledger')]
 	const frames = [
+		<PromiseFragment key="promise" />,
 		<ReportFragment key="report" />,
 		<LearnFragment key="learn" />,
-		<PromiseFragment key="promise" />,
 		<LedgerFragment key="ledger" />
 	]
 
 	return (
-		<section data-reel-track className="relative h-[220svh]">
+		<section data-reel-track className="relative h-[160svh]">
 			<div className="sticky top-0 h-svh overflow-hidden">
 				<div className="absolute inset-x-0 top-0 z-10">
 					<SiteNav sections />

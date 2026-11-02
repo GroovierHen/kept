@@ -3,8 +3,8 @@ import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { linkClass } from './site-nav'
 
-// Close and footer in one gold field. The wordmark runs along the bottom,
-// larger than the screen can hold, cut off by the bottom edge.
+// Close and footer in one green field. The wordmark runs along the bottom as
+// wide as the page allows, whole, with room under it for the p's tail.
 export async function LandingFooter() {
 	const t = await getTranslations('HomePage.footer')
 	const nav = await getTranslations('HomePage.nav')
@@ -24,7 +24,7 @@ export async function LandingFooter() {
 					<Button
 						asChild
 						size="lg"
-						className="bg-accent-ink text-accent hover:bg-field-3 text-body h-12 w-full px-6 sm:w-auto"
+						className="bg-accent-ink text-accent hover:bg-surface text-body h-12 w-full px-6 sm:w-auto"
 					>
 						<Link href="/sign-up">{t('start')}</Link>
 					</Button>
@@ -59,7 +59,7 @@ export async function LandingFooter() {
 				</div>
 				<p
 					aria-hidden
-					className="-mb-[0.32em] text-[34vw] leading-[0.8] font-medium tracking-[-0.07em] whitespace-nowrap select-none md:text-[28vw]"
+					className="pb-[0.08em] text-[34vw] leading-[1] font-medium tracking-[-0.07em] whitespace-nowrap select-none md:text-[28vw]"
 				>
 					Kept
 				</p>

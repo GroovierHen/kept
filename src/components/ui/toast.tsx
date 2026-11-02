@@ -72,7 +72,7 @@ export function ToastClose({
 		<ToastPrimitives.Close
 			aria-label="Dismiss"
 			className={cn(
-				'text-text-faint hover:text-text shrink-0 rounded',
+				'text-text-muted hover:text-text shrink-0 rounded',
 				'focus-visible:outline-accent focus-visible:outline focus-visible:outline-2',
 				className
 			)}

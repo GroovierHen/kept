@@ -55,7 +55,7 @@ export async function PlanStep({
 	return (
 		<StepCard eyebrow={t('eyebrow')} title={plan.goal.text}>
 			<RebuildPlanArea canRebuild={plan.canRebuild}>
-				<p className="text-small text-text-muted">
+				<p className="text-small text-text-faint">
 					{t('weeks', { weeks: plan.goal.weeks ?? 0 })} ·{' '}
 					{t('keyIdeas', { count: plan.keyIdeaCount })}
 				</p>

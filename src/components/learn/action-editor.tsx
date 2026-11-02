@@ -29,7 +29,9 @@ export function ActionEditor({
 
 	return (
 		<details className="group">
-			<summary className="text-small text-accent w-fit cursor-pointer">{t('open')}</summary>
+			<summary className="text-small text-text-muted hover:text-text w-fit cursor-pointer">
+				{t('open')}
+			</summary>
 			<form
 				action={formAction}
 				onSubmit={(event) => {
@@ -55,7 +57,7 @@ export function ActionEditor({
 					{error}
 				</p>
 				<div className="flex gap-2">
-					<Button type="submit" name="intent" value="save" disabled={pending}>
+					<Button type="submit" name="intent" value="save" variant="secondary" disabled={pending}>
 						{pending ? t('saving') : t('save')}
 					</Button>
 					{canRemove && (

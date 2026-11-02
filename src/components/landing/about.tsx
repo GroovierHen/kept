@@ -3,13 +3,14 @@ import { getTranslations } from 'next-intl/server'
 import ledgerCover from '../../../public/landing/account-book-ledger.jpg'
 import accountOfHours from '../../../public/landing/account-book-of-hours.jpg'
 
-// Where the method comes from and why progress is a ledger. The 1830s account
-// book is set into the paragraph like a drop capital; below, a page from an
+// Why it's called Kept: your progress is an honest record of promises, like
+// an old account book. The 1830s account book is set into the paragraph like
+// a drop capital; below, a page from an
 // 1846 account of hours opens wide. Both are public-domain objects from the
 // Met, credited in the footer, and neither is presented as Kept's own.
 export async function About() {
 	const t = await getTranslations('HomePage.about')
-	const facts = [t('facts.habits'), t('facts.time'), t('facts.advice')]
+	const facts = [t('facts.goal'), t('facts.time'), t('facts.browser')]
 
 	return (
 		<section

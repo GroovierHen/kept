@@ -67,7 +67,7 @@ function NumbersTable({
 			<tbody>
 				{rows.map(([rowHeader, ...cells]) => (
 					<tr key={rowHeader} className="border-border border-b">
-						<th scope="row" className="py-2 pr-4 text-left font-normal">
+						<th scope="row" className="text-text-muted py-2 pr-4 text-left font-normal">
 							{rowHeader}
 						</th>
 						{cells.map((cell, index) => (
