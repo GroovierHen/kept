@@ -12,7 +12,7 @@
 // row is one `where cost_micro_usd is null` away from being counted on the
 // dashboard.
 
-export const AI_PROVIDERS = ['google'] as const
+export const AI_PROVIDERS = ['openrouter'] as const
 export type AiProvider = (typeof AI_PROVIDERS)[number]
 
 export const SERVICE_TIERS = ['standard', 'fast', 'batch'] as const
@@ -35,8 +35,13 @@ export type AiCallStatus = (typeof AI_CALL_STATUSES)[number]
 // behind the `output_modalities` query string pricing.ts sends — see the
 // OPENROUTER_MODELS_URL comment there before concluding a slug doesn't
 // exist.
+//
+// Called through OpenRouter itself, so the key and the slug are the same id.
+// OpenRouter reports the floating id back today; the dated one is its
+// canonical slug, registered in case a response ever names it.
 export const OPENROUTER_SLUGS = {
-	'gemini-3.5-flash-lite': 'google/gemini-3.5-flash-lite'
+	'openai/gpt-6-luna': 'openai/gpt-6-luna',
+	'openai/gpt-6-luna-20260922': 'openai/gpt-6-luna'
 } satisfies Record<string, string>
 
 // The model ids a call site is allowed to ask for. `satisfies` above keeps

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { buildGraderPrompt, gradeAnswer } from './grader.ts'
-import type { AskGemini } from './planner.ts'
+import { FLAGGED, type AskModel } from './planner.ts'
 
 const recall = {
 	question: 'Why should most of your runs feel easy?',
@@ -10,10 +10,10 @@ const recall = {
 }
 
 const replying =
-	(text: string | undefined | Error): AskGemini =>
+	(text: string | undefined | Error | typeof FLAGGED): AskModel =>
 	async () => {
 		if (text instanceof Error) throw text
-		return text
+		return text === FLAGGED ? FLAGGED : { text }
 	}
 
 test("the person's answer reaches the prompt as quoted data, not as instructions", () => {
@@ -52,10 +52,18 @@ test('a reply that is not JSON, has no reason, or adds fields is refused', async
 	assert.equal((await gradeAnswer({ recall, ask: replying(extra) })).ok, false)
 })
 
-test('Gemini being down or rate limited hands back the error', async () => {
+test('the AI being down or rate limited hands back the error', async () => {
 	const outage = new Error('429 Too Many Requests')
 	assert.deepEqual(await gradeAnswer({ recall, ask: replying(outage) }), {
 		ok: false,
+		reason: 'unavailable',
 		error: outage
+	})
+})
+
+test('an answer moderation stops is not an outage, so nothing is reported', async () => {
+	assert.deepEqual(await gradeAnswer({ recall, ask: replying(FLAGGED) }), {
+		ok: false,
+		reason: 'blocked'
 	})
 })

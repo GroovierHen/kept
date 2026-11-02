@@ -16,7 +16,7 @@ const MAX_ANSWER_LENGTH = 1000
 const TYPING: RecallState = { kind: 'typing', error: null }
 
 // The learn card's recall mode (#32): a key idea's question, then its mark,
-// the reason and the model answer. When Gemini can't mark, the same question
+// the reason and the model answer. When the AI can't mark, the same question
 // comes back as multiple choice. Continue moves on to whatever is next today.
 export function RecallCard({ review }: { review: DueReview }) {
 	const t = useTranslations('Learn.recall')

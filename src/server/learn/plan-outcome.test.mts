@@ -15,12 +15,16 @@ test('an unsafe goal shows the safer one and reports nothing, since it is not a 
 	})
 })
 
-test('Gemini being down shows "try again" and reports the original error', () => {
+test('the AI being down shows "try again" and reports the original error', () => {
 	const outage = new Error('503 Service Unavailable')
 	assert.deepEqual(outcomeOf({ ok: false, reason: 'unavailable', error: outage }), {
 		state: { kind: 'failed' },
 		report: outage
 	})
+})
+
+test('a blocked goal asks the person to reword it and reports nothing, since it is not a fault', () => {
+	assert.deepEqual(outcomeOf({ ok: false, reason: 'blocked' }), { state: { kind: 'blocked' } })
 })
 
 test('two answers in the wrong shape show "try again" and are reported', () => {

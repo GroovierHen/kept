@@ -11,9 +11,10 @@ import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
 import { readSetupStep } from '@/server/setup/progress'
 
-// Building a plan can take two Gemini attempts, each with up to 3 network
-// tries of 20s; the usual case is about 4s. Server actions on this page share it.
-export const maxDuration = 120
+// Building a plan can take two AI attempts, each with up to 2 network tries of
+// 45s; the usual case is about 10s. Server actions on this page share it, and
+// PLAN_BUILD_LIMIT_SECONDS (src/lib/learn/plan-build.ts) must match it.
+export const maxDuration = 200
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('SetupPage.meta')

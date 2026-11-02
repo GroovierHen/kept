@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import type { RecallScore } from '@/lib/learn/review-schedule'
-import type { AskGemini } from './planner'
+import type { AskModel } from './planner'
 
 // The recall grader (#32): marks a typed answer 0, 1 or 2 against the model
-// answer saved in the plan, in one Gemini call. Pure like the planner, so it is
+// answer saved in the plan, in one AI call. Pure like the planner, so it is
 // tested without a network: `ask` is bound to the real call in
 // src/server/learn/grade-recall.ts.
 //
@@ -14,8 +14,15 @@ import type { AskGemini } from './planner'
 export const MAX_RECALL_ANSWER_LENGTH = 1000
 const MAX_REASON_LENGTH = 300
 
+// A whole number from 0 to 2, the same JSON Schema form as a key idea's
+// correctChoice, which the model is proven to keep to in strict mode.
+const SCORES = [0, 1, 2] as const
+
 const replySchema = z.strictObject({
-	score: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+	score: z
+		.int()
+		.min(0)
+		.max(SCORES.length - 1),
 	reason: z.string().trim().min(1).max(MAX_REASON_LENGTH)
 })
 
@@ -25,8 +32,12 @@ export interface RecallToGrade {
 	readonly answer: string
 }
 
+// blocked: moderation stopped the answer before the model saw it. Not a fault,
+// so it isn't reported; the person answers by multiple choice instead.
 export type GradeResult =
-	{ ok: true; score: RecallScore; reason: string } | { ok: false; error: unknown }
+	| { ok: true; score: RecallScore; reason: string }
+	| { ok: false; reason: 'blocked' }
+	| { ok: false; reason: 'unavailable'; error: unknown }
 
 export function buildGraderPrompt({ question, modelAnswer, answer }: RecallToGrade): string {
 	const recall = JSON.stringify({ question, modelAnswer, answer }, null, 2)
@@ -49,24 +60,30 @@ export async function gradeAnswer({
 	ask
 }: {
 	recall: RecallToGrade
-	ask: AskGemini
+	ask: AskModel
 }): Promise<GradeResult> {
-	let text: string | undefined
+	let answer: Awaited<ReturnType<AskModel>>
 	try {
-		text = await ask({
+		answer = await ask({
 			prompt: buildGraderPrompt(recall),
 			responseJsonSchema: z.toJSONSchema(replySchema),
 			attempt: 1
 		})
 	} catch (error) {
-		// The Gemini wrapper already retried rate limits and server errors.
-		return { ok: false, error }
+		// The AI wrapper already retried rate limits and server errors.
+		return { ok: false, reason: 'unavailable', error }
 	}
-	const reply = parseReply(text)
-	if (reply == null) {
-		return { ok: false, error: new Error('The grader gave a mark in the wrong shape') }
+	if ('flagged' in answer) return { ok: false, reason: 'blocked' }
+	const reply = parseReply(answer.text)
+	const score = reply == null ? undefined : SCORES[reply.score]
+	if (reply == null || score == null) {
+		return {
+			ok: false,
+			reason: 'unavailable',
+			error: new Error('The grader gave a mark in the wrong shape')
+		}
 	}
-	return { ok: true, ...reply }
+	return { ok: true, score, reason: reply.reason }
 }
 
 function parseReply(text: string | undefined): z.infer<typeof replySchema> | null {

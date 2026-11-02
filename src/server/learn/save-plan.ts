@@ -99,7 +99,7 @@ async function createPlan({
 	})
 }
 
-/** A plan's children as rows, numbered in Gemini's order. */
+/** A plan's children as rows, numbered in the AI's order. */
 export function planRows(plan: GeneratedPlan) {
 	return {
 		milestones: plan.milestones.map((milestone, position) => ({ position, ...milestone })),

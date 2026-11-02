@@ -4,12 +4,13 @@ import { keptDayDate, keptDayFromDate, type KeptDay } from '@/lib/kept-day'
 import type { RecallGrade } from '@/lib/learn/plan'
 import { nextReturn, type RecallScore } from '@/lib/learn/review-schedule'
 import { withRetry } from '@/lib/retry'
-import { generateContent } from '@/server/ai/google'
+import { chatCompletion } from '@/server/ai/openrouter'
 import { db } from '@/server/db/client'
 import { isTransientDbError, isUniqueViolation, logDbRetry } from '@/server/db/transient-error'
 import { recordEvent } from '@/server/events/record-event'
-import type { TrackedModel } from '@/server/lib/ai-usage/models'
+import { PLANNER_MODEL } from './generate-plan'
 import { gradeAnswer, MAX_RECALL_ANSWER_LENGTH } from './grader'
+import { FLAGGED } from './planner'
 import { getDueReviews } from './learn'
 import { keptDayFor } from './teach-lesson'
 
@@ -18,19 +19,19 @@ import { keptDayFor } from './teach-lesson'
 // answer saves once, keyed by its review, with its next return and its
 // recall_graded Event in the same transaction (ADR 0001).
 
-export const GRADER_MODEL: TrackedModel = 'gemini-3.5-flash-lite'
-
-// A mark should be the same every time for the same answer.
-const TEMPERATURE = 0
+// The same model as the planner: it passed every grader case in the benchmark
+// (docs/adr/0003).
+const GRADER_MODEL = PLANNER_MODEL
 
 const recallScore = z.union([z.literal(0), z.literal(1), z.literal(2)])
 
 export type RecallOutcome =
 	| { kind: 'graded'; grade: RecallGrade }
-	| { kind: 'multiple_choice'; error: unknown }
+	// error is what to report; a blocked answer has none, since it isn't a fault.
+	| { kind: 'multiple_choice'; error?: unknown }
 	| { kind: 'not_due' }
 
-/** Marks a typed answer with Gemini. If Gemini can't, asks for multiple choice and saves nothing. */
+/** Marks a typed answer with the AI. If it can't, asks for multiple choice and saves nothing. */
 export async function gradeRecall(
 	userId: string,
 	keyIdeaId: string,
@@ -55,21 +56,22 @@ export async function gradeRecall(
 	const result = await gradeAnswer({
 		recall: { question: due.idea.question, modelAnswer: due.idea.modelAnswer, answer: typed },
 		ask: async ({ prompt, responseJsonSchema }) => {
-			const response = await generateContent(
+			const reply = await chatCompletion(
 				{ feature: 'recall_grade', model: GRADER_MODEL, meta: { user_id: userId } },
 				{
-					contents: prompt,
-					config: {
-						responseMimeType: 'application/json',
-						responseJsonSchema,
-						temperature: TEMPERATURE
-					}
+					messages: [{ role: 'user', content: prompt }],
+					jsonSchema: { name: 'recall_mark', schema: responseJsonSchema }
 				}
 			)
-			return response.text
+			return reply.kind === 'flagged' ? FLAGGED : { text: reply.text }
 		}
 	})
-	if (!result.ok) return { kind: 'multiple_choice', error: result.error }
+	if (!result.ok) {
+		return {
+			kind: 'multiple_choice',
+			...(result.reason === 'unavailable' && { error: result.error })
+		}
+	}
 	return saveRecall({ due, keptDay, answer: typed, ...result, isMultipleChoice: false })
 }
 

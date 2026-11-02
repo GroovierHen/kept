@@ -21,9 +21,9 @@ import { hasLearnedOn } from '@/server/learn/teach-lesson'
 import { readSetupStep } from '@/server/setup/progress'
 import { readCheckIn } from '@/server/today/read-check-in'
 
-// Marking a recall answer is a Gemini call with up to 3 tries of 20s; the usual
-// case is about 2s. Server actions on this page share it.
-export const maxDuration = 90
+// Marking a recall answer is an AI call with up to 2 tries of 45s; the usual
+// case is a few seconds. Server actions on this page share it.
+export const maxDuration = 100
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('TodayPage.meta')

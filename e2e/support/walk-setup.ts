@@ -51,7 +51,7 @@ export async function walkToPromiseStep({ page, email }: { page: Page; email: st
 	await page.getByRole('button', { name: 'Make my plan' }).click()
 	await page.getByRole('button', { name: 'Confirm my plan' }).click()
 
-	// The first key idea of the plan the fake Gemini returns.
+	// The first key idea of the plan the fake AI returns.
 	await expect(page.getByRole('heading', { name: 'Run slow enough to talk' })).toBeVisible()
 	await page.getByRole('button', { name: 'Continue' }).click()
 }

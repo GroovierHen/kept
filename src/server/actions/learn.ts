@@ -37,7 +37,7 @@ export async function learnFirstKeyIdea(formData: FormData): Promise<void> {
 	})
 }
 
-// Recall on the Today screen (#32). A typed answer goes to Gemini; if Gemini
+// Recall on the Today screen (#32). A typed answer goes to the AI; if it
 // can't mark it, the card turns into multiple choice for the same question.
 export type RecallState =
 	| { readonly kind: 'typing'; readonly error: string | null }
@@ -86,7 +86,7 @@ export async function answerRecall(
 	const outcome = result.data
 	if (outcome.kind === 'not_due') return redirect({ href: '/today', locale })
 	if (outcome.kind === 'multiple_choice') {
-		captureError(outcome.error)
+		if (outcome.error != null) captureError(outcome.error)
 		return { kind: 'choosing', error: null }
 	}
 	return { kind: 'graded', grade: outcome.grade }

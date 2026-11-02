@@ -39,6 +39,22 @@ const AI_SDK_IMPORTS = {
 		"Call the provider through 'src/server/ai/<provider>' instead — that file is the only place an AI SDK is imported, and the only place trackAiCall is called. Add the method there if it's missing. See docs/rules/ai-usage.md."
 }
 
+// The AI provider is called with plain fetch, so there is no SDK import for
+// the rule above to catch. Naming its host anywhere but src/server/ai/* is
+// the same untracked call by another route.
+const AI_HOST_SYNTAX = {
+	selector: 'Literal[value=/openrouter\\.ai/], TemplateElement[value.raw=/openrouter\\.ai/]',
+	message:
+		"Call OpenRouter through 'src/server/ai/openrouter.ts' instead — it is the only place trackAiCall is called. See docs/rules/ai-usage.md."
+}
+
+const LOGGER_IN_CLIENT_SYNTAX = {
+	selector:
+		"Program:has(> ExpressionStatement[directive='use client']) ImportDeclaration[source.value=/^@\\/server\\/lib\\/logger(\\/|$)/]",
+	message:
+		'The logger is server-only; a Client Component reports errors through Sentry (instrumentation-client.ts). See docs/rules/logging.md.'
+}
+
 // Prisma is the only data path (docs/rules/database.md). The client is
 // constructed once, in src/server/db/client.ts, and everything else imports
 // `db` from there. Type imports stay allowed — typing a parameter as
@@ -213,15 +229,15 @@ const eslintConfig = defineConfig([
 		// logger.
 		files: ['src/**/*.{ts,tsx}'],
 		rules: {
-			'no-restricted-syntax': [
-				'error',
-				{
-					selector:
-						"Program:has(> ExpressionStatement[directive='use client']) ImportDeclaration[source.value=/^@\\/server\\/lib\\/logger(\\/|$)/]",
-					message:
-						'The logger is server-only; a Client Component reports errors through Sentry (instrumentation-client.ts). See docs/rules/logging.md.'
-				}
-			]
+			'no-restricted-syntax': ['error', LOGGER_IN_CLIENT_SYNTAX, AI_HOST_SYNTAX]
+		}
+	},
+	{
+		// The one file that calls OpenRouter, with fetch and no SDK, and the
+		// one that reads its price list, which is not an AI call.
+		files: ['src/server/ai/**/*.ts', 'src/server/lib/ai-usage/pricing.ts'],
+		rules: {
+			'no-restricted-syntax': ['error', LOGGER_IN_CLIENT_SYNTAX]
 		}
 	}
 ])

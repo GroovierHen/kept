@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage } from 'node:http'
 import { z } from 'zod'
 import { SARA_GENERATED_PLAN } from '../../src/lib/learn/sara-plan'
 
-// Stands in for Supabase Auth and Gemini, the two outside services on Day 1. The
+// Stands in for Supabase Auth and OpenRouter, the two outside services on Day 1. The
 // app reaches them on the server, where a browser test can't intercept, and CI
 // has no credentials for either. They are found through their normal base URLs,
 // so the app runs its real code with no test-only branch. Only what the tests
@@ -56,15 +56,17 @@ export const FAKE_GRADE = {
 	reason: 'You got part of it. Easy runs also build your base.'
 }
 
-// The planner and the grader both call generateContent; the prompt says which.
-function gemini(body: unknown) {
+// The planner and the grader both ask for a chat completion; the prompt says which.
+function aiReply(body: unknown) {
 	const isGrader = JSON.stringify(body).includes('You are the grader')
 	const reply = isGrader ? FAKE_GRADE : { isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN }
 	return {
-		candidates: [
-			{ content: { role: 'model', parts: [{ text: JSON.stringify(reply) }] }, finishReason: 'STOP' }
+		id: 'gen-fake',
+		model: 'openai/gpt-6-luna',
+		choices: [
+			{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(reply) } }
 		],
-		usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 }
+		usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }
 	}
 }
 
@@ -82,8 +84,8 @@ async function respond(request: IncomingMessage) {
 	if (request.method === 'GET' && pathname === '/auth/v1/user') {
 		return userFromToken(request.headers.authorization)
 	}
-	if (request.method === 'POST' && pathname.endsWith(':generateContent')) {
-		return gemini(await readJson(request))
+	if (request.method === 'POST' && pathname === '/chat/completions') {
+		return aiReply(await readJson(request))
 	}
 	return null
 }

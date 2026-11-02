@@ -467,14 +467,21 @@
 			"bigger": "Then: {medium}. Then: {large}.",
 			"build": {
 				"title": "Ready to make your plan",
-				"body": "Kept turns your answers into milestones, small daily actions and the ideas behind them. It takes about 10 seconds.",
-				"privacy": "Your answers are sent to Google’s Gemini to write the plan. Leave out anything private.",
+				"body": "Kept turns your answers into milestones, small daily actions and the ideas behind them. It usually takes under 30 seconds.",
+				"privacy": "Your answers are sent through OpenRouter to OpenAI’s GPT-6 Luna to write the plan. Leave out anything private.",
 				"submit": "Make my plan",
 				"pending": "Writing your plan…",
 				"retry": "Try again",
 				"failed": "We couldn’t make your plan right now. Your answers are saved; try again in a minute.",
 				"offline": "You’re offline, so nothing was sent. Try again once you’re connected.",
-				"unsafe": "Kept can’t plan that goal safely. Here’s a safer version: use it as it is, or change it."
+				"unsafe": "Kept can’t plan that goal safely. Here’s a safer version: use it as it is, or change it.",
+				"blocked": "Kept can’t plan this goal. Try putting it another way."
+			},
+			"wait": {
+				"promise": "Each day you’ll make one small promise toward “{goal}”.",
+				"report": "The next day you say whether you kept it: Yes, Partly or No.",
+				"adapt": "Kept sizes your next promise from that, and checks you still remember the ideas behind it.",
+				"slow": "Still writing. This can take up to a minute."
 			},
 			"confirm": "Confirm my plan",
 			"confirming": "Confirming…",

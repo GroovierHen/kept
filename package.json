@@ -33,7 +33,6 @@
 		"eval:planner": "node --conditions=react-server --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/eval-planner.mts"
 	},
 	"dependencies": {
-		"@google/genai": "^2.32.0",
 		"@phosphor-icons/react": "^2.1.10",
 		"@prisma/client": "^6.19.3",
 		"@radix-ui/react-label": "^2.1.15",

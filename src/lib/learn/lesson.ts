@@ -1,7 +1,7 @@
 import type { KeptDay } from '@/lib/kept-day'
 
 // Which key idea to teach on a Kept day (docs/product/walkthrough.md): one a
-// day, in Gemini's order, and none on a day that already brings back 2 recalls,
+// day, in the AI's order, and none on a day that already brings back 2 recalls,
 // so a check-in stays at 2 minutes.
 
 export const MAX_RECALLS_PER_DAY = 2
