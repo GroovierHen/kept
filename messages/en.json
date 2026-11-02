@@ -31,19 +31,19 @@
 			"barLabel": "How a day with Kept is spent",
 			"report": {
 				"duration": "Seconds",
-				"clause": "First, report on yesterday: Yes, Partly or No."
+				"clause": "First, report on yesterday’s promise: Yes, Partly or No."
 			},
 			"learn": {
 				"duration": "About a minute",
-				"clause": "Then learn one money skill, worked out on your own numbers."
+				"clause": "Then recall an idea from your plan, and learn the next one."
 			},
 			"promise": {
 				"duration": "Under a minute",
-				"clause": "Next, promise one small action for tomorrow."
+				"clause": "Next, promise one small action for tomorrow, sized to your week."
 			},
 			"day": {
 				"duration": "The rest of your day",
-				"clause": "Last, keep it. An 8pm reminder brings you back."
+				"clause": "Last, keep it. Your daily reminder brings you back."
 			}
 		},
 		"plan": {
