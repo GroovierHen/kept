@@ -7,7 +7,8 @@ import { LearnFragment, LedgerFragment, PromiseFragment, ReportFragment } from '
 
 // The first screen: "Promises, kept." split in two, with a reel of the Today
 // screen passing through the gap, in the order the days happen: Day 1's
-// promise, Day 2's report and recall, Day 5's ledger. The section is 1.6
+// promise, Day 2's report, a recall on Day 4 (when an idea comes back) and
+// Day 5's ledger, so no two frames share a day. The section is 1.6
 // screens tall and its stage is sticky, so scrolling steps the reel through
 // those days while the sentence holds. The h1 keeps a gap the size of the frame (a spacer on a
 // phone, where the halves stack; the space between the halves on a wide
