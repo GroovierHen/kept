@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link, redirect } from '@/i18n/routing'
 import { LearnCard } from '@/components/learn/learn-card'
+import { RecallCard } from '@/components/learn/recall-card'
 import { SiteNav } from '@/components/landing/site-nav'
 import { ChangeReport } from '@/components/today/change-report'
 import { ChangePromise, CommitStep } from '@/components/today/commit-step'
@@ -15,10 +16,14 @@ import { signOut } from '@/server/actions/auth'
 import { finishLearning } from '@/server/actions/today'
 import { getSignedInUser } from '@/server/auth/session'
 import { db } from '@/server/db/client'
-import { getTodaysLesson } from '@/server/learn/learn'
+import { getDueReviews, getTodaysLesson } from '@/server/learn/learn'
 import { hasLearnedOn } from '@/server/learn/teach-lesson'
 import { readSetupStep } from '@/server/setup/progress'
 import { readCheckIn } from '@/server/today/read-check-in'
+
+// Marking a recall answer is an AI call with up to 2 tries of 45s; the usual
+// case is a few seconds. Server actions on this page share it.
+export const maxDuration = 100
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getTranslations('TodayPage.meta')
@@ -39,7 +44,8 @@ export default async function TodayPage() {
 		client: db,
 		userId: user.id
 	})
-	const [lesson, hasLearnedToday, t, tPromise] = await Promise.all([
+	const [dueReviews, lesson, hasLearnedToday, t, tPromise] = await Promise.all([
+		getDueReviews(user.id, today),
 		getTodaysLesson(user.id, today),
 		hasLearnedOn({ userId: user.id, today }),
 		getTranslations('TodayPage'),
@@ -48,9 +54,10 @@ export default async function TodayPage() {
 	const step = checkInStep({
 		today,
 		latestPromise,
-		// TEMPORARY: a day with no new idea can still have recalls, so this changes with #32.
-		hasLearned: hasLearnedToday || lesson == null
+		// Learning is today's recalls first, then the new idea if there is one.
+		hasLearned: dueReviews.length === 0 && (hasLearnedToday || lesson == null)
 	})
+	const [recall] = dueReviews
 
 	return (
 		<div className="flex min-h-svh flex-col">
@@ -75,7 +82,11 @@ export default async function TodayPage() {
 					</StepCard>
 				)}
 
-				{step === 'learn' && lesson != null && (
+				{step === 'learn' && recall != null && (
+					<RecallCard key={recall.keyIdeaId} review={recall} />
+				)}
+
+				{step === 'learn' && recall == null && lesson != null && (
 					<LearnCard
 						lesson={lesson}
 						mode="step"
