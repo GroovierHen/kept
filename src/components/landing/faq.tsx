@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 
-const QUESTIONS = ['advice', 'dayOne', 'ai', 'missed', 'install', 'numbers'] as const
+const QUESTIONS = ['what', 'goals', 'dayOne', 'ai', 'missed', 'install', 'private'] as const
 
 // Every answer open, set as a table: large questions on the left work as an
 // index, the answers sit beside them at reading size.

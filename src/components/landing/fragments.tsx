@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { cn } from '@/lib/cn'
 
-// Pieces of the Today screen, drawn at real size with Sara's numbers from the
-// walkthrough. They stand in for screenshots on the home page and beside the
+// Pieces of the Today screen, drawn at real size with Sara's run-5k plan from
+// the walkthrough. They stand in for screenshots on the home page and beside the
 // sign-in forms until the real screens exist. Each root carries data-ui: it
 // follows the app's conventions inside (small labels, a bordered field), not
 // the page's.
@@ -88,11 +88,11 @@ export async function PromiseFragment({ className }: { className?: string }) {
 			<p className="text-body lg:text-lead max-w-[24ch] font-medium tracking-[-0.02em]">
 				{t('sentence')}
 			</p>
-			<p className="text-small text-text-muted">{t('saves')}</p>
+			<p className="text-small text-text-muted">{t('size')}</p>
 			<div className="mt-auto flex flex-col gap-2">
 				<div className="bg-surface-hover h-3 overflow-hidden rounded-sm">
-					{/* £9 of £11 a day. */}
-					<div className="bg-text h-full w-[82%]" />
+					{/* Week 1 of 8. */}
+					<div className="bg-text h-full w-[12.5%]" />
 				</div>
 				<p className="text-small">{t('progress')}</p>
 			</div>
@@ -114,7 +114,7 @@ export async function LedgerFragment({ className }: { className?: string }) {
 					<dd className="text-head font-medium tabular-nums">{t('slippedCount')}</dd>
 				</div>
 			</dl>
-			<p className="text-small mt-auto max-w-[36ch]">{t('worth')}</p>
+			<p className="text-small mt-auto max-w-[36ch]">{t('next')}</p>
 		</Frame>
 	)
 }

@@ -1,8 +1,8 @@
 {
 	"HomePage": {
 		"meta": {
-			"title": "Kept: a two-minute daily money habit coach",
-			"description": "Learn one Rich Habits money habit a day, make a small promise, and report back. Kept adapts to you and tracks what you kept."
+			"title": "Kept: reach any goal with one small promise a day",
+			"description": "Tell Kept what you want to get better at. It writes you a plan, asks for one small promise a day, and checks in with you tomorrow."
 		},
 		"nav": {
 			"label": "Main",
@@ -16,14 +16,14 @@
 		"hero": {
 			"before": "Promises,",
 			"after": "kept.",
-			"support": "Kept is a two-minute daily coach for the habits that grow your money.",
+			"support": "Pick something you want to get better at. Kept turns it into one small promise a day, checks in with you tomorrow, and helps it stick.",
 			"start": "Start tonight",
-			"reelLabel": "A check-in on Kept, one step at a time",
+			"reelLabel": "What a few days with Kept look like",
 			"steps": {
-				"report": "Report on yesterday’s promise",
-				"learn": "Learn a money skill on your numbers",
-				"promise": "Promise one small thing for tomorrow",
-				"ledger": "Watch it add up in your ledger"
+				"promise": "Tonight, you promise one small thing for tomorrow",
+				"report": "The next day, you say whether you did it",
+				"learn": "You answer a quick question, so the idea behind it sticks",
+				"ledger": "You see every promise you kept"
 			}
 		},
 		"how": {
@@ -31,103 +31,99 @@
 			"barLabel": "How a day with Kept is spent",
 			"report": {
 				"duration": "Seconds",
-				"clause": "First, report on yesterday’s promise: Yes, Partly or No."
+				"clause": "First, say whether you kept yesterday’s promise: Yes, Partly or No."
 			},
 			"learn": {
 				"duration": "About a minute",
-				"clause": "Then recall an idea from your plan, and learn the next one."
+				"clause": "Then answer a quick question on an idea from your plan, and learn a new one."
 			},
 			"promise": {
 				"duration": "Under a minute",
-				"clause": "Next, promise one small action for tomorrow, sized to your week."
+				"clause": "Next, promise one small thing for tomorrow."
 			},
 			"day": {
 				"duration": "The rest of your day",
-				"clause": "Last, keep it. Your daily reminder brings you back."
+				"clause": "Then go and do it. A daily reminder brings you back."
 			}
 		},
 		"plan": {
-			"heading": "Type a goal. Get today’s number.",
-			"inputLabel": "Your goal, as an amount and a time",
-			"initial": "£20,000 in 5 years",
-			"examplesLabel": "Try another goal",
-			"examples": {
-				"safety": "A £6,000 safety net in 2 years",
-				"holiday": "£1,200 for a holiday in 12 months",
-				"deposit": "A £50,000 deposit in 8 years"
-			},
+			"heading": "Tell Kept a goal. Get a plan.",
+			"support": "You answer four short questions about your goal. Kept’s AI turns your answers into a plan in about 10 seconds. Here’s what it makes:",
+			"examplesLabel": "See a plan for",
 			"rows": {
-				"year": "This year",
-				"month": "This month",
-				"week": "This week",
-				"day": "Today"
+				"goal": "Your goal",
+				"milestone": "A checkpoint on the way",
+				"promise": "Your first promise",
+				"idea": "An idea you’ll learn"
 			},
-			"growth": "Saved monthly at an example 4%, that’s about {total} after {span}. {interest} of it is your money earning money.",
-			"hint": "Add an amount and a time, like £5,000 in 3 years.",
-			"years": "{count, plural, one {# year} other {# years}}",
-			"months": "{count, plural, one {# month} other {# months}}"
-		},
-		"spends": {
-			"heading": "Where does your money go?",
-			"support": "Kept prices every promise from what you tell it. These are Sara’s numbers: she takes home £2,000 a month.",
-			"takeaway": {
-				"sentence": "I order takeaway four nights a week.",
-				"result": "Cooking instead saves about £9 a night, about £1,900 a year."
+			"examples": {
+				"run": {
+					"label": "Running",
+					"goal": "Run 5k without stopping, in 8 weeks",
+					"milestone": "Week 2: run 2 km without stopping",
+					"promise": "After work, I will walk and jog for 10 minutes.",
+					"idea": "Run slow enough to talk"
+				},
+				"cook": {
+					"label": "Cooking",
+					"goal": "Cook dinner at home most nights, in 4 weeks",
+					"milestone": "Week 2: cook 3 dinners in one week",
+					"promise": "After work, I will pick one recipe for tomorrow.",
+					"idea": "Decide what to eat before you’re hungry"
+				},
+				"guitar": {
+					"label": "Guitar",
+					"goal": "Play 3 songs on the guitar, in 12 weeks",
+					"milestone": "Week 4: switch between G, C and D without stopping",
+					"promise": "Before bed, I will play one chord for two minutes.",
+					"idea": "A little every day beats a lot once a week"
+				}
 			},
-			"coffee": {
-				"sentence": "I buy coffee out most weekdays.",
-				"result": "Making it at home saves about £2.50 a day, about £650 a year."
-			},
-			"subscriptions": {
-				"sentence": "I pay for subscriptions I barely use.",
-				"result": "Cancelling two frees £20 a month for good, £240 a year."
-			},
-			"payday": {
-				"sentence": "I get paid once a month.",
-				"result": "Moving £335 to savings on payday locks in the whole month before you spend it."
-			},
-			"total": "Switched on, that’s about {amount} a year you keep.",
-			"none": "Switch on what sounds like you."
+			"note": "Every plan has 2 to 4 checkpoints, 3 to 5 daily actions that each come in a small, medium and large size, and 5 ideas that explain why they work. You can change it before you start."
 		},
 		"about": {
-			"heading": "Kept, like the books.",
-			"lead": "Kept is built on Rich Habits by Tom Corley, an accountant who spent five years studying the daily habits of rich and poor people.",
-			"second": "So your progress is a ledger: promises kept are credits, slips are debits. Every habit is in our own words, and we never promise you’ll get rich.",
+			"heading": "Why it’s called Kept.",
+			"lead": "For centuries, people kept promises the same way: write it down, then check it off. Kept works like that. Each evening you write down one small promise. The next day you say whether you kept it.",
+			"second": "Over the weeks, those answers add up to your record: what you kept, what you partly kept, and what slipped. No streaks to lose and no points to chase, just an honest account of what you did.",
 			"imageAlt": "A ledger from the 1830s with a marbled green and gold cover",
 			"hoursAlt": "A handwritten page of accounts from 1846, each job drawn in watercolour beside the hours it took and its price",
 			"hoursCaption": "An account of hours spent, Paris, 1846. Every job entered, every hour counted.",
 			"facts": {
-				"habits": "10 habits from Rich Habits",
+				"goal": "Any goal you choose",
 				"time": "2 minutes a day",
-				"advice": "Education, not financial advice"
+				"browser": "Runs in your browser"
 			}
 		},
 		"faq": {
 			"heading": "Fair questions",
 			"items": {
-				"advice": {
-					"q": "Is this financial advice?",
-					"a": "No. Kept teaches money ideas using your own numbers. It is education, not advice. Rates like the 4% in a lesson are examples, and the lesson says so."
+				"what": {
+					"q": "What is Kept, in one sentence?",
+					"a": "A two-minute daily check-in that turns a goal into one small promise a day, and helps you keep it."
+				},
+				"goals": {
+					"q": "What kind of goal can I bring?",
+					"a": "Anything you want to get better at: running, cooking, an instrument, a language, sleep. Kept won’t plan anything unsafe, like a crash diet, and suggests a safer version instead."
 				},
 				"dayOne": {
 					"q": "What happens on day one?",
-					"a": "About five minutes of setup: your dream, your income, costs and savings, and where your money goes. Kept turns that into a plan and your first promise."
+					"a": "About five minutes. You answer four short questions: your goal, how many weeks to give it, where you are now, and what usually gets in the way. Kept writes your plan, you check it, and you make your first promise."
 				},
 				"ai": {
 					"q": "What does the AI do?",
-					"a": "Three things: it suggests your plan, marks your answers, and helps you choose a promise when you’re stuck. Code does every sum, so the maths is always right."
+					"a": "Two things. It writes your plan from your answers, and it marks your answer when an idea comes back. It runs on GPT-6 Luna through OpenRouter, using only providers that don’t keep what you send, but don’t type anything private."
 				},
 				"missed": {
 					"q": "What if I miss a day?",
-					"a": "It doesn’t count against you. A promise you don’t report by the end of the next day closes as unreported, and your promises don’t shrink because of it."
+					"a": "It doesn’t count against you. A promise you don’t report by the end of the next day closes as unreported, and Kept doesn’t make your promises smaller because of it."
 				},
 				"install": {
 					"q": "Do I need to install anything?",
-					"a": "No. Kept runs in your browser. One calendar reminder, added once, brings you back each evening and opens today’s screen."
+					"a": "No. Kept runs in your browser. At setup you add one daily reminder to your calendar, and it brings you back to the day’s check-in."
 				},
-				"numbers": {
-					"q": "Who sees my numbers?",
-					"a": "Only you see your plan. Our public results page shows totals across everyone testing Kept, with no names or emails."
+				"private": {
+					"q": "Who sees my answers?",
+					"a": "Only you see your goal, your plan and your answers. Our public results page shows totals across everyone testing Kept, with no names, emails or goals."
 				}
 			}
 		},
@@ -137,14 +133,36 @@
 			"button": "start.",
 			"emailLabel": "Your email",
 			"placeholder": "you@email.com",
-			"note": "Next you pick a password. Then about five minutes of setup, and your first promise."
+			"note": "Next you pick a password. Then four short questions about your goal, and Kept writes your plan."
 		},
 		"footer": {
 			"invitation": "Two minutes, starting tonight.",
 			"start": "Start",
 			"linksLabel": "More",
 			"credit": "Ledger pictures: The Metropolitan Museum of Art, public domain.",
-			"legal": "Education, not financial advice. Habits after Tom Corley’s Rich Habits."
+			"legal": "Plans are written by AI as general guidance, not medical, financial or legal advice."
+		},
+		"familiar": {
+			"heading": "Sound familiar?",
+			"support": "Most goals don’t fail because people don’t want them enough. They fail in the same few ways. Switch on the ones that sound like you.",
+			"fade": {
+				"sentence": "I start strong, then stop after a week.",
+				"result": "Kept starts you small, so day one is easy. It only asks for more after three Yeses in a row."
+			},
+			"stuck": {
+				"sentence": "I never know what to actually do today.",
+				"result": "Every evening you pick one small action for tomorrow, so you always know what’s next."
+			},
+			"forget": {
+				"sentence": "I read the advice, then forget it.",
+				"result": "Kept brings each idea back 1, 3 and 7 days after you learn it and asks you about it, so it stays with you."
+			},
+			"badDay": {
+				"sentence": "One bad day and I give up.",
+				"result": "A missed day doesn’t count against you. Two Noes in a row and Kept makes your next promise smaller, not harder."
+			},
+			"total": "{count, plural, one {# of these sounds like you.} other {# of these sound like you.}} That’s what Kept is for.",
+			"none": "Switch on the ones that sound like you."
 		}
 	},
 	"ResultsPage": {
@@ -194,7 +212,7 @@
 		"report": {
 			"day": "Day 2",
 			"step": "Report",
-			"question": "Did you cook instead of ordering today?",
+			"question": "Did you walk and jog for 10 minutes today?",
 			"yes": "Yes",
 			"partly": "Partly",
 			"no": "No"
@@ -202,26 +220,26 @@
 		"learn": {
 			"day": "Day 4",
 			"step": "Recall",
-			"question": "If you save £335 a month for 5 years, about how much will you have?",
-			"answer": "around 20k plus a bit of interest",
+			"question": "Why should most of your runs feel easy?",
+			"answer": "so you don’t get too tired",
 			"mark": "1 out of 2",
-			"reason": "Right idea. The interest is about £2,100, not a bit."
+			"reason": "Partly. Easy runs also build your base and keep you from getting injured."
 		},
 		"promise": {
 			"day": "Day 1",
 			"step": "Promise for tomorrow",
-			"sentence": "After work, I will cook instead of ordering.",
-			"saves": "Saves about £9",
-			"progress": "Covers £9 of your £11 a day"
+			"sentence": "After work, I will walk and jog for 10 minutes.",
+			"size": "The small size, so day one is easy",
+			"progress": "Week 1 of 8"
 		},
 		"ledger": {
 			"day": "Day 5",
 			"step": "Ledger",
 			"kept": "Kept",
 			"slipped": "Slipped",
-			"keptCount": "2",
-			"slippedCount": "2",
-			"worth": "Cooking 4 nights a week is worth about £1,900 a year."
+			"keptCount": "3",
+			"slippedCount": "1",
+			"next": "Next checkpoint: run 2 km without stopping, in week 2."
 		}
 	},
 	"Auth": {
