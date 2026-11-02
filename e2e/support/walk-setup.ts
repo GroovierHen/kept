@@ -57,11 +57,28 @@ export async function walkToPromiseStep({ page, email }: { page: Page; email: st
 }
 
 /**
- * Passes today's learn card, if there is one. A plan has 5 ideas, and a day with
- * 2 recalls due teaches none, so a long run of days doesn't see one every day.
+ * Answers today's recalls and passes the new idea, whichever the day has. A plan
+ * has 5 ideas, and a day with 2 recalls teaches none, so a long run of days
+ * doesn't see the same cards every day.
  */
 export async function passLearnCard(page: Page) {
-	const learned = page.getByRole('button', { name: 'Continue' })
-	await expect(learned.or(page.getByRole('heading', { name: 'Your next promise' }))).toBeVisible()
-	if (await learned.isVisible()) await learned.click()
+	const check = page.getByRole('button', { name: 'Check my answer' })
+	const next = page.getByRole('button', { name: 'Continue' })
+	const commit = page.getByRole('heading', { name: 'Your next promise' })
+	for (;;) {
+		await expect(check.or(next).or(commit).first()).toBeVisible()
+		if (await commit.isVisible()) return
+		// Each Continue loads the next card, so wait for this one to go before looking again.
+		if (await check.isVisible()) {
+			const mark = page.getByText('out of 2')
+			await page.getByLabel('Your answer').fill('Because it keeps me going.')
+			await check.click()
+			await expect(mark).toBeVisible()
+			await next.click()
+			await expect(mark).toBeHidden()
+		} else {
+			await next.click()
+			await expect(next).toBeHidden()
+		}
+	}
 }

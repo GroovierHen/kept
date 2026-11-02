@@ -1,6 +1,6 @@
 import 'server-only'
 import { addDays, keptDayDate, toKeptDay, type KeptDay } from '@/lib/kept-day'
-import { FIRST_REVIEW_AFTER_DAYS } from '@/lib/learn/lesson'
+import { RETURN_GAPS } from '@/lib/learn/review-schedule'
 import { withRetry } from '@/lib/retry'
 import { db } from '@/server/db/client'
 import { isTransientDbError, logDbRetry } from '@/server/db/transient-error'
@@ -38,7 +38,7 @@ export async function teachLesson({
 					data: {
 						userId,
 						keyIdeaId,
-						dueOn: keptDayDate(addDays({ day: keptDay, days: FIRST_REVIEW_AFTER_DAYS }))
+						dueOn: keptDayDate(addDays({ day: keptDay, days: RETURN_GAPS[0] }))
 					}
 				})
 				await recordEvent({

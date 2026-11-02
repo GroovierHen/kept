@@ -6,10 +6,6 @@ import type { KeptDay } from '@/lib/kept-day'
 
 export const MAX_RECALLS_PER_DAY = 2
 
-// A taught idea first comes back the next Kept day. The returns after that
-// depend on how it was answered, so the review scheduler (#32) books them.
-export const FIRST_REVIEW_AFTER_DAYS = 1
-
 export interface KeyIdeaProgress {
 	readonly id: string
 	readonly position: number

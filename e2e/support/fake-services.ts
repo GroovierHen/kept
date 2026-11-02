@@ -6,8 +6,8 @@ import { SARA_GENERATED_PLAN } from '../../src/lib/learn/sara-plan'
 // Stands in for Supabase Auth and Gemini, the two outside services on Day 1. The
 // app reaches them on the server, where a browser test can't intercept, and CI
 // has no credentials for either. They are found through their normal base URLs,
-// so the app runs its real code with no test-only branch. Only what Day 1 calls
-// is here, and anything else fails the test with a 404.
+// so the app runs its real code with no test-only branch. Only what the tests
+// call is here, and anything else fails the test with a 404.
 
 const SESSION_SECONDS = 3600
 
@@ -51,10 +51,19 @@ function userFromToken(authorization: string | undefined) {
 	return authUser({ id: sub, email })
 }
 
-function geminiPlan() {
-	const text = JSON.stringify({ isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN })
+export const FAKE_GRADE = {
+	score: 1,
+	reason: 'You got part of it. Easy runs also build your base.'
+}
+
+// The planner and the grader both call generateContent; the prompt says which.
+function gemini(body: unknown) {
+	const isGrader = JSON.stringify(body).includes('You are the grader')
+	const reply = isGrader ? FAKE_GRADE : { isSafe: true, saferGoal: null, plan: SARA_GENERATED_PLAN }
 	return {
-		candidates: [{ content: { role: 'model', parts: [{ text }] }, finishReason: 'STOP' }],
+		candidates: [
+			{ content: { role: 'model', parts: [{ text: JSON.stringify(reply) }] }, finishReason: 'STOP' }
+		],
 		usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 }
 	}
 }
@@ -74,7 +83,7 @@ async function respond(request: IncomingMessage) {
 		return userFromToken(request.headers.authorization)
 	}
 	if (request.method === 'POST' && pathname.endsWith(':generateContent')) {
-		return geminiPlan()
+		return gemini(await readJson(request))
 	}
 	return null
 }

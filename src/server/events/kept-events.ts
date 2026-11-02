@@ -63,9 +63,14 @@ const keptEvent = z.discriminatedUnion('name', [
 	eventContract({ name: 'promise_changed', details: promiseDetails }),
 	eventContract({ name: 'report_made', details: reportMadeDetails }),
 	eventContract({ name: 'lesson_taught', details: z.strictObject({ keyIdeaId: entityId }) }),
+	// isMultipleChoice is true when Gemini couldn't mark it and the person picked an option.
 	eventContract({
 		name: 'recall_graded',
-		details: z.strictObject({ questionId: entityId, skillId: entityId, score: recallScore })
+		details: z.strictObject({
+			keyIdeaId: entityId,
+			score: recallScore,
+			isMultipleChoice: z.boolean()
+		})
 	}),
 	eventContract({
 		name: 'i_think_i_was_right_pressed',
