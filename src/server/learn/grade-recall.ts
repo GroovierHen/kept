@@ -96,6 +96,31 @@ export async function gradeChoice(
 	})
 }
 
+/**
+ * Saves an answer whose mark is already decided, on a given Kept day, through
+ * the same due check, save, next return and Event as a real answer. For the
+ * demo account (#35), whose marks are fixed so the judges see the same week.
+ */
+export async function recordRecall({
+	userId,
+	keyIdeaId,
+	keptDay,
+	answer,
+	score,
+	reason
+}: {
+	userId: string
+	keyIdeaId: string
+	keptDay: KeptDay
+	answer: string
+	score: RecallScore
+	reason: string
+}): Promise<RecallOutcome> {
+	const due = await findDue({ userId, keyIdeaId, keptDay })
+	if (due.kind !== 'due') return due.outcome
+	return saveRecall({ due, keptDay, answer, score, reason, isMultipleChoice: false })
+}
+
 type Due = Awaited<ReturnType<typeof readReview>> & { kind: 'due' }
 
 async function findDue({
