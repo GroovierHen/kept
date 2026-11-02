@@ -46,9 +46,9 @@ export default async function LedgerPage() {
 							const days = ledger[outcome]
 							return (
 								<div key={outcome} className="grid grid-cols-[5rem_2rem_1fr] items-baseline gap-2">
-									<dt className="text-body">{t(`promises.${outcome}`)}</dt>
+									<dt className="text-body text-text-muted">{t(`promises.${outcome}`)}</dt>
 									<dd className="text-body font-semibold">{days.length}</dd>
-									<dd className="text-small text-text-muted">
+									<dd className="text-small text-text-faint">
 										{days.length > 0 &&
 											t('promises.days', {
 												count: days.length,
@@ -106,7 +106,7 @@ export default async function LedgerPage() {
 					<StepCard title={t('milestone.title')}>
 						<div className="flex flex-col gap-1">
 							<p className="text-body">{milestone.text}</p>
-							<p className="text-small text-text-muted">
+							<p className="text-small text-text-faint">
 								{t('milestone.due', { days: milestone.daysLeft })}
 							</p>
 						</div>
@@ -136,7 +136,7 @@ export default async function LedgerPage() {
 						)
 					)}
 					{recallProgress.leftOut > 0 && (
-						<p className="text-small text-text-muted">
+						<p className="text-small text-text-faint">
 							{t('learned.leftOut', { count: recallProgress.leftOut })}
 						</p>
 					)}

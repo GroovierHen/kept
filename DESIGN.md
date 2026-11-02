@@ -32,30 +32,48 @@ custom properties. Two categories:
 ## 2. Name tokens by role, not by value
 
 `--accent`, not `--blue-500`. A rename should never cascade through every
-component that uses it. This template ships a neutral starter set:
+component that uses it.
 
-| Token                                      | Starter value (light)    | Role                                                            |
-| ------------------------------------------ | ------------------------ | --------------------------------------------------------------- |
-| `--bg`                                     | near-white               | page background                                                 |
-| `--surface`                                | white                    | card/panel background, one step off `--bg`                      |
-| `--surface-hover`                          | light gray               | hover state for interactive surfaces                            |
-| `--border`                                 | light gray, low contrast | default hairline border                                         |
-| `--border-strong`                          | medium gray              | hover/focus-adjacent border                                     |
-| `--text`                                   | near-black               | primary text                                                    |
-| `--text-muted`                             | mid gray                 | secondary text                                                  |
-| `--text-faint`                             | light-mid gray           | placeholder/tertiary text                                       |
-| `--accent`                                 | blue                     | primary interactive color — links, primary buttons, focus rings |
-| `--accent-hover`                           | darker blue              | accent hover state                                              |
-| `--accent-ink`                             | white                    | text/icon color placed on top of an `--accent` surface          |
-| `--success` / `--warning` / `--danger`     | green / amber / red      | status-only, never used decoratively                            |
-| `--radius-sm` / `--radius` / `--radius-lg` | 6px / 10px / 16px        | never hardcode a `border-radius` outside these                  |
+Kept has one scheme: a white ground, bottle green text, and bottle green
+as the accent. It is light whatever the OS preference, so there is no
+light/dark pair to swap.
 
-Every token above has a dark-mode pair, swapped automatically via
-`prefers-color-scheme` — see `globals.css`. If this project wants a
-user-facing toggle instead of (or in addition to) following the OS
-preference, switch the dark block's selector from
-`@media (prefers-color-scheme: dark)` to `.dark &` / `:root.dark` and add a
-small class-toggling script; don't rebuild the token set to do it.
+| Token                                      | Value                   | Role                                                                   |
+| ------------------------------------------ | ----------------------- | ---------------------------------------------------------------------- |
+| `--bg`                                     | `#ffffff` white         | page background                                                        |
+| `--surface`                                | `#e8efe9`               | card/panel background, one step off `--bg`                             |
+| `--surface-hover`                          | `#d8e3da`               | hover state for interactive surfaces, progress tracks                  |
+| `--border`                                 | `#6b8a75`               | edges of cards, inputs and controls; 3:1 or more on `bg` and `surface` |
+| `--border-strong`                          | `#4d6f58`               | hover/focus-adjacent border, table header rules                        |
+| `--text`                                   | `#0a2214` bottle green  | what you read: headings, body, figures                                 |
+| `--text-muted`                             | `#3d5545`               | labels and secondary copy                                              |
+| `--text-faint`                             | `#4f6657`               | timestamps, counts, placeholders                                       |
+| `--accent`                                 | `#133621` bottle green  | the one thing to press on a screen, and focus rings                    |
+| `--accent-hover`                           | `#1f4d31`               | accent hover state                                                     |
+| `--accent-ink`                             | `#ffffff`               | text/icon colour placed on top of an `--accent` surface                |
+| `--success` / `--warning` / `--danger`     | green / amber / red     | status only, never used decoratively                                   |
+| `--field-1` … `--field-4`                  | gold, ochre, two greens | flat bands on the home page, each with its own `--field-N-ink`         |
+| `--radius-sm` / `--radius` / `--radius-lg` | 2px / 4px / 6px         | never hardcode a `border-radius` outside these                         |
+
+### How the colours are used
+
+Gold used to be the text colour as well as the accent, so body copy and the
+primary button were the same ink and nothing on a screen could stand out.
+The ground is now white, text is bottle green, and a filled bottle green
+button means "press this". Gold stays in the brand as `--field-1`. Two
+rules keep each colour meaning one thing:
+
+- **One accent per screen.** Only the primary action is a filled green
+  button. A selected choice turns gold (`--field-1`), a progress bar fills
+  with `text` on a `surface-hover` track, and a second button uses the
+  `secondary` or `outline` variant.
+- **Three text tiers, chosen on purpose.** `text` for what you read,
+  `text-muted` for labels and secondary copy, `text-faint` for timestamps
+  and counts. A heading gets no colour class at all: it inherits `text`
+  from `body`.
+
+The home page's field bands use gold and green as a section's ground, not
+as something to press.
 
 ## 3. Component conventions
 

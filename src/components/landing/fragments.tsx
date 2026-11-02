@@ -54,7 +54,7 @@ export async function ReportFragment({ className }: { className?: string }) {
 						key={answer.label}
 						className={cn(
 							'text-body flex h-11 items-center justify-center rounded',
-							answer.chosen ? 'bg-accent text-accent-ink' : 'border-border border'
+							answer.chosen ? 'bg-field-1 text-field-1-ink' : 'border-border border'
 						)}
 					>
 						{answer.label}
@@ -90,9 +90,9 @@ export async function PromiseFragment({ className }: { className?: string }) {
 			</p>
 			<p className="text-small text-text-muted">{t('saves')}</p>
 			<div className="mt-auto flex flex-col gap-2">
-				<div className="bg-field-4 h-3 overflow-hidden rounded-sm">
+				<div className="bg-surface-hover h-3 overflow-hidden rounded-sm">
 					{/* £9 of £11 a day. */}
-					<div className="bg-accent h-full w-[82%]" />
+					<div className="bg-text h-full w-[82%]" />
 				</div>
 				<p className="text-small">{t('progress')}</p>
 			</div>

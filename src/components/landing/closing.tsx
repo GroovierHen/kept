@@ -28,12 +28,12 @@ export async function Closing() {
 						required
 						autoComplete="email"
 						placeholder={t('placeholder')}
-						className="bg-field-4 placeholder:text-text-faint h-[1.15em] w-full min-w-0 rounded px-[0.25em] tracking-[-0.04em] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 md:w-[8.5em]"
+						className="bg-field-4 placeholder:text-field-4-ink/70 h-[1.15em] w-full min-w-0 rounded px-[0.25em] tracking-[-0.04em] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 md:w-[8.5em]"
 					/>{' '}
 					<span>{t('after')}</span>{' '}
 					<button
 						type="submit"
-						className="bg-accent text-accent-ink hover:bg-accent-hover h-[1.15em] rounded px-[0.25em] tracking-[-0.05em] transition-[background-color,transform] duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-[0.97]"
+						className="bg-accent-ink text-accent hover:bg-surface h-[1.15em] rounded px-[0.25em] tracking-[-0.05em] transition-[background-color,transform] duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-[0.97]"
 					>
 						{t('button')}
 					</button>

@@ -50,13 +50,14 @@ export function ChoiceGroup<T extends string>({
 					value={choice.value}
 					className={cn(
 						'group border-border bg-surface text-text text-small hover:bg-surface-hover focus-visible:outline-accent min-h-12 rounded border px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
-						'data-[state=checked]:border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-ink',
+						// A pick turns gold rather than green, so it never reads as the one button to press.
+						'data-[state=checked]:border-field-1 data-[state=checked]:bg-field-1 data-[state=checked]:text-field-1-ink',
 						layout === 'row' ? 'text-center' : 'text-left'
 					)}
 				>
 					<span className="block">{choice.label}</span>
 					{choice.detail != null && (
-						<span className="text-text-muted group-data-[state=checked]:text-accent-ink block font-normal transition-colors">
+						<span className="text-text-muted group-data-[state=checked]:text-field-1-ink block font-normal transition-colors">
 							{choice.detail}
 						</span>
 					)}

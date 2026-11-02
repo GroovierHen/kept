@@ -23,10 +23,10 @@ export function ProgressBar({ value, max, label, className, ...props }: Progress
 				aria-valuemin={0}
 				aria-valuemax={100}
 				aria-valuenow={percent}
-				className="bg-field-4 h-2 overflow-hidden rounded-sm"
+				className="bg-surface-hover h-2 overflow-hidden rounded-sm"
 			>
 				<div
-					className="bg-accent h-full transition-[width] motion-reduce:transition-none"
+					className="bg-text h-full transition-[width] motion-reduce:transition-none"
 					style={{ width: `${percent}%` }}
 				/>
 			</div>

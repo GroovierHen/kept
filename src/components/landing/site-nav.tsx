@@ -36,7 +36,7 @@ export async function SiteNav({ sections = false }: { sections?: boolean }) {
 					<Link href="/sign-in" className={linkClass}>
 						{t('signIn')}
 					</Link>
-					<Button asChild size="sm" className="h-9 px-4">
+					<Button asChild size="sm" variant="outline" className="h-9 px-4">
 						<Link href="/sign-up">{t('start')}</Link>
 					</Button>
 				</nav>

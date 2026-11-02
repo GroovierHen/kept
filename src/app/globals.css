@@ -32,33 +32,35 @@
 /* Color tokens are declared on :root and re-exposed to Tailwind via `@theme
    inline` below — `inline` tells Tailwind to reference these variables live
    rather than inlining today's computed value at build time. Kept has one
-   scheme, bottle green and gold, whatever the OS preference: the brand is
-   a dark ground, so there is no light/dark pair to swap. See DESIGN.md. */
+   scheme, a white ground with bottle green text, whatever the OS
+   preference, so there is no light/dark pair to swap. Bottle green is also
+   the accent, kept for the one thing to press; gold survives as a field
+   colour, marking what has been picked. See DESIGN.md. */
 :root {
-	color-scheme: dark;
-	--bg: #133621;
-	--surface: #1a4429;
-	--surface-hover: #21502f;
-	--border: #2f6140;
-	--border-strong: #4a7c58;
-	--text: #f4d96c;
-	--text-muted: #c2b56c;
-	--text-faint: #9a9058;
-	--accent: #f4d96c;
-	--accent-hover: #f9e799;
-	--accent-ink: #133621;
-	--success: #a6d99a;
-	--warning: #f4b86c;
-	--danger: #ffb59e;
+	color-scheme: light;
+	--bg: #ffffff;
+	--surface: #e8efe9;
+	--surface-hover: #d8e3da;
+	--border: #6b8a75;
+	--border-strong: #4d6f58;
+	--text: #0a2214;
+	--text-muted: #3d5545;
+	--text-faint: #4f6657;
+	--accent: #133621;
+	--accent-hover: #1f4d31;
+	--accent-ink: #ffffff;
+	--success: #1d6b34;
+	--warning: #8a4f00;
+	--danger: #b42318;
 	/* Flat fields for bands and bars, each with the ink that reads on it. */
 	--field-1: #f4d96c;
-	--field-1-ink: #133621;
-	--field-2: #c2b56c;
-	--field-2-ink: #133621;
-	--field-3: #2d6a40;
-	--field-3-ink: #f4d96c;
-	--field-4: #0c2716;
-	--field-4-ink: #f4d96c;
+	--field-1-ink: #0a2214;
+	--field-2: #d4a84e;
+	--field-2-ink: #0a2214;
+	--field-3: #3a6b49;
+	--field-3-ink: #ffffff;
+	--field-4: #0f2c1a;
+	--field-4-ink: #ffffff;
 
 	/* One pair of outer margins and one gutter for every page. */
 	--page-margin: clamp(1rem, 2.2vw, 2rem);
