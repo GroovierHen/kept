@@ -6,7 +6,7 @@ import { extendTailwindMerge } from 'tailwind-merge'
 // and drops `text-accent-ink` from cn('text-accent-ink', 'text-body'),
 // leaving a button's label the colour of its fill.
 const twMerge = extendTailwindMerge({
-	extend: { theme: { text: ['small', 'body', 'lead', 'head', 'display'] } }
+	extend: { theme: { text: ['small', 'body', 'lead', 'title', 'head', 'display'] } }
 })
 
 // Merge conditional classNames AND resolve conflicting Tailwind utilities

@@ -1,68 +1,55 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
-import { Button } from '@/components/ui/button'
-import { linkClass } from './site-nav'
+import { Wordmark } from '@/components/brand/wordmark'
+import { navLink } from './landing-nav'
 
-// Close and footer in one green field. The wordmark runs along the bottom as
-// wide as the page allows, whole, with room under it for the p's tail.
+// The wordmark and its line, the links, the note on what Kept is not, and
+// then the name again at full width, cut off at its foot, sliding in from the
+// left as it comes into view.
 export async function LandingFooter() {
 	const t = await getTranslations('HomePage.footer')
 	const nav = await getTranslations('HomePage.nav')
-	const links = [
+	const anchors = [
 		{ href: '#how', label: nav('how') },
 		{ href: '#plan', label: nav('plan') },
 		{ href: '#questions', label: nav('questions') }
 	]
 
 	return (
-		<footer className="bg-accent text-accent-ink relative overflow-hidden px-(--page-margin) pt-24 md:pt-36">
-			<div className="grid gap-10 md:grid-cols-12 md:gap-x-(--gutter)">
-				<div className="flex flex-col items-start gap-8 md:col-span-7">
-					<h2 data-reveal className="text-head max-w-[14ch] font-medium tracking-[-0.05em]">
-						{t('invitation')}
-					</h2>
-					<Button
-						asChild
-						size="lg"
-						className="bg-accent-ink text-accent hover:bg-surface text-body h-12 w-full px-6 sm:w-auto"
-					>
-						<Link href="/sign-up">{t('start')}</Link>
-					</Button>
-				</div>
-				<nav aria-label={t('linksLabel')} className="md:col-span-3 md:col-start-10">
-					<ul className="text-body flex flex-wrap gap-x-6 gap-y-2 md:flex-col">
+		<footer className="border-border border-t">
+			<div className="text-text-faint mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-6 px-(--page-margin) pt-10 pb-6 text-[14px]">
+				<p className="flex flex-wrap items-center gap-x-4 gap-y-2">
+					<Wordmark size="sm" />
+					<span>{t('tagline')}</span>
+				</p>
+				<nav aria-label={t('linksLabel')}>
+					<ul className="flex flex-wrap gap-5">
 						<li>
-							<Link href="/sign-in" className={linkClass}>
+							<Link href="/sign-in" className={navLink}>
 								{nav('signIn')}
 							</Link>
 						</li>
 						<li>
-							<Link href="/results" className={linkClass}>
+							<Link href="/results" className={navLink}>
 								{nav('results')}
 							</Link>
 						</li>
-						{links.map((link) => (
-							<li key={link.href}>
-								<a href={link.href} className={linkClass}>
-									{link.label}
+						{anchors.map((anchor) => (
+							<li key={anchor.href}>
+								<a href={anchor.href} className={navLink}>
+									{anchor.label}
 								</a>
 							</li>
 						))}
 					</ul>
 				</nav>
+				<p className="w-full max-w-[60ch]">{t('legal')}</p>
 			</div>
-
-			<div className="pt-28 md:pt-40">
-				<div className="text-small flex flex-col gap-1 pb-4 md:flex-row md:justify-between md:gap-8">
-					<p>{t('credit')}</p>
-					<p>{t('legal')}</p>
-				</div>
-				<p
-					aria-hidden
-					className="pb-[0.08em] text-[34vw] leading-[1] font-medium tracking-[-0.07em] whitespace-nowrap select-none md:text-[28vw]"
-				>
-					Kept
-				</p>
+			<div
+				aria-hidden
+				className="face-display text-border mx-auto h-[0.62em] max-w-[1200px] overflow-hidden px-(--page-margin) text-[clamp(120px,24vw,340px)] leading-[0.8] font-extrabold tracking-[-0.06em] select-none"
+			>
+				<p className="slide-on-view">Kept.</p>
 			</div>
 		</footer>
 	)

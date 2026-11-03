@@ -28,6 +28,7 @@ import {
 	Check,
 	CheckCircle,
 	CircleNotch,
+	Clock,
 	Copy,
 	DotsThreeVertical,
 	DownloadSimple,
@@ -35,6 +36,7 @@ import {
 	Gear,
 	Info,
 	List,
+	Lock,
 	MagnifyingGlass,
 	Minus,
 	PencilSimple,
@@ -99,6 +101,7 @@ export const ChevronDownIcon = (props: IconProps) => <Glyph source={CaretDown} {
 export const ChevronLeftIcon = (props: IconProps) => <Glyph source={CaretLeft} {...props} />
 export const ChevronRightIcon = (props: IconProps) => <Glyph source={CaretRight} {...props} />
 export const ChevronUpIcon = (props: IconProps) => <Glyph source={CaretUp} {...props} />
+export const ClockIcon = (props: IconProps) => <Glyph source={Clock} {...props} />
 export const CloseIcon = (props: IconProps) => <Glyph source={X} {...props} />
 export const CopyIcon = (props: IconProps) => <Glyph source={Copy} {...props} />
 export const DownloadIcon = (props: IconProps) => <Glyph source={DownloadSimple} {...props} />
@@ -106,6 +109,7 @@ export const EditIcon = (props: IconProps) => <Glyph source={PencilSimple} {...p
 export const ExternalLinkIcon = (props: IconProps) => <Glyph source={ArrowSquareOut} {...props} />
 export const FilterIcon = (props: IconProps) => <Glyph source={FunnelSimple} {...props} />
 export const InfoIcon = (props: IconProps) => <Glyph source={Info} {...props} />
+export const LockIcon = (props: IconProps) => <Glyph source={Lock} {...props} />
 export const MenuIcon = (props: IconProps) => <Glyph source={List} {...props} />
 export const MinusIcon = (props: IconProps) => <Glyph source={Minus} {...props} />
 export const MoreIcon = (props: IconProps) => <Glyph source={DotsThreeVertical} {...props} />

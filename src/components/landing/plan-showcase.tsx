@@ -1,72 +1,126 @@
-'use client'
+import { getTranslations } from 'next-intl/server'
+import { ArrowRightIcon, SpinnerIcon } from '@/components/ui/icons'
+import { cn } from '@/lib/cn'
 
-import { useId, useState } from 'react'
-import { useTranslations } from 'next-intl'
+// What setup makes from one goal: the goal as typed, with the answers that
+// shape it, then the plan, its milestones down a timeline and its daily
+// actions from small to large. Sara's plan from the walkthrough.
+const MILESTONES = [
+	{ key: 'first', week: 2, dot: 'bg-accent text-accent-ink' },
+	{ key: 'second', week: 4, dot: 'bg-accent-soft text-accent-deep' },
+	{ key: 'third', week: 6, dot: 'bg-accent-soft text-accent-deep' },
+	{ key: 'goal', week: 8, dot: 'bg-coral text-coral-ink' }
+] as const
+const ACTIONS = ['run', 'shoes', 'stretch'] as const
 
-// What Kept builds from a goal, shown on three example goals the visitor can
-// switch between. They are written out, not made live: the AI writes a plan
-// only after sign-up, so a visitor can't run up its bill from the home page.
-const EXAMPLES = ['run', 'cook', 'guitar'] as const
-const ROWS = ['goal', 'milestone', 'promise', 'idea'] as const
-
-type Example = (typeof EXAMPLES)[number]
-
-export function PlanShowcase() {
-	const t = useTranslations('HomePage.plan')
-	const [example, setExample] = useState<Example>('run')
-	const id = useId()
+export async function PlanShowcase() {
+	const t = await getTranslations('HomePage.plan')
 
 	return (
 		<section
 			id="plan"
-			aria-labelledby={`${id}-heading`}
-			className="bg-surface flex min-h-[88svh] scroll-mt-8 flex-col px-(--page-margin) py-24 md:py-36"
+			aria-labelledby="plan-heading"
+			className="mx-auto max-w-[1200px] scroll-mt-16 px-(--page-margin) py-32"
 		>
-			<h2
-				id={`${id}-heading`}
-				data-reveal
-				className="text-head mb-6 max-w-[18ch] font-medium tracking-[-0.05em]"
-			>
-				{t('heading')}
-			</h2>
-			<p data-reveal className="text-body md:text-lead mb-10 max-w-[48ch] delay-[60ms]">
-				{t('support')}
-			</p>
-
-			<div data-ui data-reveal className="flex flex-col gap-6 delay-[90ms]">
-				<div className="flex flex-wrap items-center gap-2">
-					<p className="text-small text-text-muted mr-2">{t('examplesLabel')}</p>
-					{EXAMPLES.map((key) => (
-						<button
-							key={key}
-							type="button"
-							onClick={() => setExample(key)}
-							aria-pressed={example === key}
-							aria-controls={`${id}-plan`}
-							className="text-body bg-bg aria-pressed:bg-field-1 aria-pressed:text-field-1-ink hover:bg-surface-hover flex h-11 items-center rounded px-4 transition-[background-color,color,transform] duration-200 active:scale-[0.97]"
-						>
-							{t(`examples.${key}.label`)}
-						</button>
-					))}
-				</div>
-
-				<dl
-					id={`${id}-plan`}
-					aria-live="polite"
-					className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4"
+			<div className="mx-auto max-w-[760px] text-center">
+				<p
+					data-reveal
+					className="text-accent text-[14px] font-semibold tracking-[0.08em] uppercase"
 				>
-					{ROWS.map((row) => (
-						<div key={row} className="bg-bg flex flex-col gap-2 rounded px-4 py-4 md:px-5 md:py-5">
-							<dt className="text-small text-text-muted">{t(`rows.${row}`)}</dt>
-							<dd className="text-lead font-medium tracking-[-0.03em]">
-								{t(`examples.${example}.${row}`)}
-							</dd>
-						</div>
-					))}
-				</dl>
+					{t('eyebrow')}
+				</p>
+				<h2
+					id="plan-heading"
+					data-reveal
+					className="face-display text-head mt-3.5 mb-[18px] font-extrabold delay-[70ms]"
+				>
+					{t('heading')}
+				</h2>
+				<p data-reveal className="text-text-muted text-[18px] leading-[1.55] delay-[140ms]">
+					{t('support')}
+				</p>
 			</div>
 
-			<p className="text-body text-text-muted mt-auto max-w-[60ch] pt-14">{t('note')}</p>
+			<div className="mt-14 flex flex-wrap items-stretch gap-5">
+				<figure
+					data-reveal
+					className="bg-night text-night-ink flex min-w-0 flex-[1_1_320px] flex-col gap-5 rounded-[28px] p-8"
+				>
+					<figcaption className="text-night-muted text-[14px]">{t('goalLabel')}</figcaption>
+					<p className="border-night-border bg-night-surface rounded-[14px] border p-4 text-[20px] font-semibold">
+						{t('goal')}
+					</p>
+					<ul className="flex flex-wrap gap-2 text-[13px]">
+						<li className="bg-coral text-coral-ink rounded-full px-3 py-[7px] font-semibold">
+							{t('tags.weeks')}
+						</li>
+						<li className="border-night-border rounded-full border px-3 py-[7px]">
+							{t('tags.now')}
+						</li>
+						<li className="border-night-border rounded-full border px-3 py-[7px]">
+							{t('tags.obstacle')}
+						</li>
+					</ul>
+					<p className="text-night-muted mt-auto flex items-center gap-3 text-[14px]">
+						<SpinnerIcon size={18} className="text-coral" />
+						{t('writing')}
+					</p>
+				</figure>
+
+				<div className="grid min-w-0 flex-[2_1_560px] grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5">
+					<div data-reveal className={cn(panel, 'delay-[80ms]')}>
+						<h3 className={panelLabel}>{t('milestonesLabel')}</h3>
+						<ol className="mt-5">
+							{MILESTONES.map((milestone, index) => (
+								<li key={milestone.key} className="flex gap-3.5 pb-[18px]">
+									<span className="flex flex-col items-center">
+										<span
+											className={cn(
+												'grid size-[26px] place-items-center rounded-full text-[12px] font-bold',
+												milestone.dot
+											)}
+										>
+											{index + 1}
+										</span>
+										<span aria-hidden className="bg-border mt-1 min-h-4 w-0.5 flex-1" />
+									</span>
+									<span>
+										<span className="text-text-faint block text-[13px]">
+											{t('week', { week: milestone.week })}
+										</span>
+										<span className="mt-0.5 block font-semibold">
+											{t(`milestones.${milestone.key}`)}
+										</span>
+									</span>
+								</li>
+							))}
+						</ol>
+					</div>
+					<div data-reveal className={cn(panel, 'delay-[160ms]')}>
+						<h3 className={panelLabel}>{t('actionsLabel')}</h3>
+						<ul className="mt-5 grid gap-3.5">
+							{ACTIONS.map((action) => (
+								<li key={action} className="bg-bg rounded-2xl p-4">
+									<p className="font-semibold">{t(`actions.${action}.small`)}</p>
+									<p className="text-text-faint mt-2.5 flex flex-wrap items-center gap-1.5 text-[13px]">
+										<span className="bg-accent-soft text-accent-deep rounded-md px-2 py-[3px] font-semibold">
+											{t('smallTag')}
+										</span>
+										<span className="sr-only">{t('sizesLabel')}</span>
+										<ArrowRightIcon size={14} />
+										<span>{t(`actions.${action}.medium`)}</span>
+										<ArrowRightIcon size={14} />
+										<span>{t(`actions.${action}.large`)}</span>
+									</p>
+								</li>
+							))}
+						</ul>
+					</div>
+				</div>
+			</div>
 		</section>
 	)
 }
+
+const panel = 'bg-surface border-border rounded-[28px] border p-7'
+const panelLabel = 'text-text-faint text-[13px] font-semibold tracking-[0.08em] uppercase'

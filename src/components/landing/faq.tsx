@@ -1,9 +1,20 @@
 import { getTranslations } from 'next-intl/server'
+import { cn } from '@/lib/cn'
 
-const QUESTIONS = ['what', 'goals', 'dayOne', 'ai', 'missed', 'install', 'private'] as const
+const QUESTIONS = ['dayOne', 'ai', 'missed', 'install', 'numbers', 'advice'] as const
+// Written out whole so Tailwind finds each class.
+const DELAYS = [
+	'',
+	'delay-[70ms]',
+	'delay-[140ms]',
+	'delay-[210ms]',
+	'delay-[280ms]',
+	'delay-[280ms]'
+]
 
-// Every answer open, set as a table: large questions on the left work as an
-// index, the answers sit beside them at reading size.
+// The honest answers, one panel each, opened by its question. The first is
+// open, so the panel shows how it works; the rest are a click away and still
+// in the page for search and screen readers.
 export async function Faq() {
 	const t = await getTranslations('HomePage.faq')
 
@@ -11,27 +22,39 @@ export async function Faq() {
 		<section
 			id="questions"
 			aria-labelledby="questions-heading"
-			className="bg-surface scroll-mt-8 px-(--page-margin) py-28 md:py-44"
+			className="mx-auto max-w-[920px] scroll-mt-16 px-(--page-margin) pt-32 pb-24"
 		>
 			<h2
 				id="questions-heading"
 				data-reveal
-				className="text-lead text-text-muted mb-14 font-medium tracking-[-0.03em] md:mb-20"
+				className="face-display mb-9 text-center text-[clamp(40px,5vw,60px)] leading-none font-extrabold"
 			>
 				{t('heading')}
 			</h2>
-			<dl className="flex flex-col gap-14 md:gap-20">
-				{QUESTIONS.map((key) => (
-					<div key={key} data-reveal className="grid gap-3 md:grid-cols-12 md:gap-x-(--gutter)">
-						<dt className="text-lead max-w-[22ch] font-medium tracking-[-0.03em] md:col-span-6">
+			<div className="grid gap-3">
+				{QUESTIONS.map((key, index) => (
+					<details
+						key={key}
+						open={index === 0}
+						data-reveal
+						className={cn(
+							'group bg-surface border-border rounded-[18px] border px-6 py-[22px]',
+							DELAYS[index]
+						)}
+					>
+						<summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-[18px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 [&::-webkit-details-marker]:hidden">
 							{t(`items.${key}.q`)}
-						</dt>
-						<dd className="text-body max-w-[42ch] md:col-span-5 md:col-start-8 md:pt-1.5">
-							{t(`items.${key}.a`)}
-						</dd>
-					</div>
+							<span
+								aria-hidden
+								className="text-accent text-[24px] leading-none transition-transform duration-200 group-open:rotate-45"
+							>
+								+
+							</span>
+						</summary>
+						<p className="text-text-muted mt-3.5 leading-[1.6]">{t(`items.${key}.a`)}</p>
+					</details>
 				))}
-			</dl>
+			</div>
 		</section>
 	)
 }

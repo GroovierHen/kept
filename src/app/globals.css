@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* A window too short for the full-size "How it works" stage, such as a
+   laptop with its browser chrome showing. */
+@custom-variant short (@media (max-height: 800px));
+
 /* Tailwind v4 is CSS-first — no tailwind.config.js. Static tokens (nothing
    that needs to change with color scheme) live directly in @theme, which
    both declares them as real CSS variables and generates the matching
@@ -23,6 +27,9 @@
 	--text-head--line-height: 1;
 	--text-display: clamp(3rem, 1rem + 7vw, 8.25rem);
 	--text-display--line-height: 0.95;
+	/* Card headings between lead and head; only .theme-brand pages use it. */
+	--text-title: clamp(2rem, 1.2rem + 2.2vw, 3rem);
+	--text-title--line-height: 1.02;
 
 	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 	--ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -31,11 +38,12 @@
 
 /* Color tokens are declared on :root and re-exposed to Tailwind via `@theme
    inline` below — `inline` tells Tailwind to reference these variables live
-   rather than inlining today's computed value at build time. Kept has one
-   scheme, a white ground with bottle green text, whatever the OS
-   preference, so there is no light/dark pair to swap. Bottle green is also
-   the accent, kept for the one thing to press; gold survives as a field
-   colour, marking what has been picked. See DESIGN.md. */
+   rather than inlining today's computed value at build time. The app's
+   screens have one scheme, a white ground with bottle green text, whatever
+   the OS preference, so there is no light/dark pair to swap. Bottle green is
+   also the accent, kept for the one thing to press; gold survives as a field
+   colour, marking what has been picked. The public pages wear .theme-brand
+   below instead. See DESIGN.md. */
 :root {
 	color-scheme: light;
 	--bg: #ffffff;
@@ -90,6 +98,133 @@
 	--color-field-3-ink: var(--field-3-ink);
 	--color-field-4: var(--field-4);
 	--color-field-4-ink: var(--field-4-ink);
+
+	/* Roles only .theme-brand defines (below). */
+	--color-accent-soft: var(--accent-soft);
+	--color-accent-deep: var(--accent-deep);
+	--color-coral: var(--coral);
+	--color-coral-ink: var(--coral-ink);
+	--color-coral-soft: var(--coral-soft);
+	--color-coral-deep: var(--coral-deep);
+	--color-night: var(--night);
+	--color-night-ink: var(--night-ink);
+	--color-night-surface: var(--night-surface);
+	--color-night-border: var(--night-border);
+	--color-night-muted: var(--night-muted);
+	--color-kept: var(--kept);
+	--color-kept-ink: var(--kept-ink);
+	--color-kept-soft: var(--kept-soft);
+	--color-partly: var(--partly);
+	--color-slipped: var(--slipped);
+}
+
+/* The redesign ("Kept redesign" on claude.ai, Nov 3): forest green on an
+   off-white ground with a lime second accent and near-black night fields,
+   Bricolage Grotesque for display, Inter for text, rounder corners. The home
+   page and the sign-in pages wear it through <BrandTheme>. Every shared role
+   keeps its name, so Button and Input follow without edits, radius included;
+   changing the scheme is a change to this block alone. */
+.theme-brand {
+	color-scheme: light;
+	--bg: #f4f5f0;
+	--surface: #ffffff;
+	--surface-hover: #eef0e8;
+	--border: #e2e4da;
+	--border-strong: #d6d9cc;
+	--text: #0f1f17;
+	--text-muted: #46504a;
+	--text-faint: #56605a;
+	--accent: #14532d;
+	--accent-hover: #0b3b1f;
+	--accent-ink: #ffffff;
+	--accent-soft: #e6f2d9;
+	--accent-deep: #0b3b1f;
+	--coral: #c6f432;
+	--coral-ink: #0f1f17;
+	--coral-soft: #eef9c9;
+	--coral-deep: #3f6212;
+	--night: #0f1f17;
+	--night-ink: #ffffff;
+	--night-surface: #16291f;
+	--night-border: #24402f;
+	--night-muted: #c3cfc6;
+	--kept: #34d399;
+	--kept-ink: #062b1e;
+	--kept-soft: #ddf6ec;
+	--partly: #fbbf24;
+	--slipped: #f87171;
+	--success: #047857;
+	--warning: #3f6212;
+	--danger: #b42318;
+	/* The hover glow on filled actions, the focus halo on fields, and the
+	   shadow under what floats. */
+	--glow: rgb(20 83 45 / 0.55);
+	--focus-ring: rgb(20 83 45 / 0.15);
+	--shadow: rgb(15 31 23 / 0.5);
+	--radius-sm: 9px;
+	--radius: 14px;
+	--radius-lg: 24px;
+	--page-margin: 24px;
+
+	/* The design's own sizes, clamp for clamp, so every width matches it. */
+	--text-head: clamp(40px, 5vw, 64px);
+	--text-head--line-height: 1;
+	--text-title: clamp(32px, 3.6vw, 48px);
+	--text-title--line-height: 1.02;
+	--text-display: clamp(56px, 8vw, 104px);
+	--text-display--line-height: 0.95;
+
+	background-color: var(--bg);
+	color: var(--text);
+	font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+	/* The design sets no base line height, so text uses the browser's own
+	   unless a style names one; Tailwind's page-wide 1.5 would loosen it. */
+	line-height: normal;
+	letter-spacing: 0;
+}
+
+/* So a page that wears it shows its own ground past its edges when it
+   overscrolls, whatever the app's screens use. */
+body:has(.theme-brand) {
+	background-color: #f4f5f0;
+}
+
+/* The display face, with the tight tracking the design sets it at. */
+@utility face-display {
+	font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+	letter-spacing: -0.03em;
+}
+
+/* Scroll-linked moves, only where the browser can tie an animation to
+   scroll and motion is welcome; elsewhere the reading bar stays hidden and
+   the footer's name sits still. */
+@utility read-progress {
+	display: none;
+	@supports (animation-timeline: scroll()) {
+		@media (prefers-reduced-motion: no-preference) {
+			display: block;
+			animation: grow-x linear both;
+			animation-timeline: scroll(root);
+		}
+	}
+}
+@utility slide-on-view {
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			animation: slide-in linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 45%;
+		}
+	}
+}
+
+/* The dotted field laid over the accent panels, in a tint of their ink. */
+@utility dot-grid {
+	background-image: radial-gradient(
+		color-mix(in srgb, currentColor 16%, transparent) 1.5px,
+		transparent 1.5px
+	);
+	background-size: 24px 24px;
 }
 
 body {
@@ -233,12 +368,71 @@ body {
 	}
 }
 
-/* The one moving picture: a slow drift on the ledger cover. */
-@keyframes drift {
+/* The redesign's moves (.theme-brand pages), each used through an
+   animate-[…] utility under motion-safe, so reduced motion keeps everything
+   in place. */
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0) rotate(var(--tilt, 0deg));
+	}
+	50% {
+		transform: translateY(-14px) rotate(var(--tilt, 0deg));
+	}
+}
+@keyframes marquee {
+	to {
+		transform: translateX(-50%);
+	}
+}
+@keyframes draw {
 	from {
-		transform: scale(1) translate3d(-2%, 0, 0);
+		stroke-dashoffset: 420;
 	}
 	to {
-		transform: scale(1.08) translate3d(2%, -2%, 0);
+		stroke-dashoffset: 0;
+	}
+}
+@keyframes pop {
+	0% {
+		transform: scale(0.4);
+		opacity: 0;
+	}
+	70% {
+		transform: scale(1.12);
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+@keyframes arrive {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.98);
+	}
+}
+@keyframes nudge {
+	50% {
+		transform: translateY(6px);
+	}
+}
+@keyframes fill {
+	from {
+		width: 0;
+	}
+}
+/* Scroll-linked: the header's reading bar and the footer's sliding name. */
+@keyframes grow-x {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}
+@keyframes slide-in {
+	from {
+		transform: translateX(-18%);
 	}
 }

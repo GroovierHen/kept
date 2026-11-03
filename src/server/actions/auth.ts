@@ -1,6 +1,6 @@
 'use server'
 
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from '@/i18n/routing'
 import { AppError } from '@/lib/errors/app-error'
@@ -12,6 +12,7 @@ import { retryAuthCall, signUpOnce } from '@/server/auth/auth-retry'
 import { credentials } from '@/server/auth/credentials'
 import { provisionOrSignOut } from '@/server/auth/provision-or-sign-out'
 import { provisionUser } from '@/server/auth/provision-user'
+import { START_EMAIL_COOKIE, START_EMAIL_MAX_AGE_SECONDS } from '@/server/auth/start-email'
 import { readSetupStep } from '@/server/setup/progress'
 import { validatedAction } from './validated-action'
 
@@ -133,6 +134,8 @@ async function submit(run: typeof createAccount, formData: FormData): Promise<Au
 	const result = await run(data)
 	if (!result.ok) return { error: result.status >= 500 ? t('failed') : result.error, email }
 
+	const cookieStore = await cookies()
+	cookieStore.delete(START_EMAIL_COOKIE)
 	return redirect({ href: result.data, locale: await getLocale() })
 }
 
@@ -155,4 +158,21 @@ export async function signOut(): Promise<void> {
 		captureError(error)
 	}
 	redirect({ href: '/', locale: await getLocale() })
+}
+
+// The home page's closing email form. The email waits for the sign-up form in
+// a short-lived cookie (start-email.ts).
+export async function startSignUp(formData: FormData): Promise<void> {
+	const parsed = credentials.shape.email.safeParse(formData.get('email'))
+	if (parsed.success) {
+		const cookieStore = await cookies()
+		cookieStore.set(START_EMAIL_COOKIE, parsed.data, {
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: process.env.NODE_ENV === 'production',
+			maxAge: START_EMAIL_MAX_AGE_SECONDS,
+			path: '/'
+		})
+	}
+	redirect({ href: '/sign-up', locale: await getLocale() })
 }
