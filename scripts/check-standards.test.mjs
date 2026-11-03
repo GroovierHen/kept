@@ -36,19 +36,21 @@ const FIXTURE_FILES = [
 	'.githooks/pre-commit',
 	'scripts/check-commit-message.mjs',
 	'scripts/check-secrets.mjs',
-	'scripts/check-env-vars.mjs',
 	'package.json',
+	'standards.config.json',
+	'apps/web/package.json',
+	'apps/web/scripts/check-env-vars.mjs',
+	'apps/web/scripts/check-rls.mjs',
+	'apps/web/tsconfig.json',
+	'apps/web/.env.example',
 	'.github/workflows/ci.yml',
 	'.claude/skills/local-review/SKILL.md',
 	'.prettierrc.json',
 	'.prettierignore',
 	'.gitignore',
-	'.env.example',
-	'src/lib/env.ts',
-	'src/lib/supabase',
-	'src/server/lib/logger',
-	'scripts/check-rls.mjs',
-	'tsconfig.json',
+	'apps/web/src/lib/env.ts',
+	'apps/web/src/lib/supabase',
+	'apps/web/src/server/lib/logger',
 	'eslint.config.mjs',
 	'.claude-logs/.gitkeep',
 	'.codex-logs/.gitkeep'
@@ -118,6 +120,30 @@ test('a fixture built from the template passes every check, so later failures ar
 	)
 })
 
+test('workspaces names a missing workspace and a kind with no app-level standards', () => {
+	const results = withFixture(
+		(root) =>
+			edit(root, 'standards.config.json', (text) => {
+				const config = JSON.parse(text)
+				config.workspaces.push({ path: 'apps/mobile', kind: 'expo' })
+				return JSON.stringify(config)
+			}),
+		['workspaces']
+	)
+	assert.equal(results.workspaces.ok, false)
+	assert.match(results.workspaces.detail, /apps\/mobile\/package\.json is missing/)
+	assert.match(results.workspaces.detail, /kind "expo"/)
+})
+
+test('workspaces fails on a config that lists no workspaces', () => {
+	const results = withFixture(
+		(root) => writeFileSync(join(root, 'standards.config.json'), '{}\n'),
+		['workspaces']
+	)
+	assert.equal(results.workspaces.ok, false)
+	assert.match(results.workspaces.detail, /no "workspaces" list/)
+})
+
 test('agents-md fails when AGENTS.md is missing', () => {
 	const results = withFixture((root) => rmSync(join(root, 'AGENTS.md')), ['agents-md'])
 	assert.equal(results['agents-md'].ok, false)
@@ -127,14 +153,14 @@ test('agents-md fails when AGENTS.md is missing', () => {
 test('structured-logger rejects a missing dependency, implementation or test coverage', () => {
 	const results = withFixture(
 		(root) => {
-			edit(root, 'package.json', (text) => {
+			edit(root, 'apps/web/package.json', (text) => {
 				const pkg = JSON.parse(text)
 				delete pkg.dependencies.pino
 				pkg.scripts.test = 'node --test scripts/*.test.mjs'
 				return JSON.stringify(pkg)
 			})
-			rmSync(join(root, 'src/server/lib/logger/logger.ts'))
-			writeFileSync(join(root, 'src/server/lib/logger/redact.test.mts'), '')
+			rmSync(join(root, 'apps/web/src/server/lib/logger/logger.ts'))
+			writeFileSync(join(root, 'apps/web/src/server/lib/logger/redact.test.mts'), '')
 		},
 		['structured-logger']
 	)
@@ -148,7 +174,10 @@ test('structured-logger rejects a missing dependency, implementation or test cov
 test('structured-logger rejects a replacement engine and an unwired Pino import ban', () => {
 	const results = withFixture(
 		(root) => {
-			writeFileSync(join(root, 'src/server/lib/logger/logger.ts'), 'export const log = console\n')
+			writeFileSync(
+				join(root, 'apps/web/src/server/lib/logger/logger.ts'),
+				'export const log = console\n'
+			)
 			edit(root, 'eslint.config.mjs', (text) =>
 				text.replace("['pino', 'pino/**']", "['other-logger']")
 			)
@@ -163,29 +192,29 @@ test('structured-logger rejects a replacement engine and an unwired Pino import 
 test('logging lint boundaries survive each dependency-specific exemption', async () => {
 	const eslint = new ESLint({ cwd: REPO_ROOT })
 	for (const filePath of [
-		'src/lib/env.ts',
-		'src/components/ui/icons.tsx',
-		'src/server/ai/google.ts',
-		'src/server/db/client.ts',
-		'src/lib/supabase/server.ts',
-		'src/proxy.ts',
-		'src/server/lib/logger/index.ts',
-		'src/server/lib/logger/logger.ts'
+		'apps/web/src/lib/env.ts',
+		'apps/web/src/components/ui/icons.tsx',
+		'apps/web/src/server/ai/google.ts',
+		'apps/web/src/server/db/client.ts',
+		'apps/web/src/lib/supabase/server.ts',
+		'apps/web/src/proxy.ts',
+		'apps/web/src/server/lib/logger/index.ts',
+		'apps/web/src/server/lib/logger/logger.ts'
 	]) {
 		const [result] = await eslint.lintText("import pino from 'pino'\npino()\n", { filePath })
 		assert.equal(
 			result.messages.some((message) => message.ruleId === 'no-restricted-imports'),
-			filePath !== 'src/server/lib/logger/logger.ts',
+			filePath !== 'apps/web/src/server/lib/logger/logger.ts',
 			filePath
 		)
 	}
 	const [client] = await eslint.lintText(
 		"'use client'\nimport { log } from '@/server/lib/logger'\nlog.info('test')\n",
-		{ filePath: 'src/components/logger-probe.tsx' }
+		{ filePath: 'apps/web/src/components/logger-probe.tsx' }
 	)
 	assert.ok(client.messages.some((message) => message.ruleId === 'no-restricted-syntax'))
 	const [consoleCall] = await eslint.lintText("console.error('test')\n", {
-		filePath: 'src/server/logger-probe.ts'
+		filePath: 'apps/web/src/server/logger-probe.ts'
 	})
 	assert.ok(consoleCall.messages.some((message) => message.ruleId === 'no-console'))
 })
@@ -430,7 +459,7 @@ test('eslint-effective-rules reads the resolved config, so a later block overrid
 				text.replace(
 					'export default eslintConfig',
 					// A trailing block that flips the rule back off — last match wins.
-					"eslintConfig.push({ files: ['src/**/*.ts'], rules: { '@typescript-eslint/no-explicit-any': 'off' } })\nexport default eslintConfig"
+					"eslintConfig.push({ files: ['apps/web/src/**/*.ts'], rules: { '@typescript-eslint/no-explicit-any': 'off' } })\nexport default eslintConfig"
 				)
 			),
 		['eslint-effective-rules']
@@ -442,7 +471,9 @@ test('eslint-effective-rules reads the resolved config, so a later block overrid
 test('typescript-strict reads the resolved config', () => {
 	const results = withFixture(
 		(root) =>
-			edit(root, 'tsconfig.json', (text) => text.replace('"strict": true', '"strict": false')),
+			edit(root, 'apps/web/tsconfig.json', (text) =>
+				text.replace('"strict": true', '"strict": false')
+			),
 		['typescript-strict']
 	)
 	assert.equal(results['typescript-strict'].ok, false)
@@ -451,11 +482,12 @@ test('typescript-strict reads the resolved config', () => {
 
 test('env-schema fails when the schema stops going through zod', () => {
 	const results = withFixture(
-		(root) => writeFileSync(join(root, 'src/lib/env.ts'), 'export const env = process.env\n'),
+		(root) =>
+			writeFileSync(join(root, 'apps/web/src/lib/env.ts'), 'export const env = process.env\n'),
 		['env-schema']
 	)
 	assert.equal(results['env-schema'].ok, false)
-	assert.match(results['env-schema'].detail, /does not import zod/)
+	assert.match(results['env-schema'].detail, /apps\/web\/src\/lib\/env\.ts does not import zod/)
 })
 
 test('no-machine-local-state-tracked flags a tracked .vercel/project.json, even nested', () => {
@@ -610,7 +642,7 @@ test('prisma-only-data-path fails when @prisma/client drops out of the restricte
 test('supabase-auth-only fails when a wrapper hands out the full client', () => {
 	const results = withFixture(
 		(root) =>
-			edit(root, 'src/lib/supabase/server.ts', (text) =>
+			edit(root, 'apps/web/src/lib/supabase/server.ts', (text) =>
 				text.replace(': Promise<AuthOnlySupabaseClient>', '')
 			),
 		['supabase-auth-only']
@@ -625,7 +657,7 @@ test('supabase-auth-only fails when a wrapper hands out the full client', () => 
 test('supabase-auth-only fails when the auth-only type is widened to a data path', () => {
 	const results = withFixture(
 		(root) =>
-			edit(root, 'src/lib/supabase/auth-only.ts', (text) =>
+			edit(root, 'apps/web/src/lib/supabase/auth-only.ts', (text) =>
 				text.replace("'auth'>", "'auth' | 'from'>")
 			),
 		['supabase-auth-only']
@@ -636,7 +668,7 @@ test('supabase-auth-only fails when the auth-only type is widened to a data path
 
 test('rls-check-wired fails when the check script is gone', () => {
 	const results = withFixture(
-		(root) => rmSync(join(root, 'scripts/check-rls.mjs')),
+		(root) => rmSync(join(root, 'apps/web/scripts/check-rls.mjs')),
 		['rls-check-wired']
 	)
 	assert.equal(results['rls-check-wired'].ok, false)

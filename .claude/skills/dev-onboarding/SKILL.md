@@ -55,7 +55,7 @@ _values_, but it confirms nothing the app actually reads is missing.
 ## 3. Database
 
 ```bash
-pnpm exec prisma migrate deploy
+pnpm --filter @kept/web exec prisma migrate deploy
 pnpm db:run-once
 ```
 

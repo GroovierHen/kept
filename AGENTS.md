@@ -43,11 +43,30 @@ for everyone.
 
 <!-- END:merge-on-green -->
 
+# Repository layout
+
+A pnpm workspace (`pnpm-workspace.yaml`): apps under `apps/`, shared code
+under `packages/`. The Next.js app is `apps/web` (`@kept/web`), and the
+app paths in this file and in `docs/rules/` — `src/`, `prisma/`,
+`messages/`, `e2e/`, `.env.example` — are relative to it. Repo-wide
+tooling (`scripts/check-*`, hooks, CI, `eslint.config.mjs`, Prettier)
+stays at the root.
+
+- **Run commands from the repo root.** The root `package.json` forwards each
+  app script to its workspace (`pnpm check:env` →
+  `pnpm --filter @kept/web check:env`). A one-off binary goes through the
+  filter too: `pnpm --filter @kept/web exec prisma studio`.
+- **A dependency belongs to the workspace that imports it** —
+  `pnpm --filter @kept/web add <pkg>`. Root `devDependencies` are only the
+  repo-wide tools (ESLint, Prettier, TypeScript for ESLint).
+- **A new app is listed in `standards.config.json`**, or the app-level
+  standards never run against it.
+
 # This is NOT the Next.js you know
 
 Next.js 16 and React 19 are the pinned versions in this template. Both have
 real breaking changes vs. the v13/14 App Router conventions your training
-data was likely written against — read `node_modules/next/dist/docs/` before
+data was likely written against — read `apps/web/node_modules/next/dist/docs/` before
 writing any code that touches routing, caching, or data fetching. In
 particular:
 
@@ -81,7 +100,7 @@ particular:
   around the Compiler.
 - Before handing off a change, run ESLint, TypeScript, and a production
   Next.js build. Re-check the current guidance in
-  `node_modules/next/dist/docs/` before using a Next.js API or convention.
+  `apps/web/node_modules/next/dist/docs/` before using a Next.js API or convention.
 
 ## Engineering rules
 

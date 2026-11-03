@@ -107,7 +107,7 @@ directly: every table enabled, no policies, none forced. A new table goes
 red there until its RLS migration lands. "Every table" is deliberate — it
 removes the per-table judgement of what counts as user-scoped. A table that
 genuinely must stay open is listed in `RLS_EXEMPT_TABLES` in
-`scripts/check-rls.mjs` with the reason; the list ships empty, and FORCE or a
+`apps/web/scripts/check-rls.mjs` with the reason; the list ships empty, and FORCE or a
 policy is refused even on an exempt table.
 
 This whole section applies the moment a project has real user accounts.

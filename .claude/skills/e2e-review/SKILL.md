@@ -14,7 +14,7 @@ Playwright's config (`playwright.config.ts`) boots `pnpm dev` itself and waits f
 If Chromium isn't installed yet (`~/Library/Caches/ms-playwright/` empty, or the run fails with a "browser not found" error), install it first:
 
 ```bash
-pnpm exec playwright install chromium
+pnpm --filter @kept/web exec playwright install chromium
 ```
 
 ## 2. Run it

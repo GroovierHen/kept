@@ -36,7 +36,7 @@ const AI_SDK_IMPORTS = {
 		'@ai-sdk/**'
 	],
 	message:
-		"Call the provider through 'src/server/ai/<provider>' instead — that file is the only place an AI SDK is imported, and the only place trackAiCall is called. Add the method there if it's missing. See docs/rules/ai-usage.md."
+		"Call the provider through 'apps/web/src/server/ai/<provider>' instead — that file is the only place an AI SDK is imported, and the only place trackAiCall is called. Add the method there if it's missing. See docs/rules/ai-usage.md."
 }
 
 // The AI provider is called with plain fetch, so there is no SDK import for
@@ -45,7 +45,7 @@ const AI_SDK_IMPORTS = {
 const AI_HOST_SYNTAX = {
 	selector: 'Literal[value=/openrouter\\.ai/], TemplateElement[value.raw=/openrouter\\.ai/]',
 	message:
-		"Call OpenRouter through 'src/server/ai/openrouter.ts' instead — it is the only place trackAiCall is called. See docs/rules/ai-usage.md."
+		"Call OpenRouter through 'apps/web/src/server/ai/openrouter.ts' instead — it is the only place trackAiCall is called. See docs/rules/ai-usage.md."
 }
 
 const LOGGER_IN_CLIENT_SYNTAX = {
@@ -112,14 +112,21 @@ const eslintConfig = defineConfig([
 	// (linked into .claude/skills/). Their scripts are vendored, not ours to
 	// restyle, and a skill update would otherwise fail the build.
 	globalIgnores([
-		'.next/**',
-		'out/**',
-		'build/**',
-		'next-env.d.ts',
-		'src/generated/**',
+		'**/.next/**',
+		'**/out/**',
+		'**/build/**',
+		'**/next-env.d.ts',
+		'apps/web/src/generated/**',
+		'**/playwright-report/**',
+		'**/test-results/**',
 		'.claude/worktrees/**',
 		'.agents/skills/**'
 	]),
+	{
+		// eslint-config-next looks for pages/ and app/ under the lint root; the
+		// Next.js app is a workspace, not the repo root.
+		settings: { next: { rootDir: 'apps/web' } }
+	},
 	{
 		// See docs/rules/code-quality.md for the rationale behind both rules.
 		rules: {
@@ -129,21 +136,25 @@ const eslintConfig = defineConfig([
 	{
 		// no-console scoped to application code only — scripts/ is
 		// operational tooling that legitimately prints to stdout.
-		files: ['src/**/*.{ts,tsx}'],
+		files: ['apps/web/src/**/*.{ts,tsx}'],
 		rules: { 'no-console': 'error' }
 	},
 	{
 		// env.ts is shared with client code and must report invalid boot config
 		// before a server-only logger can be imported.
-		files: ['src/lib/env.ts', '**/instrumentation*.ts', 'sentry.*.config.ts'],
+		files: [
+			'apps/web/src/lib/env.ts',
+			'apps/web/instrumentation*.ts',
+			'apps/web/sentry.*.config.ts'
+		],
 		rules: {
 			'no-console': ['error', { allow: ['warn', 'error'] }]
 		}
 	},
 	{
-		// Icons come from '@/components/ui/icons', AI SDKs from 'src/server/ai/*',
-		// the Prisma client from 'src/server/db/client.ts' and Supabase from
-		// 'src/lib/supabase/*' — never from the package directly. See
+		// Icons come from '@/components/ui/icons', AI SDKs from 'apps/web/src/server/ai/*',
+		// the Prisma client from 'apps/web/src/server/db/client.ts' and Supabase from
+		// 'apps/web/src/lib/supabase/*' — never from the package directly. See
 		// docs/rules/icons.md, ai-usage.md, database.md and auth.md. Same
 		// enforcement shape as the logger rule below: one file owns the
 		// dependency, the rest of the codebase imports the wrapper.
@@ -154,7 +165,7 @@ const eslintConfig = defineConfig([
 		// replace this one rather than add to it — which is why each exemption
 		// block below re-states every group that still applies instead of only
 		// subtracting its own.
-		files: ['src/**/*.{ts,tsx}'],
+		files: ['apps/web/src/**/*.{ts,tsx}'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -171,7 +182,7 @@ const eslintConfig = defineConfig([
 		}
 	},
 	{
-		files: ['src/components/ui/icons.tsx'],
+		files: ['apps/web/src/components/ui/icons.tsx'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -182,7 +193,7 @@ const eslintConfig = defineConfig([
 	{
 		// src/server/ai/* is where the AI SDKs are allowed to be imported, and
 		// the only place trackAiCall is called. Every other ban still applies.
-		files: ['src/server/ai/**/*.ts'],
+		files: ['apps/web/src/server/ai/**/*.ts'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -192,7 +203,7 @@ const eslintConfig = defineConfig([
 	},
 	{
 		// The one file that constructs the Prisma client.
-		files: ['src/server/db/client.ts'],
+		files: ['apps/web/src/server/db/client.ts'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -203,7 +214,7 @@ const eslintConfig = defineConfig([
 	{
 		// The Supabase wrappers, and the proxy that refreshes the session before
 		// any of them could run.
-		files: ['src/lib/supabase/**/*.ts', 'src/proxy.ts'],
+		files: ['apps/web/src/lib/supabase/**/*.ts', 'apps/web/src/proxy.ts'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -212,7 +223,7 @@ const eslintConfig = defineConfig([
 		}
 	},
 	{
-		files: ['src/server/lib/logger/logger.ts'],
+		files: ['apps/web/src/server/lib/logger/logger.ts'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -227,7 +238,7 @@ const eslintConfig = defineConfig([
 		// docs/rules/logging.md is enforced here instead: a `'use client'` file
 		// reports errors through Sentry (instrumentation-client.ts), never the
 		// logger.
-		files: ['src/**/*.{ts,tsx}'],
+		files: ['apps/web/src/**/*.{ts,tsx}'],
 		rules: {
 			'no-restricted-syntax': ['error', LOGGER_IN_CLIENT_SYNTAX, AI_HOST_SYNTAX]
 		}
@@ -235,7 +246,7 @@ const eslintConfig = defineConfig([
 	{
 		// The one file that calls OpenRouter, with fetch and no SDK, and the
 		// one that reads its price list, which is not an AI call.
-		files: ['src/server/ai/**/*.ts', 'src/server/lib/ai-usage/pricing.ts'],
+		files: ['apps/web/src/server/ai/**/*.ts', 'apps/web/src/server/lib/ai-usage/pricing.ts'],
 		rules: {
 			'no-restricted-syntax': ['error', LOGGER_IN_CLIENT_SYNTAX]
 		}

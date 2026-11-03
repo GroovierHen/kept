@@ -12,7 +12,7 @@ inferring correctness from types/lint alone.
 
 1. Confirm `.env.local` exists and has a working `DATABASE_URL` pointed at
    a local or personal dev database with the current migrations applied
-   (`pnpm exec prisma migrate deploy`, then `pnpm db:run-once` for the
+   (`pnpm --filter @kept/web exec prisma migrate deploy`, then `pnpm db:run-once` for the
    current one-off in `prisma/run-once.sql`). If it's missing required vars, check
    them against `.env.example` and ask the user for anything secret you
    can't generate yourself (e.g. a real Sentry DSN — not required for local

@@ -86,7 +86,7 @@ keeps CI cheap (`docs/rules/commits.md`). If it hasn't, run it first.
    `pnpm build`, and `pnpm check:rls` against a local database with the
    migrations applied.
    `format:check` is the easiest to forget and fails CI on its own. If
-   `prisma/schema/**` changed, `pnpm prisma generate` first.
+   `prisma/schema/**` changed, `pnpm prisma:generate` first.
 8. Commit with a Conventional Commits message
    (e.g. `fix: resolve N+1 query in the project list handler`), and a
    `Changelog:` line in the body (`docs/rules/commits.md`).

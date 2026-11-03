@@ -104,10 +104,14 @@ one the job says so and skips, so a missing token never fails a PR.
 
 ### Connect the repo
 
-Vercel dashboard → Add New → Project → import this GitHub repo. Framework
-preset auto-detects as Next.js; root directory stays `.` (this template is
-a flat app, not a monorepo — see the design guide's open decisions if that
-changes). No Vercel-side build command changes are needed.
+Vercel dashboard → Add New → Project → import this GitHub repo. Set
+**Root Directory to `apps/web`** (Settings → Build and Deployment): the repo
+is a pnpm workspace and the Next.js app is one workspace in it. Leave
+"Include files outside the root directory in the Build Step" on, so the
+install sees the root lockfile and `pnpm-workspace.yaml`. Framework preset
+auto-detects as Next.js; no build or install command overrides are needed.
+With the root left at `.`, the build runs but Vercel finds no `.next/`
+output where it looks, and every deployment fails.
 
 ### Environment variables
 

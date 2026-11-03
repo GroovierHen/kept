@@ -51,44 +51,56 @@ Scaffolded from [8xsocial/template-web](https://github.com/8xsocial/template-web
 
 ## Project structure
 
+A pnpm workspace: each app lives under `apps/`, code shared between apps
+under `packages/` (empty until the mobile app needs something shared).
+Run every command from the repo root — the root `package.json` forwards
+app scripts (`pnpm dev`, `pnpm build`, `pnpm check:env`, ...) to the
+app that owns them.
+
 ```
 kept/
-├── .claude/skills/          Claude Code skills — see "Skills" below
-├── .claude-logs/            tracked (not gitignored) — AI session transcripts ship with the branch
-├── .github/workflows/       ci.yml, deploy-migrations.yml, claude-code-review.yml
-├── .githooks/commit-msg     installed automatically by `pnpm install`
+├── apps/
+│   └── web/                     the Next.js app (@kept/web) — deployed to Vercel with Root Directory apps/web
+│       ├── e2e/                 Playwright — the first check-in test, against a local database
+│       ├── messages/en.json     i18n strings
+│       ├── prisma/schema/       multi-file schema — the only thing you hand-edit
+│       │   └── migrations/      CI-generated only, never by hand
+│       ├── prisma/run-once.sql  one-off SQL, applied once per database on the next deploy
+│       ├── scripts/             migration generator, run-once SQL runner, env-var check, RLS check, AI model check
+│       ├── src/
+│       │   ├── app/[locale]/        App Router pages, error.tsx, not-found.tsx, [...rest]/ (404 plumbing)
+│       │   ├── app/global-error.tsx root boundary, inline-styled (see docs/rules/error-handling.md)
+│       │   ├── app/globals.css      design tokens (light + dark)
+│       │   ├── components/          query-provider.tsx, error-page.tsx, error-boundary.tsx, ui/ (Button, Input, Card, toasts, ...)
+│       │   ├── i18n/                next-intl routing + request config
+│       │   ├── lib/                 cn.ts, env.ts, toast.ts, errors/, observability/, notifications/, posthog/, supabase/
+│       │   ├── server/              db/client.ts (the only file that touches Prisma), api/ (route factory)
+│       │   └── proxy.ts             Supabase session refresh + next-intl locale routing
+│       ├── instrumentation.ts   Sentry init + env validation, run once at server boot
+│       └── .env.example         every variable explained inline
+├── packages/                    shared workspace packages
+├── .claude/skills/              Claude Code skills — see "Skills" below
+├── .claude-logs/                tracked (not gitignored) — AI session transcripts ship with the branch
+├── .github/workflows/           ci.yml, deploy-migrations.yml, claude-code-review.yml
+├── .githooks/commit-msg         installed automatically by `pnpm install`
 ├── docs/
-│   ├── rules/                one file per engineering rule (see below)
-│   ├── STANDARDS.md          what every repo from this template carries, and the check that proves it
-│   └── CI_CD_SETUP.md        GitHub secrets/environments + Vercel setup
-├── e2e/                     Playwright — the first check-in test, against a local database
-├── messages/en.json         i18n strings
-├── prisma/schema/            multi-file schema — the only thing you hand-edit
-│   └── migrations/           CI-generated only, never by hand
-├── prisma/run-once.sql       one-off SQL, applied once per database on the next deploy
-├── scripts/                  commit-msg check, migration generator, run-once SQL runner, env-var check, standards check, RLS check
-├── src/
-│   ├── app/[locale]/         App Router pages, error.tsx, not-found.tsx, [...rest]/ (404 plumbing)
-│   ├── app/global-error.tsx  root boundary, inline-styled (see docs/rules/error-handling.md)
-│   ├── app/globals.css       design tokens (light + dark)
-│   ├── components/           query-provider.tsx, error-page.tsx, error-boundary.tsx, ui/ (Button, Input, Card, toasts, ...)
-│   ├── i18n/                 next-intl routing + request config
-│   ├── lib/                  cn.ts, env.ts, toast.ts, errors/, observability/, notifications/, posthog/, supabase/
-│   ├── server/                db/client.ts (the only file that touches Prisma), api/ (route factory)
-│   └── proxy.ts               Supabase session refresh + next-intl locale routing
-├── instrumentation.ts        Sentry init + env validation, run once at server boot
-├── AGENTS.md                  index into docs/rules/* — read by every coding agent
-├── CLAUDE.md                  thin: @AGENTS.md + session-log convention + skills pointer
-├── DESIGN.md                  design-token/component conventions
-└── .env.example               every variable explained inline
+│   ├── rules/                   one file per engineering rule (see below)
+│   ├── STANDARDS.md             what every repo from this template carries, and the check that proves it
+│   └── CI_CD_SETUP.md           GitHub secrets/environments + Vercel setup
+├── scripts/                     repo-wide checks: commit messages, secrets, standards, template-clean
+├── eslint.config.mjs            one ESLint config for every workspace
+├── standards.config.json        which workspaces are apps, read by the standards check
+├── AGENTS.md                    index into docs/rules/* — read by every coding agent
+├── CLAUDE.md                    thin: @AGENTS.md + session-log convention + skills pointer
+└── DESIGN.md                    design-token/component conventions
 ```
 
 ## Setup
 
 ```bash
 pnpm install                       # also installs the commit-msg git hook + generates the Prisma client
-cp .env.example .env.local         # fill in DATABASE_URL/DIRECT_URL at minimum
-pnpm exec prisma migrate dev       # first migration, local only — see AGENTS.md
+cp apps/web/.env.example apps/web/.env.local   # fill in DATABASE_URL/DIRECT_URL at minimum
+pnpm --filter @kept/web exec prisma migrate dev       # first migration, local only — see AGENTS.md
 pnpm dev
 ```
 

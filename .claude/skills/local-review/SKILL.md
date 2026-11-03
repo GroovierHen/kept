@@ -27,7 +27,7 @@ DATABASE_URL="postgresql://<your local database>" pnpm check:rls   # needs the m
 
 `check:rls` reads the database rather than the migration files, so it needs
 one: the local Postgres `dev-onboarding` set up, with
-`pnpm exec prisma migrate deploy` run against it first. Without
+`pnpm --filter @kept/web exec prisma migrate deploy` run against it first. Without
 `DATABASE_URL` it fails rather than skips — a skipped RLS check is the same
 as no RLS check. CI runs it at the end of the `migrations` job against the
 replayed database, so a table without RLS turns that job red.

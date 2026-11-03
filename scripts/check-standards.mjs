@@ -16,10 +16,22 @@
 // what it found. A check:env once passed for weeks by matching
 // zero variables; a check that can pass by matching nothing is not a check.
 //
+// A monorepo names its app workspaces, and what kind each is, in
+// standards.config.json:
+//
+//   { "workspaces": [{ "path": "apps/web", "kind": "next" }] }
+//
+// Repo-level standards (agent docs, hooks, commits, secrets, Prettier,
+// gitignore, session logs, CI, local-review, the root gate scripts) run once,
+// at the root. App-level standards (scope: 'app') run once per workspace, with
+// their paths and package.json resolved inside it, asking ESLint about the
+// workspace's files from the root, where the one eslint.config.mjs lives.
+// Without the file the repo is one Next.js app at its root.
+//
 // Exit codes: 0 every standard met, 1 at least one not met.
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { join, posix, resolve } from 'node:path'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 
@@ -75,6 +87,12 @@ const CI_GATES = [
 const CI_WORKFLOW = '.github/workflows/ci.yml'
 const LOCAL_REVIEW_SKILL = '.claude/skills/local-review/SKILL.md'
 
+const STANDARDS_CONFIG = 'standards.config.json'
+// The kinds of workspace that have app-level standards. A workspace of any
+// other kind fails the workspaces check until its standards are written.
+const APP_KINDS = ['next']
+
+// Workspace-relative: each `next` workspace resolves these inside itself.
 const ENV_SCHEMA = 'src/lib/env.ts'
 const ENV_EXAMPLE = '.env.example'
 const ENV_CHECK_SCRIPT = 'scripts/check-env-vars.mjs'
@@ -108,6 +126,7 @@ const SESSION_LOG_DIRS = ['.claude-logs', '.codex-logs']
 const MUST_BE_IGNORED = [
 	'.env',
 	'.env.local',
+	'nested/.env.local',
 	'.env.production',
 	'.vercel/project.json',
 	'nested/dir/.vercel/project.json',
@@ -173,6 +192,37 @@ export function envWithoutGitRepo() {
 	return env
 }
 
+function parseJson(text) {
+	if (text == null) return null
+	try {
+		return JSON.parse(text)
+	} catch {
+		return null
+	}
+}
+
+/** The app workspaces standards.config.json lists, or the root alone when it is absent. */
+function readWorkspaces(ctx) {
+	const raw = ctx.read(STANDARDS_CONFIG)
+	if (raw == null) return { workspaces: [{ path: '.', kind: 'next' }] }
+	const workspaces = parseJson(raw)?.workspaces
+	if (!Array.isArray(workspaces) || workspaces.length === 0) {
+		return { error: `${STANDARDS_CONFIG} has no "workspaces" list — or is unparseable` }
+	}
+	return { workspaces }
+}
+
+function workspaceContext(ctx, dir) {
+	const path = (file) => (dir === '.' ? file : posix.join(dir, file))
+	return {
+		dir,
+		path,
+		has: (file) => ctx.has(path(file)),
+		read: (file) => ctx.read(path(file)),
+		packageJson: parseJson(ctx.read(path('package.json')))
+	}
+}
+
 function createContext(rootArg) {
 	const root = resolve(rootArg)
 	const has = (path) => existsSync(join(root, path))
@@ -187,15 +237,7 @@ function createContext(rootArg) {
 	const isGitRepo = git('rev-parse', '--is-inside-work-tree').status === 0
 	const trackedFiles = isGitRepo ? git('ls-files', '-z').stdout.split('\0').filter(Boolean) : []
 
-	let packageJson = null
-	const rawPackage = read('package.json')
-	if (rawPackage != null) {
-		try {
-			packageJson = JSON.parse(rawPackage)
-		} catch {
-			packageJson = null
-		}
-	}
+	const packageJson = parseJson(read('package.json'))
 
 	return { root, has, read, git, isGitRepo, trackedFiles, packageJson, memo: new Map() }
 }
@@ -246,8 +288,13 @@ function isIgnored(ctx, path) {
 }
 
 function runBinary(ctx, name, args) {
-	const bin = join(ctx.root, 'node_modules', '.bin', name)
-	if (!existsSync(bin)) {
+	// A workspace's own install first, then the root's: pnpm links a package's
+	// binaries into the node_modules of the workspace that depends on it.
+	const bin = [ctx.app?.dir, '.']
+		.filter(Boolean)
+		.map((dir) => join(ctx.root, dir, 'node_modules', '.bin', name))
+		.find((candidate) => existsSync(candidate))
+	if (bin == null) {
 		return {
 			error: `${name} is not installed under node_modules — run the package manager's install first`
 		}
@@ -276,9 +323,11 @@ function severityOf(setting) {
 function effectiveEslintRules(ctx) {
 	// The *resolved* config for an ordinary src file, not the config file: flat
 	// config resolves a rule by last match wins, so a rule can be written down
-	// and still be off. Memoised on the context — three checks read it.
-	if (!ctx.memo.has('eslint')) {
-		const result = runBinary(ctx, 'eslint', ['--print-config', ENV_SCHEMA])
+	// and still be off. Memoised per workspace — four checks read it.
+	const key = `eslint:${ctx.app.dir}`
+	const file = ctx.app.path(ENV_SCHEMA)
+	if (!ctx.memo.has(key)) {
+		const result = runBinary(ctx, 'eslint', ['--print-config', file])
 		let outcome
 		if (result.error) {
 			outcome = { error: result.error }
@@ -286,12 +335,12 @@ function effectiveEslintRules(ctx) {
 			try {
 				outcome = { rules: JSON.parse(result.stdout)?.rules ?? {} }
 			} catch {
-				outcome = { error: `eslint --print-config ${ENV_SCHEMA} did not print a config` }
+				outcome = { error: `eslint --print-config ${file} did not print a config` }
 			}
 		}
-		ctx.memo.set('eslint', outcome)
+		ctx.memo.set(key, outcome)
 	}
-	return ctx.memo.get('eslint')
+	return ctx.memo.get(key)
 }
 
 function restrictedImportGroups(rules) {
@@ -316,6 +365,29 @@ function requireGit(ctx) {
 }
 
 export const CHECKS = [
+	{
+		id: 'workspaces',
+		title: 'every app workspace exists and is of a kind with app-level standards',
+		run(ctx) {
+			const { workspaces, error } = readWorkspaces(ctx)
+			if (error) return fail(error)
+			const problems = []
+			for (const workspace of workspaces) {
+				const where = workspace?.path
+				if (typeof where !== 'string' || where === '') {
+					problems.push(`a workspace in ${STANDARDS_CONFIG} has no "path"`)
+				} else if (!ctx.has(posix.join(where, 'package.json'))) {
+					problems.push(`${where}/package.json is missing`)
+				}
+				if (!APP_KINDS.includes(workspace?.kind)) {
+					problems.push(
+						`${where ?? '?'} is of kind "${workspace?.kind}" — app-level standards exist for: ${APP_KINDS.join(', ')}`
+					)
+				}
+			}
+			return problems.length > 0 ? fail(problems.join('; ')) : pass()
+		}
+	},
 	{
 		id: 'agents-md',
 		title: 'AGENTS.md exists and indexes the engineering rules',
@@ -547,6 +619,7 @@ export const CHECKS = [
 	},
 	{
 		id: 'eslint-effective-rules',
+		scope: 'app',
 		title: 'the ESLint config in effect forbids `any` and console output in src/',
 		run(ctx) {
 			const { rules, error } = effectiveEslintRules(ctx)
@@ -556,28 +629,33 @@ export const CHECKS = [
 				problems.push('@typescript-eslint/no-explicit-any is not an error')
 			}
 			if (severityOf(rules['no-console']) !== 'error') problems.push('no-console is not an error')
-			return problems.length > 0 ? fail(`for ${ENV_SCHEMA}: ${problems.join('; ')}`) : pass()
+			return problems.length > 0
+				? fail(`for ${ctx.app.path(ENV_SCHEMA)}: ${problems.join('; ')}`)
+				: pass()
 		}
 	},
 	{
 		id: 'structured-logger',
+		scope: 'app',
 		title: 'the shared Pino logger is import-restricted and its contract tests are wired',
 		run(ctx) {
 			const problems = []
-			if (!ctx.packageJson?.dependencies?.pino) problems.push('pino is not a runtime dependency')
+			const { app } = ctx
+			const loggerDir = app.path(LOGGER_DIR)
+			if (!app.packageJson?.dependencies?.pino) problems.push('pino is not a runtime dependency')
 			for (const file of ['index.ts', 'logger.ts', 'redact.ts', 'context.ts', ...LOGGER_TESTS]) {
-				if (!ctx.has(`${LOGGER_DIR}/${file}`)) problems.push(`${LOGGER_DIR}/${file} is missing`)
+				if (!app.has(`${LOGGER_DIR}/${file}`)) problems.push(`${loggerDir}/${file} is missing`)
 			}
-			const source = ctx.read(`${LOGGER_DIR}/logger.ts`) ?? ''
+			const source = app.read(`${LOGGER_DIR}/logger.ts`) ?? ''
 			if (!/^import\s+pino\s+from\s+['"]pino['"]/m.test(source) || !/\bpino\(/.test(source)) {
-				problems.push(`${LOGGER_DIR}/logger.ts must construct the shared Pino logger`)
+				problems.push(`${loggerDir}/logger.ts must construct the shared Pino logger`)
 			}
 			for (const file of LOGGER_TESTS) {
-				if (!/\btest\(/.test(ctx.read(`${LOGGER_DIR}/${file}`) ?? '')) {
-					problems.push(`${LOGGER_DIR}/${file} contains no contract tests`)
+				if (!/\btest\(/.test(app.read(`${LOGGER_DIR}/${file}`) ?? '')) {
+					problems.push(`${loggerDir}/${file} contains no contract tests`)
 				}
 			}
-			const test = ctx.packageJson?.scripts?.test ?? ''
+			const test = app.packageJson?.scripts?.test ?? ''
 			if (!test.includes('--test') || !test.includes('src/**/*.test.mts')) {
 				problems.push('the test script must discover src/**/*.test.mts, including logger contracts')
 			}
@@ -586,7 +664,9 @@ export const CHECKS = [
 			else {
 				const groups = restrictedImportGroups(rules) ?? []
 				if (!groups.includes('pino') || !groups.includes('pino/**')) {
-					problems.push(`no-restricted-imports for ${ENV_SCHEMA} must ban pino and pino/**`)
+					problems.push(
+						`no-restricted-imports for ${app.path(ENV_SCHEMA)} must ban pino and pino/**`
+					)
 				}
 			}
 			return problems.length > 0 ? fail(problems.join('; ')) : pass()
@@ -594,10 +674,12 @@ export const CHECKS = [
 	},
 	{
 		id: 'typescript-strict',
+		scope: 'app',
 		title: 'TypeScript runs in strict mode',
 		run(ctx) {
-			if (!ctx.has('tsconfig.json')) return fail('tsconfig.json is missing')
-			const result = runBinary(ctx, 'tsc', ['--showConfig', '-p', 'tsconfig.json'])
+			const tsconfig = ctx.app.path('tsconfig.json')
+			if (!ctx.has(tsconfig)) return fail(`${tsconfig} is missing`)
+			const result = runBinary(ctx, 'tsc', ['--showConfig', '-p', tsconfig])
 			if (result.error) return fail(result.error)
 			let config
 			try {
@@ -623,16 +705,18 @@ export const CHECKS = [
 	},
 	{
 		id: 'env-schema',
+		scope: 'app',
 		title: 'environment variables go through one Zod schema, documented and checked',
 		run(ctx) {
 			const problems = []
-			const schema = ctx.read(ENV_SCHEMA)
-			if (schema == null) problems.push(`${ENV_SCHEMA} is missing`)
+			const { app } = ctx
+			const schema = app.read(ENV_SCHEMA)
+			if (schema == null) problems.push(`${app.path(ENV_SCHEMA)} is missing`)
 			else if (!/from\s+['"]zod['"]/.test(schema))
-				problems.push(`${ENV_SCHEMA} does not import zod`)
-			if (!ctx.has(ENV_EXAMPLE)) problems.push(`${ENV_EXAMPLE} is missing`)
-			if (!ctx.has(ENV_CHECK_SCRIPT)) problems.push(`${ENV_CHECK_SCRIPT} is missing`)
-			const checkEnv = ctx.packageJson?.scripts?.['check:env']
+				problems.push(`${app.path(ENV_SCHEMA)} does not import zod`)
+			if (!app.has(ENV_EXAMPLE)) problems.push(`${app.path(ENV_EXAMPLE)} is missing`)
+			if (!app.has(ENV_CHECK_SCRIPT)) problems.push(`${app.path(ENV_CHECK_SCRIPT)} is missing`)
+			const checkEnv = app.packageJson?.scripts?.['check:env']
 			if (typeof checkEnv !== 'string' || !checkEnv.includes(ENV_CHECK_SCRIPT)) {
 				problems.push(`the "check:env" script does not run ${ENV_CHECK_SCRIPT}`)
 			}
@@ -705,16 +789,18 @@ export const CHECKS = [
 	},
 	{
 		id: 'prisma-only-data-path',
+		scope: 'app',
 		title: 'the ESLint config in effect makes Prisma the only data path',
 		run(ctx) {
 			const { rules, error } = effectiveEslintRules(ctx)
 			if (error) return fail(error)
 			const groups = restrictedImportGroups(rules)
-			if (groups == null) return fail(`no-restricted-imports is not an error for ${ENV_SCHEMA}`)
+			const file = ctx.app.path(ENV_SCHEMA)
+			if (groups == null) return fail(`no-restricted-imports is not an error for ${file}`)
 			const missing = DATA_ACCESS_MARKERS.filter((marker) => !groups.includes(marker))
 			if (missing.length > 0) {
 				return fail(
-					`no-restricted-imports for ${ENV_SCHEMA} does not ban: ${missing.join(', ')} — only ` +
+					`no-restricted-imports for ${file} does not ban: ${missing.join(', ')} — only ` +
 						`src/server/db/client.ts may construct the Prisma client, and raw drivers nowhere`
 				)
 			}
@@ -723,6 +809,7 @@ export const CHECKS = [
 	},
 	{
 		id: 'supabase-auth-only',
+		scope: 'app',
 		title: 'Supabase clients are typed to their auth surface and the SDK is import-restricted',
 		run(ctx) {
 			const { rules, error } = effectiveEslintRules(ctx)
@@ -731,31 +818,32 @@ export const CHECKS = [
 			const groups = restrictedImportGroups(rules) ?? []
 			const missing = SUPABASE_MARKERS.filter((marker) => !groups.includes(marker))
 			if (missing.length > 0) {
-				problems.push(`no-restricted-imports for ${ENV_SCHEMA} does not ban: ${missing.join(', ')}`)
+				problems.push(
+					`no-restricted-imports for ${ctx.app.path(ENV_SCHEMA)} does not ban: ${missing.join(', ')}`
+				)
 			}
-			const typeSource = ctx.read(SUPABASE_AUTH_ONLY_TYPE)
+			const typePath = ctx.app.path(SUPABASE_AUTH_ONLY_TYPE)
+			const typeSource = ctx.app.read(SUPABASE_AUTH_ONLY_TYPE)
 			if (typeSource == null) {
-				problems.push(`${SUPABASE_AUTH_ONLY_TYPE} is missing`)
+				problems.push(`${typePath} is missing`)
 			} else {
 				const pick = typeSource.match(/Pick<\s*SupabaseClient(?:<[^>]*>)?\s*,\s*([^>]+)>/)
 				if (pick == null) {
-					problems.push(
-						`${SUPABASE_AUTH_ONLY_TYPE} does not define a Pick<SupabaseClient, ...> type`
-					)
+					problems.push(`${typePath} does not define a Pick<SupabaseClient, ...> type`)
 				} else if (/'(from|rpc)'/.test(pick[1])) {
-					problems.push(`${SUPABASE_AUTH_ONLY_TYPE} exposes from/rpc — that is a data path`)
+					problems.push(`${typePath} exposes from/rpc — that is a data path`)
 				}
 			}
 			for (const wrapper of SUPABASE_WRAPPERS) {
-				const source = ctx.read(wrapper)
+				const source = ctx.app.read(wrapper)
 				if (source == null) {
-					problems.push(`${wrapper} is missing`)
+					problems.push(`${ctx.app.path(wrapper)} is missing`)
 				} else if (
 					!/export\s+(?:async\s+)?function\s+\w+\([^)]*\)\s*:\s*(?:Promise<)?AuthOnlySupabaseClient/.test(
 						source
 					)
 				) {
-					problems.push(`${wrapper} does not return AuthOnlySupabaseClient`)
+					problems.push(`${ctx.app.path(wrapper)} does not return AuthOnlySupabaseClient`)
 				}
 			}
 			return problems.length > 0 ? fail(problems.join('; ')) : pass()
@@ -763,10 +851,12 @@ export const CHECKS = [
 	},
 	{
 		id: 'rls-check-wired',
+		scope: 'app',
 		title: 'the RLS check exists and CI runs it after the migrations are applied',
 		run(ctx) {
-			if (!ctx.has(RLS_CHECK_SCRIPT)) return fail(`${RLS_CHECK_SCRIPT} is missing`)
-			const script = ctx.packageJson?.scripts?.['check:rls']
+			if (!ctx.app.has(RLS_CHECK_SCRIPT))
+				return fail(`${ctx.app.path(RLS_CHECK_SCRIPT)} is missing`)
+			const script = ctx.app.packageJson?.scripts?.['check:rls']
 			if (typeof script !== 'string' || !script.includes(RLS_CHECK_SCRIPT)) {
 				return fail(`the "check:rls" script does not run ${RLS_CHECK_SCRIPT}`)
 			}
@@ -784,18 +874,45 @@ export const CHECKS = [
 	}
 ]
 
+function runCheck(check, ctx) {
+	try {
+		return check.run(ctx)
+	} catch (error) {
+		return fail(`check crashed: ${error.message}`)
+	}
+}
+
 export function runStandardsChecks({ root = process.cwd(), ids = null } = {}) {
 	const ctx = createContext(root)
 	const selected = ids == null ? CHECKS : CHECKS.filter((check) => ids.includes(check.id))
-	const results = selected.map((check) => {
-		let outcome
-		try {
-			outcome = check.run(ctx)
-		} catch (error) {
-			outcome = fail(`check crashed: ${error.message}`)
+	// An unreadable config fails the workspaces check; the app checks then have
+	// nothing to run against, which is that check's failure, not theirs.
+	const apps = (readWorkspaces(ctx).workspaces ?? []).filter(
+		(workspace) => typeof workspace?.path === 'string' && APP_KINDS.includes(workspace.kind)
+	)
+	const results = []
+	for (const check of selected) {
+		if (check.scope !== 'app') {
+			const outcome = runCheck(check, ctx)
+			results.push({
+				id: check.id,
+				title: check.title,
+				ok: outcome.ok,
+				detail: outcome.detail ?? null
+			})
+			continue
 		}
-		return { id: check.id, title: check.title, ok: outcome.ok, detail: outcome.detail ?? null }
-	})
+		for (const { path } of apps) {
+			const outcome = runCheck(check, { ...ctx, app: workspaceContext(ctx, path) })
+			results.push({
+				id: check.id,
+				workspace: path,
+				title: path === '.' ? check.title : `[${path}] ${check.title}`,
+				ok: outcome.ok,
+				detail: outcome.detail ?? null
+			})
+		}
+	}
 	return { root: ctx.root, results }
 }
 

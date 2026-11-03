@@ -80,8 +80,8 @@ Rules:
 - Commit your finished work with a Conventional Commits message so the branch
   diff against main is real. Do not push.
 - Run `pnpm lint`, `pnpm typecheck` and `pnpm build` for what you touched and
-  fix what you break. If you changed prisma/schema/**, run `pnpm prisma
-  generate` first, and do NOT hand-write a migration — CI generates it.
+  fix what you break. If you changed prisma/schema/**, run `pnpm
+  prisma:generate` first, and do NOT hand-write a migration — CI generates it.
 - If you hit a blocker needing a human decision, stop and explain it clearly
   instead of guessing.
 - End your final message with exactly one of:

@@ -69,7 +69,7 @@ Bring over, adapting import paths and nothing else:
 - `prisma/schema/ai-usage.prisma`
 - `src/server/lib/ai-usage/` (including `ai-usage.test.mts`)
 - `src/server/ai/anthropic.ts`
-- `scripts/check-ai-models.mjs`, its `check:ai-models` entry in
+- `apps/web/scripts/check-ai-models.mjs`, its `check:ai-models` entry in
   `package.json`, and the `ai-models` job in `.github/workflows/ci.yml`
 - `AI_SDK_IMPORTS` and the `src/server/ai/**` override in `eslint.config.mjs`
 

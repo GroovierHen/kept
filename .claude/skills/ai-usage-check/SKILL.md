@@ -64,14 +64,14 @@ neither to hand, say so in the report rather than claiming coverage this
 step didn't give.
 
 1. Point `DATABASE_URL` at a local database with migrations applied
-   (`pnpm exec prisma migrate deploy`).
+   (`pnpm --filter @kept/web exec prisma migrate deploy`).
 2. Exercise a real feature that makes a tracked call — through the UI via
    `local-feature-testing`, or by calling the server action directly.
 3. Read the row back:
 
    ```bash
    # via .claude/skills/sql-preview, or:
-   pnpm exec prisma studio
+   pnpm --filter @kept/web exec prisma studio
    ```
 
    ```sql

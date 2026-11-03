@@ -180,7 +180,7 @@ For a project that makes no AI calls, delete:
 - `prisma/schema/ai-usage.prisma`
 - `src/server/lib/ai-usage/` and `src/server/ai/`
 - `AI_SDK_IMPORTS` and the `src/server/ai/**` block in `eslint.config.mjs`
-- `scripts/check-ai-models.mjs`, the `check:ai-models` script in
+- `apps/web/scripts/check-ai-models.mjs`, the `check:ai-models` script in
   `package.json`, and the `ai-models` job in `.github/workflows/ci.yml`
 
 Tell whoever runs your spend dashboard, too — a table that stops existing reads to a direct

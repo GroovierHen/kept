@@ -72,8 +72,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile # postinstall runs `prisma generate`
         if: steps.db.outputs.ready == 'true'
+      # The Prisma schema, its migrations and the database scripts live in the
+      # web app's workspace. Set per step: the URL check above runs before
+      # checkout, when apps/web does not exist yet.
       - name: Apply migrations to production
         if: steps.db.outputs.ready == 'true'
+        working-directory: apps/web
         run: pnpm exec prisma migrate deploy
       # prisma/run-once.sql: the current one-off, applied once per database and
       # recorded in _run_once_sql so it never repeats (docs/rules/migrations.md).
@@ -82,7 +86,9 @@ jobs:
       # declare. Picks up DIRECT_URL/DATABASE_URL from the job env above.
       - name: Apply run-once SQL to production
         if: steps.db.outputs.ready == 'true'
+        working-directory: apps/web
         run: node scripts/run-once-sql.mjs
       - name: Verify zero drift against the live database
         if: steps.db.outputs.ready == 'true'
+        working-directory: apps/web
         run: pnpm exec prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema --exit-code

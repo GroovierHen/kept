@@ -20,7 +20,7 @@ dist/
 !.env.example
 
 # prisma
-prisma/generated/
+**/prisma/generated/
 
 # supabase CLI local runtime (only used for local Postgres/auth emulation,
 # never a schema source — see .claude/rules/migrations.md)
@@ -47,10 +47,10 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 # playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/playwright/.cache/
 
 # design-taste-frontend working files (inspector screenshots, direction sheet)
 .taste-skill/

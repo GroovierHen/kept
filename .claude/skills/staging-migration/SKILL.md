@@ -54,7 +54,7 @@ fi
    `psql "$STAGING_DATABASE_URL" -f <path>/migration.sql`, then insert a
    matching row into `_prisma_migrations` so `prisma migrate deploy` sees it
    as applied later and doesn't try to re-run it.
-4. Run `node scripts/run-once-sql.mjs --db-url "$STAGING_DATABASE_URL"` so
+4. Run `pnpm db:run-once --db-url "$STAGING_DATABASE_URL"` so
    staging gets the current one-off in `prisma/run-once.sql` if it hasn't
    had it yet (the runner's ledger skips a version staging already applied,
    so this is safe to repeat — see `docs/rules/migrations.md`).

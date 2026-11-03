@@ -107,19 +107,24 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter @kept/web exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: apps/web/playwright-report/
           retention-days: 14
 
   migrations:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # The Prisma schema, its migrations and the database scripts all live in
+    # the web app's workspace.
+    defaults:
+      run:
+        working-directory: apps/web
     env:
       # DIRECT_URL required here even though it's optional for the running
       # app (see src/lib/env.ts) — the schema declares directUrl =
