@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { createPrismaClient } from '../src/server/db/create-client'
 import { test, expect, type Page } from '@playwright/test'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
-const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
+const db = createPrismaClient(DATABASE_URL)
 
 const COUNTED_GOAL = 'A private counted goal nobody should read'
 const DEMO_GOAL = 'A private demo goal nobody should read'

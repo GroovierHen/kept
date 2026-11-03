@@ -1,11 +1,11 @@
 import 'server-only'
-import { PrismaClient } from '@prisma/client'
+import { createPrismaClient, type PrismaClient } from './create-client'
 
-// Re-exported from the one file allowed to import @prisma/client, so callers
-// that need the Prisma namespace at runtime — e.g. Prisma.DbNull to clear a
-// nullable Json column, or Prisma.* input types — get it from here rather than
-// reaching for the banned package directly. See docs/rules/database.md.
-export { Prisma } from '@prisma/client'
+// Re-exported from the one file allowed to import the generated client, so
+// callers that need the Prisma namespace at runtime — e.g. Prisma.DbNull to
+// clear a nullable Json column, or Prisma.* input types — get it from here
+// rather than reaching for it directly. See docs/rules/database.md.
+export { Prisma } from '@/generated/prisma/client.ts'
 
 // Cache the client on globalThis outside production so hot-reload during
 // `next dev` doesn't open a fresh connection pool on every file save.
@@ -20,8 +20,15 @@ const TRANSACTION_OPTIONS =
 		? { maxWait: 2000, timeout: 5000 }
 		: { maxWait: 10_000, timeout: 30_000 }
 
+function connectionString(): string {
+	const url = process.env.DATABASE_URL
+	if (url == null || url === '') throw new Error('DATABASE_URL is not set')
+	return url
+}
+
 export const db =
-	globalForPrisma.prisma ?? new PrismaClient({ transactionOptions: TRANSACTION_OPTIONS })
+	globalForPrisma.prisma ??
+	createPrismaClient(connectionString(), { transactionOptions: TRANSACTION_OPTIONS })
 
 if (process.env.NODE_ENV !== 'production') {
 	globalForPrisma.prisma = db

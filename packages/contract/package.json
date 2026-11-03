@@ -1,0 +1,21 @@
+{
+	"name": "@kept/contract",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"description": "The Zod schemas for every /api/app/v1 route: the web app validates with them, the mobile app parses every response with them.",
+	"exports": {
+		".": "./index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit -p .",
+		"test": "node --test \"src/**/*.test.mts\""
+	},
+	"dependencies": {
+		"zod": "^4.6.7"
+	},
+	"devDependencies": {
+		"@types/node": "^22.20.5",
+		"typescript": "^6.0.3"
+	}
+}

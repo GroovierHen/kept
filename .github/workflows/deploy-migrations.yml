@@ -30,13 +30,10 @@ jobs:
     env:
       # Session-pooler URL (port 5432), not the transaction pooler (6543)
       # — migrate deploy holds an advisory lock across statements that
-      # transaction-mode pgbouncer can't sustain. DIRECT_URL is set to the
-      # same value: the schema declares directUrl = env("DIRECT_URL")
-      # unconditionally, so Prisma's schema validation fails without it
-      # regardless of whether this specific command reads it (see ci.yml's
-      # migrations job for the same note) — and since PRODUCTION_DATABASE_URL
-      # is already the session-pooler connection, there's no second URL to
-      # provide.
+      # transaction-mode pgbouncer can't sustain. prisma.config.ts reads
+      # DIRECT_URL first, so it is set to the same value: since
+      # PRODUCTION_DATABASE_URL is already the session-pooler connection,
+      # there's no second URL to provide.
       DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
       DIRECT_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
     steps:
@@ -91,4 +88,4 @@ jobs:
       - name: Verify zero drift against the live database
         if: steps.db.outputs.ready == 'true'
         working-directory: apps/web
-        run: pnpm exec prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema --exit-code
+        run: pnpm exec prisma migrate diff --from-config-datasource --to-schema prisma/schema --exit-code

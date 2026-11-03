@@ -1,6 +1,23 @@
 import { defineConfig, globalIgnores } from 'eslint/config'
 import nextVitals from 'eslint-config-next/core-web-vitals'
 import nextTypescript from 'eslint-config-next/typescript'
+import expoConfig from 'eslint-config-expo/flat.js'
+
+// The Expo app. Next's configs and Expo's register the same plugins (react,
+// react-hooks, import) as different instances, so each is kept to its own
+// app's files: Next's skip apps/mobile, Expo's apply only inside it.
+const MOBILE = 'apps/mobile'
+
+/** A config object that holds nothing but `ignores` is a global ignore, and must stay one. */
+const isGlobalIgnore = (config) =>
+	Object.keys(config).every((key) => key === 'ignores' || key === 'name')
+
+const outsideMobile = (configs) =>
+	configs.map((config) =>
+		isGlobalIgnore(config)
+			? config
+			: { ...config, ignores: [...(config.ignores ?? []), `${MOBILE}/**`] }
+	)
 
 // `**`, not `*` — a single star doesn't cross a `/`, so '@phosphor-icons/*'
 // would miss the very path this template itself imports
@@ -103,8 +120,8 @@ const LOGGER_IMPORTS = {
 }
 
 const eslintConfig = defineConfig([
-	...nextVitals,
-	...nextTypescript,
+	...outsideMobile([...nextVitals, ...nextTypescript]),
+	...expoConfig.map((config) => ({ ...config, basePath: MOBILE })),
 	// .claude/worktrees/ holds other Claude Code sessions' full checkouts. It's
 	// git-ignored (via .git/info/exclude), but flat config doesn't read ignore
 	// files, so without this `pnpm lint` lints every one of them.
@@ -120,15 +137,24 @@ const eslintConfig = defineConfig([
 		'**/playwright-report/**',
 		'**/test-results/**',
 		'.claude/worktrees/**',
-		'.agents/skills/**'
+		'.agents/skills/**',
+		`${MOBILE}/.expo/**`,
+		`${MOBILE}/ios/**`,
+		`${MOBILE}/android/**`,
+		`${MOBILE}/expo-env.d.ts`
 	]),
 	{
 		// eslint-config-next looks for pages/ and app/ under the lint root; the
 		// Next.js app is a workspace, not the repo root.
-		settings: { next: { rootDir: 'apps/web' } }
+		// eslint-plugin-react can't detect React from the root, where no app's
+		// copy lives; both apps are on React 19.3.
+		settings: { next: { rootDir: 'apps/web' }, react: { version: '19.3' } }
 	},
 	{
 		// See docs/rules/code-quality.md for the rationale behind both rules.
+		// TypeScript files only: `any` is a TypeScript idea, and the TypeScript
+		// plugin is registered for them alone in each app's config.
+		files: ['**/*.{ts,tsx,mts,cts}'],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'error'
 		}
@@ -202,8 +228,9 @@ const eslintConfig = defineConfig([
 		}
 	},
 	{
-		// The one file that constructs the Prisma client.
-		files: ['apps/web/src/server/db/client.ts'],
+		// The files that construct the Prisma client: the factory over the pg
+		// adapter, and the app's one `db` built from it.
+		files: ['apps/web/src/server/db/client.ts', 'apps/web/src/server/db/create-client.ts'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -252,5 +279,74 @@ const eslintConfig = defineConfig([
 		}
 	}
 ])
+
+// ---- The mobile app (apps/mobile) ---------------------------------------
+// The same shape as the web's rules: one file owns each SDK, everything else
+// imports the wrapper. Supabase is sign-in only (src/lib/supabase.ts), Sentry
+// is wrapped by src/lib/observability.ts and the logger, PostHog by
+// src/lib/analytics.ts, and only src/lib/env.ts reads process.env — Expo
+// inlines EXPO_PUBLIC_* only where it is spelled out statically.
+
+const MOBILE_SUPABASE = {
+	group: ['@supabase/**'],
+	message:
+		"Sign in through '@/lib/supabase' instead — Supabase is auth only, and Kept's data comes through the API (@/lib/api). See docs/rules/auth.md."
+}
+const MOBILE_SENTRY = {
+	group: ['@sentry/**'],
+	message: "Report through '@/lib/observability' (captureError) or log with '@/lib/logger'."
+}
+const MOBILE_POSTHOG = {
+	group: ['posthog-react-native', 'posthog-react-native/**'],
+	message:
+		"Track through '@/lib/analytics' — its typed event list is the taxonomy. See docs/rules/analytics.md."
+}
+const MOBILE_ENV = {
+	object: 'process',
+	property: 'env',
+	message:
+		"Read configuration from '@/lib/env' — Expo only inlines EXPO_PUBLIC_* spelled out there."
+}
+const mobileImports = (...patterns) => ['error', { patterns }]
+
+eslintConfig.push(
+	{
+		// Lint runs from the repo root; the resolver needs the app's tsconfig to
+		// know its `@/` alias. import/namespace can't follow the re-exported
+		// enums of Expo's packages, and TypeScript checks the same thing exactly.
+		basePath: MOBILE,
+		files: ['**/*.{ts,tsx}'],
+		settings: { 'import/resolver': { typescript: { project: `${MOBILE}/tsconfig.json` } } },
+		rules: { 'import/namespace': 'off' }
+	},
+	{
+		basePath: MOBILE,
+		files: ['src/**/*.{ts,tsx}'],
+		rules: {
+			'no-console': 'error',
+			'no-restricted-properties': ['error', MOBILE_ENV],
+			'no-restricted-imports': mobileImports(MOBILE_SUPABASE, MOBILE_SENTRY, MOBILE_POSTHOG)
+		}
+	},
+	{ basePath: MOBILE, files: ['src/lib/env.ts'], rules: { 'no-restricted-properties': 'off' } },
+	{
+		basePath: MOBILE,
+		files: ['src/lib/supabase.ts'],
+		rules: { 'no-restricted-imports': mobileImports(MOBILE_SENTRY, MOBILE_POSTHOG) }
+	},
+	{
+		basePath: MOBILE,
+		files: ['src/lib/logger.ts', 'src/lib/observability.ts'],
+		rules: {
+			'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
+			'no-restricted-imports': mobileImports(MOBILE_SUPABASE, MOBILE_POSTHOG)
+		}
+	},
+	{
+		basePath: MOBILE,
+		files: ['src/lib/analytics.ts', 'src/app/_layout.tsx'],
+		rules: { 'no-restricted-imports': mobileImports(MOBILE_SUPABASE, MOBILE_SENTRY) }
+	}
+)
 
 export default eslintConfig

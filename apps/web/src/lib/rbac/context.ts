@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import type { AdminMember, AdminRole, User } from '@prisma/client'
+import type { AdminMember, AdminRole, User } from '@/generated/prisma/client.ts'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { db } from '@/server/db/client'
 import { AppError } from '@/lib/errors/app-error'

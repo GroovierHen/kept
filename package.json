@@ -10,6 +10,9 @@
 		"dev": "pnpm --filter @kept/web dev",
 		"build": "pnpm --filter @kept/web build",
 		"start": "pnpm --filter @kept/web start",
+		"mobile": "pnpm --filter @kept/mobile start",
+		"mobile:ios": "pnpm --filter @kept/mobile ios",
+		"mobile:android": "pnpm --filter @kept/mobile android",
 		"lint": "eslint . --max-warnings=0",
 		"typecheck": "pnpm -r typecheck",
 		"format": "prettier --write .",
@@ -30,10 +33,11 @@
 	},
 	"devDependencies": {
 		"eslint": "^9",
-		"eslint-config-next": "^16.4.3",
-		"prettier": "^3",
+		"eslint-config-expo": "^58.0.4",
+		"eslint-config-next": "^16.4.5",
+		"prettier": "^3.9.10",
 		"prettier-plugin-tailwindcss": "^0.8.1",
-		"typescript": "^5.8.3"
+		"typescript": "^6.0.3"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

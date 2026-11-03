@@ -15,7 +15,7 @@
 // prisma/schema/migrations/ replayed onto it (`prisma migrate deploy`) —
 // this script only diffs from there, it does not replay history itself.
 
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -74,9 +74,20 @@ function main() {
 		process.exit(1)
 	}
 
-	const diff = execSync(
-		`pnpm prisma migrate diff --from-url "${dbUrl}" --to-schema-datamodel ${SCHEMA_DIR} --script`,
-		{ encoding: 'utf-8' }
+	// Prisma 7 takes the URL from prisma.config.ts, which reads DIRECT_URL first.
+	const dbEnv = { ...process.env, DIRECT_URL: dbUrl, DATABASE_URL: dbUrl }
+	const diff = execFileSync(
+		'pnpm',
+		[
+			'prisma',
+			'migrate',
+			'diff',
+			'--from-config-datasource',
+			'--to-schema',
+			SCHEMA_DIR,
+			'--script'
+		],
+		{ encoding: 'utf-8', env: dbEnv }
 	).trim()
 
 	const isEmptyDiff = diff.split('\n').every((line) => line.startsWith('--') || line.trim() === '')
@@ -111,10 +122,7 @@ function main() {
 
 	// Replay the migration we just wrote, proving it applies — not just
 	// that it was syntactically generated.
-	execSync(`pnpm prisma migrate deploy`, {
-		stdio: 'inherit',
-		env: { ...process.env, DATABASE_URL: dbUrl }
-	})
+	execFileSync('pnpm', ['prisma', 'migrate', 'deploy'], { stdio: 'inherit', env: dbEnv })
 	console.log('Replayed successfully.')
 }
 

@@ -6,6 +6,60 @@
 			"runtimeExecutable": "pnpm",
 			"runtimeArgs": ["dev"],
 			"port": 3000
+		},
+		{
+			"name": "fake-services",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": [
+				"--filter",
+				"@kept/web",
+				"exec",
+				"node",
+				"--import",
+				"./scripts/register-ts.mjs",
+				"--input-type=module",
+				"-e",
+				"const m = await import('./e2e/support/fake-services.ts'); await m.startFakeServices(3101); console.log('fake services on 3101')"
+			],
+			"port": 3101
+		},
+		{
+			"name": "web-local-stack",
+			"runtimeExecutable": "env",
+			"runtimeArgs": [
+				"NODE_ENV=test",
+				"DATABASE_URL=postgresql://postgres:postgres@localhost:54329/postgres",
+				"DIRECT_URL=postgresql://postgres:postgres@localhost:54329/postgres",
+				"NEXT_PUBLIC_APP_URL=http://localhost:3100",
+				"NEXT_PUBLIC_SUPABASE_URL=http://localhost:3101",
+				"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=fake-publishable-key",
+				"OPENROUTER_BASE_URL=http://localhost:3101",
+				"OPENROUTER_API_KEY=fake-openrouter-key",
+				"pnpm",
+				"--filter",
+				"@kept/web",
+				"exec",
+				"next",
+				"dev",
+				"--port",
+				"3100"
+			],
+			"port": 3100
+		},
+		{
+			"name": "mobile-metro",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": [
+				"--filter",
+				"@kept/mobile",
+				"exec",
+				"expo",
+				"start",
+				"--dev-client",
+				"--port",
+				"8081"
+			],
+			"port": 8081
 		}
 	]
 }

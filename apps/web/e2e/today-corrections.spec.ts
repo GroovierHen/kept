@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { createPrismaClient } from '../src/server/db/create-client'
 import { test, expect, type Page, type Request } from '@playwright/test'
 import { daysPass as passDays } from './support/days-pass'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
@@ -11,7 +11,7 @@ import {
 } from './support/walk-setup'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
-const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
+const db = createPrismaClient(DATABASE_URL)
 
 const FIRST_ACTION = 'walk and jog for 10 minutes'
 const SECOND_ACTION = 'put my running shoes by the door'

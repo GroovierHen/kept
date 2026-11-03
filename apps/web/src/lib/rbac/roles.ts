@@ -1,4 +1,4 @@
-import type { AdminRole } from '@prisma/client'
+import type { AdminRole } from '@/generated/prisma/client.ts'
 import {
 	ALL_PERMISSIONS,
 	NON_DANGEROUS_PERMISSIONS,

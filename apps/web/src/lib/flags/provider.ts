@@ -1,4 +1,4 @@
-import type { AdminRole } from '@prisma/client'
+import type { AdminRole } from '@/generated/prisma/client.ts'
 import { FLAGS, variantsOf, type FlagKey, type JsonValue, type ValueOf } from './flags'
 
 // The runtime value a provider can decide on: an on/off boolean, or a variant
