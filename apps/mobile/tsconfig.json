@@ -5,18 +5,9 @@
 		"noUncheckedIndexedAccess": true,
 		"allowImportingTsExtensions": true,
 		"paths": {
-			"@/*": [
-				"./src/*"
-			]
+			"@/*": ["./src/*"]
 		},
-		"types": [
-			"jest"
-		]
+		"types": ["jest"]
 	},
-	"include": [
-		"**/*.ts",
-		"**/*.tsx",
-		".expo/types/**/*.ts",
-		"expo-env.d.ts"
-	]
+	"include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }
