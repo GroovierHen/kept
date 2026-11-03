@@ -513,7 +513,6 @@
 			"title": "Today on Kept"
 		},
 		"day": "Day {day}",
-		"signOut": "Sign out",
 		"ledgerLink": "See your ledger",
 		"unreportedNote": "Your last promise closed as Unreported. It doesn’t count for or against you.",
 		"changeReport": {
@@ -543,10 +542,21 @@
 				"changeClosed": "It’s past 4am, so that report can’t be changed any more.",
 				"failed": "We couldn’t save your report. Check your connection, then try again.",
 				"offline": "You’re offline. Try again when you’re back."
-			}
+			},
+			"when": {
+				"today": "Today · {moment}",
+				"yesterday": "Yesterday · {moment}"
+			},
+			"lead": "One tap. An honest answer keeps your next promise the right size.",
+			"details": {
+				"yes": "I did all of it",
+				"partly": "I did some of it",
+				"no": "Not this time"
+			},
+			"note": "A Partly counts as half. You can change your answer until 4am."
 		},
 		"learn": {
-			"continue": "Continue"
+			"recallLead": "Answer from memory, in your own words."
 		},
 		"commit": {
 			"title": "Your next promise",
@@ -554,12 +564,62 @@
 			"nudge": {
 				"differentAction": "That was two Noes at the smallest size, so here’s a different action from your plan. You can still pick the old one.",
 				"typeSmaller": "That was two Noes on this one. Try typing a smaller version."
-			}
+			},
+			"lead": "Your last promise is already picked, so keeping it is one tap. Change it if tomorrow looks different."
 		},
 		"done": {
 			"title": "Done for today",
-			"nextPromise": "Your next promise",
 			"nextCheckIn": "We’ll ask how it went at your next check-in."
+		},
+		"progress": "Step {current} of {total}",
+		"rail": {
+			"label": "Today’s check-in",
+			"heading": "Day {day} check-in",
+			"steps": {
+				"report": "Report back",
+				"learn": "Remember",
+				"commit": "Next promise"
+			},
+			"subs": {
+				"report": "Did you keep your last promise?",
+				"learn": "One key idea",
+				"commit": "One small thing for next time"
+			},
+			"done": "Done",
+			"goal": "Your goal",
+			"week": "Week {week} of {weeks}"
+		},
+		"aside": {
+			"label": {
+				"today": "Today’s promise",
+				"yesterday": "Yesterday’s promise",
+				"next": "Your next promise"
+			},
+			"promised": "You promised this on day {day}.",
+			"answered": "Your answer is saved. Now, one idea to remember.",
+			"next": "This is what you’ll report back on next.",
+			"when": "Day {day} · {moment}",
+			"foot": {
+				"answer": "Your answer",
+				"made": "Promised"
+			},
+			"stamp": {
+				"waiting": "Waiting",
+				"made": "Made"
+			},
+			"week": {
+				"heading": "Last 7 days",
+				"day": "Day {day}",
+				"outcomes": {
+					"kept": "Kept",
+					"partly": "Partly",
+					"slipped": "Slipped",
+					"open": "Not reported yet",
+					"unreported": "No report",
+					"noPromise": "No promise"
+				}
+			},
+			"milestone": "Next milestone"
 		}
 	},
 	"LedgerPage": {
@@ -579,27 +639,56 @@
 		"sizes": {
 			"bigger": "Getting bigger",
 			"smaller": "Getting smaller",
-			"change": "Moved from {from} to {to} on day {day}",
 			"names": {
 				"small": "small",
 				"medium": "medium",
 				"large": "large"
-			}
+			},
+			"title": "How your actions changed",
+			"onDay": "on day {day}",
+			"smallerNote": "Smaller isn’t going backwards. It’s the size you’ll keep."
 		},
 		"week": {
-			"title": "This week",
 			"kept": "{kept, number} of {total, plural, one {# promise} other {# promises}} kept",
 			"none": "Nothing reported in your last 7 days yet."
 		},
 		"milestone": {
-			"title": "Next milestone",
-			"due": "{days, plural, =0 {Due today} one {Due in # day} other {Due in # days}}"
+			"due": "{days, plural, =0 {Due today} one {Due in # day} other {Due in # days}}",
+			"heading": "Next milestone · Week {week}",
+			"all": "Your milestones",
+			"week": "Week {week}"
 		},
 		"learned": {
 			"title": "What you learned",
 			"scores": "{firstScore} out of 2 on day {firstDay}, {lastScore} out of 2 on day {lastDay}",
 			"leftOut": "{count, plural, one {# more idea needs} other {# more ideas need}} another recall before it shows here.",
 			"none": "Your key ideas show here once you’ve recalled them twice."
+		},
+		"eyebrow": "Day {day}",
+		"lead": "Every promise you’ve made, and what you said about it.",
+		"days": {
+			"title": "Day by day",
+			"hint": "Pick a day to see its promise",
+			"day": "Day {day}",
+			"none": "You made no promise for this day.",
+			"outcomes": {
+				"kept": "Kept",
+				"partly": "Partly",
+				"slipped": "Slipped",
+				"open": "Not reported yet",
+				"unreported": "Not reported",
+				"noPromise": "No promise"
+			}
+		},
+		"aside": {
+			"label": "This week",
+			"lead": "Promises you reported on in your last 7 days. A Partly counts as half."
+		},
+		"stats": {
+			"daysIn": "Days in",
+			"daysOf": "of {total}",
+			"recalled": "Ideas recalled",
+			"recalledOf": "twice or more"
 		}
 	},
 	"SiteFooter": {
@@ -763,5 +852,11 @@
 				"offline": "You’re offline, so nothing was sent. Try again once you’re connected."
 			}
 		}
+	},
+	"AppShell": {
+		"nav": "Your pages",
+		"today": "Today",
+		"ledger": "Ledger",
+		"signOut": "Sign out"
 	}
 }

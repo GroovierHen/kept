@@ -20,15 +20,23 @@ export function PromiseForm({
 	submit,
 	initial,
 	submitLabel,
-	setup
+	screen
 }: {
 	actions: { id: string; wording: string }[]
 	submit: (previous: PromiseFormState, formData: FormData) => Promise<PromiseFormState>
 	/** What comes pre-selected. Setup leaves it out, so the first action is selected. */
 	initial?: { actionId?: string; typed?: string; moment: PromiseMoment }
 	submitLabel?: string
-	/** Lays the form out as a setup screen under this heading, the sentence on the green panel. */
-	setup?: { heading: React.ReactNode }
+	/**
+	 * Lays the form out as a whole screen under this heading, the sentence on the
+	 * green panel. `footer` follows the form, so it may hold forms of its own.
+	 */
+	screen?: {
+		heading: React.ReactNode
+		lead?: React.ReactNode
+		footer?: React.ReactNode
+		aside?: React.ReactNode
+	}
 }) {
 	const t = useTranslations('SetupPage.promise')
 	const id = useId()
@@ -49,7 +57,7 @@ export function PromiseForm({
 		moment != null && wording != null && wording !== ''
 			? t(`sentences.${moment}`, { wording })
 			: null
-	const isSetup = setup != null
+	const isSetup = screen != null
 
 	const actionPicker = isTyping ? (
 		<Textarea
@@ -131,21 +139,26 @@ export function PromiseForm({
 
 	if (isSetup) {
 		return (
-			<form action={formAction} onSubmit={onSubmit} className="contents" noValidate>
-				{hiddenInputs}
+			<>
 				<SetupMain>
-					{setup.heading}
-					<p className="text-text-muted max-w-[52ch] text-[17px] leading-[1.55]">{t('lead')}</p>
-					<h2 className="mt-8 mb-3 text-[16px] font-semibold">{t('actionsLabel')}</h2>
-					{actionPicker}
-					<div className="mt-2">{typeToggle}</div>
-					<h2 className="mt-6 mb-3 text-[16px] font-semibold">{t('momentLabel')}</h2>
-					{momentPicker}
-					<div className="mt-6">{errorLine}</div>
-					<Button type="submit" disabled={isDisabled} className={cn(SETUP_BUTTON, 'mt-4')}>
-						{pending ? t('saving') : (submitLabel ?? t('commit'))}
-						{!pending && <ArrowRightIcon size={18} />}
-					</Button>
+					{screen.heading}
+					<p className="text-text-muted max-w-[52ch] text-[17px] leading-[1.55]">
+						{screen.lead ?? t('lead')}
+					</p>
+					<form action={formAction} onSubmit={onSubmit} className="flex flex-col" noValidate>
+						{hiddenInputs}
+						<h2 className="mt-8 mb-3 text-[16px] font-semibold">{t('actionsLabel')}</h2>
+						{actionPicker}
+						<div className="mt-2">{typeToggle}</div>
+						<h2 className="mt-6 mb-3 text-[16px] font-semibold">{t('momentLabel')}</h2>
+						{momentPicker}
+						<div className="mt-6">{errorLine}</div>
+						<Button type="submit" disabled={isDisabled} className={cn(SETUP_BUTTON, 'mt-4')}>
+							{pending ? t('saving') : (submitLabel ?? t('commit'))}
+							{!pending && <ArrowRightIcon size={18} />}
+						</Button>
+					</form>
+					{screen.footer}
 				</SetupMain>
 				<SetupAside label={t('asideLabel')} lead={t('asideLead')}>
 					<AsideCard className="p-0">
@@ -184,8 +197,9 @@ export function PromiseForm({
 							</ul>
 						</div>
 					</AsideCard>
+					{screen.aside}
 				</SetupAside>
-			</form>
+			</>
 		)
 	}
 

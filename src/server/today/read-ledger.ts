@@ -1,17 +1,21 @@
 import 'server-only'
-import { toKeptDay } from '@/lib/kept-day'
+import { keptDayFromDate, toKeptDay } from '@/lib/kept-day'
 import { buildLedger, nextMilestone, ownRecallProgress } from '@/lib/ledger'
 import { db } from '@/server/db/client'
 import { LEDGER_EVENT_NAMES, parseLedgerEvent } from '@/server/events/kept-events'
 import { getDueMilestone, getPlan, getRecallProgress } from '@/server/learn/learn'
 
-/** Everything the ledger screen shows for one user: their Events, and what Learn holds. */
+/** Everything the ledger screen shows for one user: their Events and Promises, and what Learn holds. */
 export async function readLedger(userId: string) {
-	const { timeZone, createdAt, events } = await db.user.findUniqueOrThrow({
+	const { timeZone, createdAt, events, promises } = await db.user.findUniqueOrThrow({
 		where: { id: userId },
 		select: {
 			timeZone: true,
 			createdAt: true,
+			promises: {
+				orderBy: { promiseDay: 'asc' },
+				select: { promiseDay: true, wording: true, moment: true }
+			},
 			events: {
 				where: { name: { in: [...LEDGER_EVENT_NAMES] } },
 				// Rows saved in one transaction share a time, and uuid(7) ids are time-ordered.
@@ -30,7 +34,14 @@ export async function readLedger(userId: string) {
 	])
 
 	return {
+		today,
 		signUpDay,
+		promises: promises.map((promise) => ({
+			...promise,
+			promiseDay: keptDayFromDate(promise.promiseDay)
+		})),
+		goal: plan.goal,
+		milestones: plan.milestones,
 		ledger: buildLedger({ events: events.map(parseLedgerEvent), today }),
 		actions: plan.actions,
 		milestone:

@@ -1,4 +1,4 @@
-import { addDays, dayNumber, type KeptDay } from './kept-day'
+import { addDays, dayNumber, isReportOpen, promiseStatus, type KeptDay } from './kept-day'
 import type { ActionSize, RecallProgress } from './learn/plan'
 import type { ReportAnswer } from './report'
 
@@ -146,4 +146,41 @@ export function nextMilestone<Milestone extends { readonly week: number }>({
 /** Learn's recall progress without its stub's rows, so nothing changes when the real one lands. */
 export function ownRecallProgress({ ideas, leftOut }: RecallProgress): RecallProgress {
 	return { ideas: ideas.filter(({ keyIdeaId }) => !keyIdeaId.startsWith(STUB_ID_PREFIX)), leftOut }
+}
+
+export type DayOutcome = 'kept' | 'partly' | 'slipped' | 'open' | 'unreported' | 'noPromise'
+
+/**
+ * What became of each Kept day from `from` to `today`, oldest first: its
+ * Promise's latest Report, or `open` while that Promise can still be reported.
+ */
+export function dayOutcomes({
+	ledger,
+	promiseDays,
+	from,
+	today
+}: {
+	ledger: Pick<Ledger, 'kept' | 'partly' | 'slipped'>
+	promiseDays: readonly KeptDay[]
+	from: KeptDay
+	today: KeptDay
+}): { day: KeptDay; outcome: DayOutcome }[] {
+	const answered = new Map<KeptDay, DayOutcome>([
+		...ledger.kept.map((day) => [day, 'kept'] as const),
+		...ledger.partly.map((day) => [day, 'partly'] as const),
+		...ledger.slipped.map((day) => [day, 'slipped'] as const)
+	])
+	const promised = new Set(promiseDays)
+	const days: { day: KeptDay; outcome: DayOutcome }[] = []
+	for (let day = from; day <= today; day = addDays({ day, days: 1 })) {
+		const outcome =
+			answered.get(day) ??
+			(!promised.has(day)
+				? 'noPromise'
+				: isReportOpen(promiseStatus({ promiseDay: day, today }))
+					? 'open'
+					: 'unreported')
+		days.push({ day, outcome })
+	}
+	return days
 }

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { getTranslations } from 'next-intl/server'
 import { PromiseForm } from '@/components/setup/promise-form'
-import { StepCard } from '@/components/ui/step-card'
+import { CalendarIcon } from '@/components/ui/icons'
 import { promiseNudge, workedOutSize } from '@/lib/adaptive'
 import type { PromiseMoment } from '@/lib/promise'
 import { submitNextPromise, submitPromiseChange } from '@/server/actions/today'
@@ -40,12 +40,20 @@ async function planChoices(userId: string) {
 
 // The current Promise comes pre-selected, moment and all, so keeping it is one tap.
 // An offered Action takes its place, and the user can still pick the old one.
+// Laid out as the whole step: `heading` over it, `footer` under it and `aside`
+// on the green panel under the new promise.
 export async function CommitStep({
 	userId,
-	current
+	current,
+	heading,
+	footer,
+	aside
 }: {
 	userId: string
 	current: CurrentPromise | null
+	heading: React.ReactNode
+	footer?: React.ReactNode
+	aside?: React.ReactNode
 }) {
 	const [{ actions, nudge }, t] = await Promise.all([
 		planChoices(userId),
@@ -60,17 +68,27 @@ export async function CommitStep({
 				}
 
 	return (
-		<StepCard title={t('title')}>
-			{nudge != null && <p className="text-body">{t(`nudge.${nudge.kind}`)}</p>}
-			{/* Keyed so a changed Report that adds or withdraws an offer also moves the selection. */}
-			<PromiseForm
-				key={initial?.actionId ?? 'typed'}
-				submit={submitNextPromise}
-				initial={initial}
-				actions={actions}
-			/>
-			<p className="text-small text-text-muted">{t('reminder')}</p>
-		</StepCard>
+		// Keyed so a changed Report that adds or withdraws an offer also moves the selection.
+		<PromiseForm
+			key={initial?.actionId ?? 'typed'}
+			submit={submitNextPromise}
+			initial={initial}
+			actions={actions}
+			screen={{
+				heading,
+				lead: nudge != null ? t(`nudge.${nudge.kind}`) : current != null ? t('lead') : undefined,
+				footer: (
+					<>
+						<p className="text-text-muted mt-3.5 flex items-center justify-center gap-2 text-[14px]">
+							<CalendarIcon size={16} className="text-accent" />
+							{t('reminder')}
+						</p>
+						{footer}
+					</>
+				),
+				aside
+			}}
+		/>
 	)
 }
 

@@ -14,7 +14,7 @@ export async function PromiseStep({ userId }: { userId: string }) {
 		<PromiseForm
 			submit={commitPromise}
 			actions={plan.actions.map(({ id, sizes }) => ({ id, wording: sizes.small }))}
-			setup={{
+			screen={{
 				heading: (
 					<StepIntro
 						progress={{ current: SETUP_STEPS.indexOf('promise'), total: SETUP_STEPS.length }}

@@ -28,10 +28,10 @@ export async function ChangeReport({
 			summary={t('changeReport.summary', { answer: t(`report.answers.${report.latestAnswer}`) })}
 			hint={t('changeReport.hint')}
 		>
-			<p className="text-body font-medium">
+			<p className="text-[16px] font-semibold">
 				{t(`report.question.${when}`, { wording: reportQuestionWording(report.wording) })}
 			</p>
-			<ReportForm promiseId={report.id} reportId={reportId} />
+			<ReportForm promiseId={report.id} reportId={reportId} layout="row" />
 		</ChangePanel>
 	)
 }

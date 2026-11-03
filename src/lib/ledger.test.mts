@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { addDays } from './kept-day.ts'
-import { buildLedger, nextMilestone, ownRecallProgress, type LedgerEvent } from './ledger.ts'
+import {
+	buildLedger,
+	dayOutcomes,
+	nextMilestone,
+	ownRecallProgress,
+	type LedgerEvent
+} from './ledger.ts'
 
 const SIGN_UP_DAY = '2026-11-01'
 const RUN = 'action-run'
@@ -311,4 +317,27 @@ test('Learn’s stub of Sara’s scores never reads as the user’s own', () => 
 test('real recall progress passes through untouched', () => {
 	const progress = { ideas: [recalled('0190a1b2-real-id')], leftOut: 2 }
 	assert.deepEqual(ownRecallProgress(progress), progress)
+})
+
+test('dayOutcomes gives each day its latest answer, and an open Promise until it closes', () => {
+	const ledger = { kept: [day(2)], partly: [day(3)], slipped: [day(4)] }
+	const promiseDays = [day(2), day(3), day(4), day(6), day(7), day(8)]
+	const outcomes = dayOutcomes({ ledger, promiseDays, from: day(2), today: day(8) })
+	assert.deepEqual(
+		outcomes.map(({ outcome }) => outcome),
+		['kept', 'partly', 'slipped', 'noPromise', 'unreported', 'open', 'open']
+	)
+	assert.equal(outcomes[0]?.day, day(2))
+})
+
+test('dayOutcomes is empty when it starts after today', () => {
+	assert.deepEqual(
+		dayOutcomes({
+			ledger: { kept: [], partly: [], slipped: [] },
+			promiseDays: [],
+			from: day(3),
+			today: day(2)
+		}),
+		[]
+	)
 })

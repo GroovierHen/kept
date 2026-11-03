@@ -172,8 +172,12 @@ test('a new user goes from sign-up through their first check-in, and each save m
 	await test.step('Day 1 is already done', async () => {
 		await expect(page.getByRole('heading', { name: 'Day 1' })).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Done for today' })).toBeVisible()
-		// The closed change panel holds the same sentence, so take the summary's.
-		await expect(page.getByText(`After work, I will ${CHOSEN_ACTION}.`).first()).toBeVisible()
+		// The closed change panel holds the same sentence, so take the side panel's.
+		await expect(
+			page
+				.getByRole('complementary', { name: 'Your next promise' })
+				.getByText(`After work, I will ${CHOSEN_ACTION}.`)
+		).toBeVisible()
 	})
 
 	await test.step('a day passes', async () => {
