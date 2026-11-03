@@ -1,0 +1,40 @@
+/* Generated from packages/brand/src/tokens.ts by `pnpm --filter @kept/brand build:css`.
+   Edit the tokens, never this file: a test fails when the two differ. */
+.theme-brand {
+	--bg: #f4f5f0;
+	--surface: #ffffff;
+	--surface-hover: #eef0e8;
+	--border: #e2e4da;
+	--border-strong: #d6d9cc;
+	--text: #0f1f17;
+	--text-muted: #46504a;
+	--text-faint: #56605a;
+	--accent: #14532d;
+	--accent-hover: #0b3b1f;
+	--accent-ink: #ffffff;
+	--accent-soft: #e6f2d9;
+	--accent-deep: #0b3b1f;
+	--coral: #c6f432;
+	--coral-ink: #0f1f17;
+	--coral-soft: #eef9c9;
+	--coral-deep: #3f6212;
+	--night: #0f1f17;
+	--night-ink: #ffffff;
+	--night-surface: #16291f;
+	--night-border: #24402f;
+	--night-muted: #c3cfc6;
+	--kept: #34d399;
+	--kept-ink: #062b1e;
+	--kept-soft: #ddf6ec;
+	--partly: #fbbf24;
+	--slipped: #f87171;
+	--success: #047857;
+	--warning: #3f6212;
+	--danger: #b42318;
+	--glow: rgb(20 83 45 / 0.55);
+	--focus-ring: rgb(20 83 45 / 0.15);
+	--shadow: rgb(15 31 23 / 0.5);
+	--radius-sm: 9px;
+	--radius: 14px;
+	--radius-lg: 24px;
+}

@@ -43,6 +43,11 @@ const FIXTURE_FILES = [
 	'apps/web/scripts/check-rls.mjs',
 	'apps/web/tsconfig.json',
 	'apps/web/.env.example',
+	'apps/mobile/package.json',
+	'apps/mobile/tsconfig.json',
+	'apps/mobile/.env.example',
+	'apps/mobile/src/lib/env.ts',
+	'apps/mobile/src/app/_layout.tsx',
 	'.github/workflows/ci.yml',
 	'.claude/skills/local-review/SKILL.md',
 	'.prettierrc.json',
@@ -73,9 +78,12 @@ function createFixture() {
 	// the fixture. A real directory of per-package links rather than one link
 	// to the whole tree, because git refuses to evaluate a path "beyond a
 	// symbolic link" — and the ignore check probes node_modules/x.js.
-	mkdirSync(join(root, 'node_modules'))
-	for (const entry of readdirSync(join(REPO_ROOT, 'node_modules'))) {
-		symlinkSync(join(REPO_ROOT, 'node_modules', entry), join(root, 'node_modules', entry))
+	// The mobile app's own install too: its tsconfig extends expo's.
+	for (const dir of ['node_modules', 'apps/mobile/node_modules']) {
+		mkdirSync(join(root, dir), { recursive: true })
+		for (const entry of readdirSync(join(REPO_ROOT, dir))) {
+			symlinkSync(join(REPO_ROOT, dir, entry), join(root, dir, entry))
+		}
 	}
 	git(root, 'init', '-q')
 	git(root, 'add', '-A')
@@ -108,7 +116,19 @@ test('the template itself meets every standard', () => {
 		[],
 		'the template must pass its own check'
 	)
-	assert.equal(results.length, CHECKS.length)
+	// Each app-level check runs once per workspace of a kind it names.
+	const workspaces = JSON.parse(
+		readFileSync(join(REPO_ROOT, 'standards.config.json'), 'utf8')
+	).workspaces
+	const expected = CHECKS.reduce(
+		(count, check) =>
+			count +
+			(check.scope === 'app'
+				? workspaces.filter(({ kind }) => check.kinds.includes(kind)).length
+				: 1),
+		0
+	)
+	assert.equal(results.length, expected)
 })
 
 test('a fixture built from the template passes every check, so later failures are the mutation', () => {
@@ -125,14 +145,80 @@ test('workspaces names a missing workspace and a kind with no app-level standard
 		(root) =>
 			edit(root, 'standards.config.json', (text) => {
 				const config = JSON.parse(text)
-				config.workspaces.push({ path: 'apps/mobile', kind: 'expo' })
+				config.workspaces.push({ path: 'apps/watch', kind: 'watchos' })
 				return JSON.stringify(config)
 			}),
 		['workspaces']
 	)
 	assert.equal(results.workspaces.ok, false)
-	assert.match(results.workspaces.detail, /apps\/mobile\/package\.json is missing/)
-	assert.match(results.workspaces.detail, /kind "expo"/)
+	assert.match(results.workspaces.detail, /apps\/watch\/package\.json is missing/)
+	assert.match(results.workspaces.detail, /kind "watchos"/)
+})
+
+// withFixture keys results by id; a check both apps run needs its workspace named.
+function appResult(mutate, id, workspace) {
+	const root = createFixture()
+	try {
+		mutate(root)
+		const { results } = runStandardsChecks({ root, ids: [id] })
+		return results.find((result) => result.workspace === workspace)
+	} finally {
+		rmSync(root, { recursive: true, force: true })
+	}
+}
+
+const mobileResult = (mutate, id) => appResult(mutate, id, 'apps/mobile')
+
+test('expo-no-server-code names a server-only dependency in the phone app', () => {
+	const result = mobileResult(
+		(root) =>
+			edit(root, 'apps/mobile/package.json', (text) => {
+				const pkg = JSON.parse(text)
+				pkg.dependencies['@prisma/client'] = '^7.0.0'
+				return JSON.stringify(pkg)
+			}),
+		'expo-no-server-code'
+	)
+	assert.equal(result.ok, false)
+	assert.match(result.detail, /depends on @prisma\/client/)
+})
+
+test('expo-env-module fails when screens may read process.env', () => {
+	const result = mobileResult(
+		(root) =>
+			edit(root, 'eslint.config.mjs', (text) =>
+				text.replace(
+					'export default eslintConfig',
+					"eslintConfig.push({ basePath: 'apps/mobile', files: ['src/**/*.tsx'], rules: { 'no-restricted-properties': 'off' } })\nexport default eslintConfig"
+				)
+			),
+		'expo-env-module'
+	)
+	assert.equal(result.ok, false)
+	assert.match(result.detail, /must ban process\.env/)
+})
+
+test('expo-lint-rules fails when a screen may import Supabase directly', () => {
+	const result = mobileResult(
+		(root) =>
+			edit(root, 'eslint.config.mjs', (text) =>
+				text.replace("group: ['@supabase/**'],", "group: ['@nothing/**'],")
+			),
+		'expo-lint-rules'
+	)
+	assert.equal(result.ok, false)
+	assert.match(result.detail, /does not ban @supabase/)
+})
+
+test('typescript-strict runs in each app on its own tsconfig', () => {
+	const result = mobileResult(
+		(root) =>
+			edit(root, 'apps/mobile/tsconfig.json', (text) =>
+				text.replace('"strict": true', '"strict": false')
+			),
+		'typescript-strict'
+	)
+	assert.equal(result.ok, false)
 })
 
 test('workspaces fails on a config that lists no workspaces', () => {
@@ -469,15 +555,16 @@ test('eslint-effective-rules reads the resolved config, so a later block overrid
 })
 
 test('typescript-strict reads the resolved config', () => {
-	const results = withFixture(
+	const result = appResult(
 		(root) =>
 			edit(root, 'apps/web/tsconfig.json', (text) =>
 				text.replace('"strict": true', '"strict": false')
 			),
-		['typescript-strict']
+		'typescript-strict',
+		'apps/web'
 	)
-	assert.equal(results['typescript-strict'].ok, false)
-	assert.match(results['typescript-strict'].detail, /strict/)
+	assert.equal(result.ok, false)
+	assert.match(result.detail, /strict/)
 })
 
 test('env-schema fails when the schema stops going through zod', () => {

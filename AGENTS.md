@@ -46,11 +46,19 @@ for everyone.
 # Repository layout
 
 A pnpm workspace (`pnpm-workspace.yaml`): apps under `apps/`, shared code
-under `packages/`. The Next.js app is `apps/web` (`@kept/web`), and the
-app paths in this file and in `docs/rules/` — `src/`, `prisma/`,
-`messages/`, `e2e/`, `.env.example` — are relative to it. Repo-wide
-tooling (`scripts/check-*`, hooks, CI, `eslint.config.mjs`, Prettier)
-stays at the root.
+under `packages/`. Repo-wide tooling (`scripts/check-*`, hooks, CI,
+`eslint.config.mjs`, Prettier) stays at the root.
+
+- `apps/web` (`@kept/web`): the Next.js app, its API and its database. The
+  app paths in this file and in `docs/rules/` — `src/`, `prisma/`,
+  `messages/`, `e2e/`, `.env.example` — are relative to it unless a rule
+  names `apps/mobile`.
+- `apps/mobile` (`@kept/mobile`): the Expo app. It reads Kept's data only
+  through the web app's `/api/app/v1` — see
+  [docs/rules/mobile.md](docs/rules/mobile.md).
+- `packages/contract` (`@kept/contract`): the Zod schemas of every
+  `/api/app/v1` route, imported by both apps.
+- `packages/brand` (`@kept/brand`): the design tokens both apps wear.
 
 - **Run commands from the repo root.** The root `package.json` forwards each
   app script to its workspace (`pnpm check:env` →
@@ -61,6 +69,8 @@ stays at the root.
   repo-wide tools (ESLint, Prettier, TypeScript for ESLint).
 - **A new app is listed in `standards.config.json`**, or the app-level
   standards never run against it.
+- **A mobile package is added with `pnpm expo install`** inside
+  `apps/mobile`, so its version is the one the Expo SDK is tested with.
 
 # This is NOT the Next.js you know
 
@@ -218,6 +228,13 @@ linkable, instead of one monolithic instructions file.
   time when it can still change. Open as draft if you need a PR to exist
   before then. A PR that changes what people see carries a `## Screenshots`
   section, Before and After.
+- **[Mobile app](docs/rules/mobile.md)** — data only through the web app's
+  `/api/app/v1`, every route defined once in `packages/contract` and built
+  with `createAppRoute`, which parses the response before sending it. One
+  file owns each SDK (Supabase sign-in only, Sentry, PostHog, `process.env`),
+  enforced by ESLint. Shared packages stay framework-free; mobile versions
+  follow the Expo SDK; native changes need a build, the rest can ship as an
+  over-the-air update.
 - **[Deployment](docs/rules/deployment.md)** — never deploy manually; what
   CI/CD actually does instead.
 

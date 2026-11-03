@@ -1,0 +1,109 @@
+# Kept mobile (`@kept/mobile`)
+
+The Kept app for iOS and Android: Expo SDK 58, React Native 0.88, Expo Router.
+It signs in with Supabase, shows Today from the web app's API, and reminds the
+person to check in each day. The check-in steps themselves still open on the
+web for now.
+
+## How it fits together
+
+- **Data comes from the web app, never the database.** `src/lib/api.ts` calls
+  `/api/app/v1/*` on the web app (`apps/web/src/app/api/app/v1/`) with the
+  Supabase access token as `Authorization: Bearer …`. The phone holds no
+  database credential and no server key.
+- **One contract for both sides.** Every route is defined once in
+  `packages/contract` (method, path, auth, Zod schemas). The web validates
+  each response with it before sending; the app parses each response with it
+  on arrival. A change one side doesn't follow fails that side's typecheck.
+- **One look.** Colours, radii and fonts come from `packages/brand`, the same
+  tokens the web app's `.theme-brand` pages are built from.
+- **Supabase is sign-in only** (`src/lib/supabase.ts`, the only file that may
+  import it). Sign-up and setup happen on the web; the app sends a person
+  with setup left there.
+- **Reminders are local notifications** (`src/lib/reminders.ts`), scheduled on
+  the phone at the time picked in setup. No push service is involved yet.
+
+## Running it
+
+From the repo root, after `pnpm install`:
+
+```bash
+pnpm mobile:ios       # build the development app and open it in the iOS Simulator
+pnpm mobile           # start Metro for an installed development build
+```
+
+The first `mobile:ios` generates `ios/` (gitignored, Continuous Native
+Generation) and runs CocoaPods. If `pod install` fails with
+`Unicode Normalization not appropriate for ASCII-8BIT`, the shell's locale
+isn't UTF-8: `export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8` and run it again.
+
+Expo Go can't run this app (it has native modules Expo Go doesn't ship); use
+the development build.
+
+### Against a local stack, without touching production
+
+`apps/web/.env.local` points at the production database, so for the phone use
+the browser tests' stack instead: a throwaway Postgres, the fake Supabase Auth
+in `apps/web/e2e/support/fake-services.ts`, and the web app with no
+`.env.local`.
+
+```bash
+docker run -d --rm --name kept-e2e-pg -p 54329:5432 -e POSTGRES_PASSWORD=postgres postgres:16
+```
+
+Then start `fake-services` (port 3101) and `web-local-stack` (port 3100) from
+`.claude/launch.json`, and run one browser test to create a set-up user:
+
+```bash
+pnpm --filter @kept/web exec playwright test e2e/first-check-in.spec.ts
+```
+
+Stop those two servers first (the test starts its own), then start them again.
+Put this in `apps/mobile/.env.local`, and sign in on the phone with the email
+the test created (any password; the fake doesn't check it):
+
+```
+EXPO_PUBLIC_SITE_URL=http://localhost:3100
+EXPO_PUBLIC_SUPABASE_URL=http://localhost:3101
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=fake-publishable-key
+```
+
+## Environment variables
+
+Read in one place, `src/lib/env.ts`; `.env.example` explains each. Only
+`EXPO_PUBLIC_*` names, every one shipped inside the app, so only public client
+keys: the web app's URL, the Supabase URL and publishable key, a Sentry DSN,
+a PostHog project key. Unset or `REPLACE_…` turns that feature off rather
+than crashing.
+
+`.env.local` covers local runs. Builds and updates read EAS environment
+variables (development, preview, production) instead.
+
+## Checks
+
+`pnpm lint`, `pnpm typecheck` and `pnpm test` at the root cover this app with
+the rest. On its own: `pnpm --filter @kept/mobile test` (Jest, `jest-expo`)
+and `pnpm --filter @kept/mobile doctor` (expo-doctor). ESLint keeps the
+Supabase, Sentry and PostHog SDKs, `process.env` and `console` each to the
+one file that owns them; `pnpm check:standards` confirms it.
+
+## Releasing
+
+Not set up for the stores yet. What's left needs the Expo account that will
+own the app:
+
+1. `pnpm dlx eas-cli@latest init` in `apps/mobile`, which links the project
+   and writes `extra.eas.projectId` into `app.json`.
+2. `pnpm dlx eas-cli@latest update:configure`, which writes `updates.url`.
+3. Confirm the bundle identifier (`app.kept.mobile` in `app.json`, a
+   placeholder) before the first store build; it can't change after.
+4. Set the EAS environment variables for each environment, and
+   `SENTRY_AUTH_TOKEN` (secret) plus `SENTRY_ORG` and `SENTRY_PROJECT` for
+   source maps.
+
+After that, `eas.json` holds the build profiles (`development`, `preview`,
+`production`) and `.eas/workflows/publish-update.yml` publishes over-the-air
+updates. An update carries JavaScript and assets only, so it suits a copy or
+logic fix. A new native package or a change to `app.json` plugins needs a new
+build; `runtimeVersion` uses Expo's fingerprint policy, so an update is only
+offered to builds whose native code matches it.

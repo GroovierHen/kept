@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { createHash } from 'node:crypto'
 import { createServer, type IncomingMessage } from 'node:http'
 import { z } from 'zod'
 import { SARA_GENERATED_PLAN } from '../../src/lib/learn/sara-plan'
@@ -12,6 +12,7 @@ import { SARA_GENERATED_PLAN } from '../../src/lib/learn/sara-plan'
 const SESSION_SECONDS = 3600
 
 const signUpBody = z.object({ email: z.string() })
+const refreshBody = z.object({ refresh_token: z.string() })
 const tokenClaims = z.object({ sub: z.string(), email: z.string() })
 
 const toBase64Url = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url')
@@ -28,9 +29,17 @@ function authUser({ id, email }: { id: string; email: string }) {
 	}
 }
 
-function signUp(body: unknown) {
-	const { email } = signUpBody.parse(body)
-	const id = randomUUID()
+// The same email is always the same user, so the mobile app's password
+// sign-in finds the account a web sign-up made. A v4-shaped uuid from a hash.
+function userIdFor(email: string): string {
+	const hex = createHash('sha256').update(email).digest('hex')
+	return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`
+}
+
+// Sign-up, password sign-in and refresh all hand out the same kind of session.
+// The password is never checked: there is one person per email here.
+function session(email: string) {
+	const id = userIdFor(email)
 	const expiresAt = Math.floor(Date.now() / 1000) + SESSION_SECONDS
 	const claims = { sub: id, email, exp: expiresAt, aud: 'authenticated', role: 'authenticated' }
 	return {
@@ -38,9 +47,18 @@ function signUp(body: unknown) {
 		token_type: 'bearer',
 		expires_in: SESSION_SECONDS,
 		expires_at: expiresAt,
-		refresh_token: 'fake-refresh-token',
+		refresh_token: `fake-refresh.${Buffer.from(email).toString('base64url')}`,
 		user: authUser({ id, email })
 	}
+}
+
+function signUp(body: unknown) {
+	return session(signUpBody.parse(body).email)
+}
+
+function refresh(body: unknown) {
+	const token = refreshBody.parse(body).refresh_token
+	return session(Buffer.from(token.replace(/^fake-refresh\./, ''), 'base64url').toString())
 }
 
 // The token says who it is, so nothing needs storing between requests.
@@ -77,10 +95,17 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
 }
 
 async function respond(request: IncomingMessage) {
-	const { pathname } = new URL(request.url ?? '/', 'http://localhost')
+	const { pathname, searchParams } = new URL(request.url ?? '/', 'http://localhost')
 	if (request.method === 'POST' && pathname === '/auth/v1/signup') {
 		return signUp(await readJson(request))
 	}
+	// The mobile app signs in with a password and refreshes its token.
+	if (request.method === 'POST' && pathname === '/auth/v1/token') {
+		const grant = searchParams.get('grant_type')
+		if (grant === 'password') return signUp(await readJson(request))
+		if (grant === 'refresh_token') return refresh(await readJson(request))
+	}
+	if (request.method === 'POST' && pathname === '/auth/v1/logout') return {}
 	if (request.method === 'GET' && pathname === '/auth/v1/user') {
 		return userFromToken(request.headers.authorization)
 	}

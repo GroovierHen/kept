@@ -15,3 +15,12 @@ skills-lock.json
 # .git/info/exclude, which Prettier doesn't read, so `pnpm format` would
 # otherwise rewrite another session's files.
 .claude/worktrees/
+
+# Generated from packages/brand/src/tokens.ts; a test compares it byte for byte.
+packages/brand/brand.css
+
+# Generated native projects and Expo state (apps/mobile/.gitignore lists them;
+# Prettier reads only the root .gitignore).
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/.expo/

@@ -1,0 +1,61 @@
+# Publish an over-the-air update on EAS's servers, from a git ref, with its
+# Sentry source maps.
+#
+#   cd apps/mobile
+#   pnpm dlx eas-cli@latest workflow:run .eas/workflows/publish-update.yml --ref main \
+#     -F target=preview -F message="fix(today): show the milestone's due day"
+#
+# A workflow rather than `eas update` on a laptop: the job runs where the EAS
+# environment's secret variables live, so SENTRY_AUTH_TOKEN is in nobody's
+# shell, and `--ref main` publishes what main holds, not a working tree.
+# An update carries JavaScript and assets only; a change to native code (a new
+# native package, an app.json plugin) needs a new build. apps/mobile/README.md,
+# "Releasing", says which is which.
+name: Publish an update
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [preview, production-rollout, production]
+        required: true
+        description: >-
+          preview (always first); production-rollout (10% of people, widen it
+          with eas update:edit); production (everyone at once, for a copy fix)
+      message:
+        type: string
+        required: true
+        description: What the update changes, as a Conventional Commit subject.
+
+jobs:
+  preview:
+    name: Publish to preview
+    if: ${{ inputs.target == 'preview' }}
+    type: update
+    environment: preview
+    params:
+      channel: preview
+      message: ${{ inputs.message }}
+      upload_sentry_sourcemaps: true
+
+  production_rollout:
+    name: Publish to production, 10% of people
+    if: ${{ inputs.target == 'production-rollout' }}
+    type: update
+    environment: production
+    params:
+      channel: production
+      message: ${{ inputs.message }}
+      rollout_percentage: 10
+      upload_sentry_sourcemaps: true
+
+  production:
+    name: Publish to production, everyone
+    if: ${{ inputs.target == 'production' }}
+    type: update
+    environment: production
+    params:
+      channel: production
+      message: ${{ inputs.message }}
+      upload_sentry_sourcemaps: true

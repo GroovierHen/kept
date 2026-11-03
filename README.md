@@ -52,7 +52,8 @@ Scaffolded from [8xsocial/template-web](https://github.com/8xsocial/template-web
 ## Project structure
 
 A pnpm workspace: each app lives under `apps/`, code shared between apps
-under `packages/` (empty until the mobile app needs something shared).
+under `packages/`. The web app owns the database and the API; the mobile
+app reads everything through that API (`docs/rules/mobile.md`).
 Run every command from the repo root — the root `package.json` forwards
 app scripts (`pnpm dev`, `pnpm build`, `pnpm check:env`, ...) to the
 app that owns them.
@@ -60,25 +61,31 @@ app that owns them.
 ```
 kept/
 ├── apps/
-│   └── web/                     the Next.js app (@kept/web) — deployed to Vercel with Root Directory apps/web
-│       ├── e2e/                 Playwright — the first check-in test, against a local database
-│       ├── messages/en.json     i18n strings
-│       ├── prisma/schema/       multi-file schema — the only thing you hand-edit
-│       │   └── migrations/      CI-generated only, never by hand
-│       ├── prisma/run-once.sql  one-off SQL, applied once per database on the next deploy
-│       ├── scripts/             migration generator, run-once SQL runner, env-var check, RLS check, AI model check
-│       ├── src/
-│       │   ├── app/[locale]/        App Router pages, error.tsx, not-found.tsx, [...rest]/ (404 plumbing)
-│       │   ├── app/global-error.tsx root boundary, inline-styled (see docs/rules/error-handling.md)
-│       │   ├── app/globals.css      design tokens (light + dark)
-│       │   ├── components/          query-provider.tsx, error-page.tsx, error-boundary.tsx, ui/ (Button, Input, Card, toasts, ...)
-│       │   ├── i18n/                next-intl routing + request config
-│       │   ├── lib/                 cn.ts, env.ts, toast.ts, errors/, observability/, notifications/, posthog/, supabase/
-│       │   ├── server/              db/client.ts (the only file that touches Prisma), api/ (route factory)
-│       │   └── proxy.ts             Supabase session refresh + next-intl locale routing
-│       ├── instrumentation.ts   Sentry init + env validation, run once at server boot
-│       └── .env.example         every variable explained inline
-├── packages/                    shared workspace packages
+│   ├── web/                     the Next.js app (@kept/web) — deployed to Vercel with Root Directory apps/web
+│   │   ├── e2e/                 Playwright — the first check-in test, against a local database
+│   │   ├── messages/en.json     i18n strings
+│   │   ├── prisma/schema/       multi-file schema — the only thing you hand-edit
+│   │   │   └── migrations/      CI-generated only, never by hand
+│   │   ├── prisma/run-once.sql  one-off SQL, applied once per database on the next deploy
+│   │   ├── scripts/             migration generator, run-once SQL runner, env-var check, RLS check, AI model check
+│   │   ├── src/
+│   │   │   ├── app/[locale]/        App Router pages, error.tsx, not-found.tsx, [...rest]/ (404 plumbing)
+│   │   │   ├── app/global-error.tsx root boundary, inline-styled (see docs/rules/error-handling.md)
+│   │   │   ├── app/globals.css      design tokens (light + dark)
+│   │   │   ├── components/          query-provider.tsx, error-page.tsx, error-boundary.tsx, ui/ (Button, Input, Card, toasts, ...)
+│   │   │   ├── i18n/                next-intl routing + request config
+│   │   │   ├── lib/                 cn.ts, env.ts, toast.ts, errors/, observability/, notifications/, posthog/, supabase/
+│   │   │   ├── server/              db/client.ts (the only file that touches Prisma), api/ (route factory)
+│   │   │   └── proxy.ts             Supabase session refresh + next-intl locale routing
+│   │   ├── instrumentation.ts   Sentry init + env validation, run once at server boot
+│   │   └── .env.example         every variable explained inline
+│   └── mobile/                  the Expo app (@kept/mobile) — see apps/mobile/README.md
+│       ├── src/app/             Expo Router screens: sign-in, Today
+│       ├── src/lib/             api.ts (typed /api/app/v1 client), supabase.ts (sign-in only), env.ts, reminders.ts
+│       └── eas.json             build profiles; .eas/workflows/ publishes over-the-air updates
+├── packages/
+│   ├── contract/                Zod schemas for every /api/app/v1 route (@kept/contract), shared by both apps
+│   └── brand/                   design tokens (@kept/brand): CSS variables for the web, values for the app
 ├── .claude/skills/              Claude Code skills — see "Skills" below
 ├── .claude-logs/                tracked (not gitignored) — AI session transcripts ship with the branch
 ├── .github/workflows/           ci.yml, deploy-migrations.yml, claude-code-review.yml

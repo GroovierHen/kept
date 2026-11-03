@@ -19,13 +19,16 @@
 // A monorepo names its app workspaces, and what kind each is, in
 // standards.config.json:
 //
-//   { "workspaces": [{ "path": "apps/web", "kind": "next" }] }
+//   { "workspaces": [{ "path": "apps/web", "kind": "next" }, { "path": "apps/mobile", "kind": "expo" }] }
 //
 // Repo-level standards (agent docs, hooks, commits, secrets, Prettier,
 // gitignore, session logs, CI, local-review, the root gate scripts) run once,
-// at the root. App-level standards (scope: 'app') run once per workspace, with
-// their paths and package.json resolved inside it, asking ESLint about the
-// workspace's files from the root, where the one eslint.config.mjs lives.
+// at the root. App-level standards (scope: 'app') run once per workspace of a
+// kind they name, with their paths and package.json resolved inside it, asking
+// ESLint about the workspace's files from the root, where the one
+// eslint.config.mjs lives. A `next` app has a server, so Pino, Prisma and the
+// Supabase auth wrappers are checked there; an `expo` app is a phone, which
+// must hold none of that and reads its data through the web app's API.
 // Without the file the repo is one Next.js app at its root.
 //
 // Exit codes: 0 every standard met, 1 at least one not met.
@@ -90,10 +93,23 @@ const LOCAL_REVIEW_SKILL = '.claude/skills/local-review/SKILL.md'
 const STANDARDS_CONFIG = 'standards.config.json'
 // The kinds of workspace that have app-level standards. A workspace of any
 // other kind fails the workspaces check until its standards are written.
-const APP_KINDS = ['next']
+const APP_KINDS = ['next', 'expo']
 
 // Workspace-relative: each `next` workspace resolves these inside itself.
 const ENV_SCHEMA = 'src/lib/env.ts'
+// An `expo` workspace: the env module, and one ordinary screen to ask ESLint about.
+const EXPO_ENV_MODULE = 'src/lib/env.ts'
+const EXPO_SCREEN = 'src/app/_layout.tsx'
+// Server-side by nature: a phone app that depends on one is holding a credential
+// or a connection it must never have.
+const EXPO_SERVER_ONLY_DEPENDENCIES = [
+	'@prisma/client',
+	'prisma',
+	'pg',
+	'postgres',
+	'pino',
+	'server-only'
+]
 const ENV_EXAMPLE = '.env.example'
 const ENV_CHECK_SCRIPT = 'scripts/check-env-vars.mjs'
 const LOGGER_DIR = 'src/server/lib/logger'
@@ -320,12 +336,11 @@ function severityOf(setting) {
 	return 'off'
 }
 
-function effectiveEslintRules(ctx) {
+function effectiveEslintRules(ctx, file = ctx.app.path(ENV_SCHEMA)) {
 	// The *resolved* config for an ordinary src file, not the config file: flat
 	// config resolves a rule by last match wins, so a rule can be written down
 	// and still be off. Memoised per workspace — four checks read it.
-	const key = `eslint:${ctx.app.dir}`
-	const file = ctx.app.path(ENV_SCHEMA)
+	const key = `eslint:${file}`
 	if (!ctx.memo.has(key)) {
 		const result = runBinary(ctx, 'eslint', ['--print-config', file])
 		let outcome
@@ -620,6 +635,7 @@ export const CHECKS = [
 	{
 		id: 'eslint-effective-rules',
 		scope: 'app',
+		kinds: ['next'],
 		title: 'the ESLint config in effect forbids `any` and console output in src/',
 		run(ctx) {
 			const { rules, error } = effectiveEslintRules(ctx)
@@ -637,6 +653,7 @@ export const CHECKS = [
 	{
 		id: 'structured-logger',
 		scope: 'app',
+		kinds: ['next'],
 		title: 'the shared Pino logger is import-restricted and its contract tests are wired',
 		run(ctx) {
 			const problems = []
@@ -675,6 +692,7 @@ export const CHECKS = [
 	{
 		id: 'typescript-strict',
 		scope: 'app',
+		kinds: ['next', 'expo'],
 		title: 'TypeScript runs in strict mode',
 		run(ctx) {
 			const tsconfig = ctx.app.path('tsconfig.json')
@@ -706,6 +724,7 @@ export const CHECKS = [
 	{
 		id: 'env-schema',
 		scope: 'app',
+		kinds: ['next'],
 		title: 'environment variables go through one Zod schema, documented and checked',
 		run(ctx) {
 			const problems = []
@@ -790,6 +809,7 @@ export const CHECKS = [
 	{
 		id: 'prisma-only-data-path',
 		scope: 'app',
+		kinds: ['next'],
 		title: 'the ESLint config in effect makes Prisma the only data path',
 		run(ctx) {
 			const { rules, error } = effectiveEslintRules(ctx)
@@ -810,6 +830,7 @@ export const CHECKS = [
 	{
 		id: 'supabase-auth-only',
 		scope: 'app',
+		kinds: ['next'],
 		title: 'Supabase clients are typed to their auth surface and the SDK is import-restricted',
 		run(ctx) {
 			const { rules, error } = effectiveEslintRules(ctx)
@@ -852,6 +873,7 @@ export const CHECKS = [
 	{
 		id: 'rls-check-wired',
 		scope: 'app',
+		kinds: ['next'],
 		title: 'the RLS check exists and CI runs it after the migrations are applied',
 		run(ctx) {
 			if (!ctx.app.has(RLS_CHECK_SCRIPT))
@@ -870,6 +892,78 @@ export const CHECKS = [
 				return fail(`${CI_WORKFLOW} runs check:rls before the migrations are applied`)
 			}
 			return pass()
+		}
+	},
+	{
+		id: 'expo-env-module',
+		scope: 'app',
+		kinds: ['expo'],
+		title:
+			'the app reads its environment through one Zod module, and ESLint bans process.env elsewhere',
+		run(ctx) {
+			const problems = []
+			const { app } = ctx
+			const source = app.read(EXPO_ENV_MODULE)
+			if (source == null) problems.push(`${app.path(EXPO_ENV_MODULE)} is missing`)
+			else if (!/from\s+['"]zod['"]/.test(source)) {
+				problems.push(`${app.path(EXPO_ENV_MODULE)} does not import zod`)
+			}
+			if (!app.has(ENV_EXAMPLE)) problems.push(`${app.path(ENV_EXAMPLE)} is missing`)
+			const { rules, error } = effectiveEslintRules(ctx, app.path(EXPO_SCREEN))
+			if (error) problems.push(error)
+			else {
+				const entry = rules['no-restricted-properties']
+				const bansEnv =
+					Array.isArray(entry) &&
+					severityOf(entry) === 'error' &&
+					entry
+						.slice(1)
+						.some((option) => option?.object === 'process' && option?.property === 'env')
+				if (!bansEnv) {
+					problems.push(
+						`no-restricted-properties for ${app.path(EXPO_SCREEN)} must ban process.env`
+					)
+				}
+			}
+			return problems.length > 0 ? fail(problems.join('; ')) : pass()
+		}
+	},
+	{
+		id: 'expo-lint-rules',
+		scope: 'app',
+		kinds: ['expo'],
+		title:
+			'the ESLint config in effect forbids `any`, console output and a direct Supabase import in a screen',
+		run(ctx) {
+			const file = ctx.app.path(EXPO_SCREEN)
+			if (!ctx.has(file)) return fail(`${file} is missing`)
+			const { rules, error } = effectiveEslintRules(ctx, file)
+			if (error) return fail(error)
+			const problems = []
+			if (severityOf(rules['@typescript-eslint/no-explicit-any']) !== 'error') {
+				problems.push('@typescript-eslint/no-explicit-any is not an error')
+			}
+			if (severityOf(rules['no-console']) !== 'error') problems.push('no-console is not an error')
+			const groups = restrictedImportGroups(rules) ?? []
+			if (!groups.some((group) => group.startsWith('@supabase'))) {
+				problems.push('no-restricted-imports does not ban @supabase/*')
+			}
+			return problems.length > 0 ? fail(`for ${file}: ${problems.join('; ')}`) : pass()
+		}
+	},
+	{
+		id: 'expo-no-server-code',
+		scope: 'app',
+		kinds: ['expo'],
+		title: 'the app depends on nothing server-only — its data comes through the API',
+		run(ctx) {
+			const pkg = ctx.app.packageJson
+			if (pkg == null) return fail(`${ctx.app.path('package.json')} is missing or unparseable`)
+			const declared = { ...pkg.dependencies, ...pkg.devDependencies }
+			const found = EXPO_SERVER_ONLY_DEPENDENCIES.filter((name) => name in declared)
+			return found.length > 0
+				? fail(`${ctx.app.path('package.json')} depends on ${found.join(', ')}`)
+				: pass()
 		}
 	}
 ]
@@ -902,7 +996,7 @@ export function runStandardsChecks({ root = process.cwd(), ids = null } = {}) {
 			})
 			continue
 		}
-		for (const { path } of apps) {
+		for (const { path } of apps.filter(({ kind }) => check.kinds.includes(kind))) {
 			const outcome = runCheck(check, { ...ctx, app: workspaceContext(ctx, path) })
 			results.push({
 				id: check.id,

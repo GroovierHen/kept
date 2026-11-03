@@ -23,6 +23,8 @@
 		"eval:planner": "node --conditions=react-server --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/eval-planner.mts"
 	},
 	"dependencies": {
+		"@kept/brand": "workspace:^",
+		"@kept/contract": "workspace:^",
 		"@phosphor-icons/react": "^2.1.10",
 		"@prisma/adapter-pg": "^7.10.1",
 		"@prisma/client": "^7.10.1",

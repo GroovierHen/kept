@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
 		]
 	},
 	reactStrictMode: true,
+	// Workspace packages ship TypeScript source, not a build.
+	transpilePackages: ['@kept/contract', '@kept/brand'],
 	// Top-level as of Next.js 16, not under `experimental`. Strictest
 	// setting: any Compiler bailout fails the build instead of silently
 	// skipping optimization for that component. Catch Compiler-incompatible code at build time, not as a
