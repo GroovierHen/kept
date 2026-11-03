@@ -11,7 +11,17 @@ export { Prisma } from '@prisma/client'
 // `next dev` doesn't open a fresh connection pool on every file save.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
-export const db = globalForPrisma.prisma ?? new PrismaClient()
+// The database sits next to production. From a laptop on the other side of
+// the world a query takes about a second, so a transaction of ten (saving a
+// plan) outlasts Prisma's 5s default and is rolled back. Outside production
+// the limits are raised to fit; production keeps Prisma's defaults.
+const TRANSACTION_OPTIONS =
+	process.env.NODE_ENV === 'production'
+		? { maxWait: 2000, timeout: 5000 }
+		: { maxWait: 10_000, timeout: 30_000 }
+
+export const db =
+	globalForPrisma.prisma ?? new PrismaClient({ transactionOptions: TRANSACTION_OPTIONS })
 
 if (process.env.NODE_ENV !== 'production') {
 	globalForPrisma.prisma = db
