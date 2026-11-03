@@ -3,12 +3,15 @@ import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/brand/wordmark'
 import { lift } from '@/components/brand/lift'
+import { SignOutButton } from '@/components/auth/sign-out-button'
+import { getSignedInUser } from '@/server/auth/session'
 
 // The home page's bar: the wordmark, a link to each section, then Sign in and
-// the one action. It sticks to the top, and a green line along its foot
-// fills as the page is read, where the browser can tie an animation to scroll.
+// the one action; a signed-in visitor gets Sign out and a way back into Kept.
+// It sticks to the top, and a green line along its foot fills as the page is
+// read, where the browser can tie an animation to scroll.
 export async function LandingNav() {
-	const t = await getTranslations('HomePage.nav')
+	const [t, user] = await Promise.all([getTranslations('HomePage.nav'), getSignedInUser()])
 	const anchors = [
 		{ href: '#how', label: t('how') },
 		{ href: '#plan', label: t('plan') },
@@ -38,14 +41,22 @@ export async function LandingNav() {
 					))}
 				</ul>
 				<div className="ml-auto flex items-center gap-2.5">
-					<Link href="/sign-in" className={`${navLink} px-3.5 py-2.5 text-[15px] font-medium`}>
-						{t('signIn')}
-					</Link>
+					{user == null ? (
+						<Link href="/sign-in" className={`${navLink} px-3.5 py-2.5 text-[15px] font-medium`}>
+							{t('signIn')}
+						</Link>
+					) : (
+						<SignOutButton className="text-text" />
+					)}
 					<Button
 						asChild
 						className={`bg-night text-night-ink hover:bg-night h-auto rounded-full px-[18px] py-[11px] text-[15px] font-semibold ${lift}`}
 					>
-						<Link href="/sign-up">{t('start')}</Link>
+						{user == null ? (
+							<Link href="/sign-up">{t('start')}</Link>
+						) : (
+							<Link href="/today">{t('open')}</Link>
+						)}
 					</Button>
 				</div>
 			</nav>

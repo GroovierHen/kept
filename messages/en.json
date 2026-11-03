@@ -12,7 +12,8 @@
 			"questions": "Questions",
 			"signIn": "Sign in",
 			"results": "Results",
-			"start": "Start free"
+			"start": "Start free",
+			"open": "Open Kept"
 		},
 		"hero": {
 			"badge": "New",
@@ -337,7 +338,8 @@
 		"hide": "Hide",
 		"passwordMore": "{count, plural, one {# more to go.} other {# more to go.}}",
 		"passwordGood": "Good to go.",
-		"home": "Kept, back to the home page"
+		"home": "Kept, back to the home page",
+		"signOut": "Sign out"
 	},
 	"SignUpPage": {
 		"meta": {
@@ -856,7 +858,6 @@
 	"AppShell": {
 		"nav": "Your pages",
 		"today": "Today",
-		"ledger": "Ledger",
-		"signOut": "Sign out"
+		"ledger": "Ledger"
 	}
 }

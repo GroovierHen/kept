@@ -1,6 +1,7 @@
 import { connection } from 'next/server'
 import { getTranslations } from 'next-intl/server'
 import { SiteNav } from '@/components/landing/site-nav'
+import { getSignedInUser } from '@/server/auth/session'
 import { breadcrumbJsonLd, JsonLd } from '@/lib/seo/json-ld'
 import { pageMetadata } from '@/lib/seo/metadata'
 import { getResults } from '@/server/results/read-results'
@@ -87,11 +88,15 @@ function NumbersTable({
 export default async function ResultsPage() {
 	// Read at request time, never at build: the numbers are live.
 	await connection()
-	const [{ results, recall }, t] = await Promise.all([getResults(), getTranslations('ResultsPage')])
+	const [{ results, recall }, t, user] = await Promise.all([
+		getResults(),
+		getTranslations('ResultsPage'),
+		getSignedInUser()
+	])
 
 	return (
 		<>
-			<SiteNav />
+			<SiteNav isSignedIn={user != null} />
 			<main className="flex flex-col gap-20 px-(--page-margin) pt-12 pb-28 md:gap-28 md:pt-20 md:pb-44">
 				<div className="flex flex-col gap-6">
 					<h1 className="text-head max-w-[16ch] font-medium tracking-[-0.05em]">{t('heading')}</h1>

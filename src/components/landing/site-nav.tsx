@@ -2,11 +2,20 @@ import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
+import { SignOutButton } from '@/components/auth/sign-out-button'
 
 // The bar every public page opens with: the wordmark, a few plain links and
 // the one action. On the home page the links jump to its sections; on the
 // sign-in pages only the wordmark shows, so the form is the only thing to do.
-export async function SiteNav({ sections = false }: { sections?: boolean }) {
+// A signed-in visitor elsewhere gets Sign out.
+export async function SiteNav({
+	sections = false,
+	isSignedIn = false
+}: {
+	sections?: boolean
+	/** Shows Sign out at the right. */
+	isSignedIn?: boolean
+}) {
 	const t = await getTranslations('HomePage.nav')
 	const anchors = [
 		{ href: '#how', label: t('how') },
@@ -40,7 +49,9 @@ export async function SiteNav({ sections = false }: { sections?: boolean }) {
 						<Link href="/sign-up">{t('start')}</Link>
 					</Button>
 				</nav>
-			) : null}
+			) : (
+				isSignedIn && <SignOutButton />
+			)}
 		</header>
 	)
 }

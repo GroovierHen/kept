@@ -2,8 +2,8 @@ import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
 import { BrandTheme } from '@/components/brand/brand-theme'
 import { Wordmark } from '@/components/brand/wordmark'
+import { SignOutButton } from '@/components/auth/sign-out-button'
 import { cn } from '@/lib/cn'
-import { signOut } from '@/server/actions/auth'
 
 const PAGES = [
 	{ name: 'today', href: '/today' },
@@ -46,14 +46,7 @@ export async function AppShell({
 							{t(name)}
 						</Link>
 					))}
-					<form action={signOut}>
-						<button
-							type="submit"
-							className="text-text-muted hover:text-text min-h-11 rounded-full px-3 text-[15px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
-						>
-							{t('signOut')}
-						</button>
-					</form>
+					<SignOutButton />
 				</nav>
 			</header>
 
