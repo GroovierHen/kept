@@ -1,4 +1,4 @@
-import type { AdminRole } from '@prisma/client'
+import type { AdminRole } from '@/generated/prisma/client.ts'
 import { LOWEST_ROLE } from './roles'
 
 // Auto-provisioning rule: an email on one of your own domains gets a DEFAULT

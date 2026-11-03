@@ -23,7 +23,7 @@
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { PrismaClient } from '@prisma/client'
+import { createPrismaClient } from '../src/server/db/create-client.ts'
 
 const DEFAULT_FILE = 'prisma/run-once.sql'
 const LEDGER_TABLE = '_run_once_sql'
@@ -85,7 +85,7 @@ export function buildScript({ hash, sqlText }) {
 }
 
 async function findApplied({ url, hash }) {
-	const prisma = new PrismaClient({ datasourceUrl: url })
+	const prisma = createPrismaClient(url)
 	try {
 		return await prisma.runOnceSql.findUnique({ where: { hash }, select: { appliedAt: true } })
 	} finally {
@@ -141,9 +141,11 @@ async function main() {
 	try {
 		const output = execFileSync(
 			'pnpm',
-			['exec', 'prisma', 'db', 'execute', '--stdin', '--url', url],
+			// Prisma 7 takes the URL from prisma.config.ts, which reads DIRECT_URL first.
+			['exec', 'prisma', 'db', 'execute', '--stdin'],
 			{
 				input: buildScript({ hash, sqlText }),
+				env: { ...process.env, DIRECT_URL: url, DATABASE_URL: url },
 				encoding: 'utf-8',
 				stdio: ['pipe', 'pipe', 'pipe']
 			}

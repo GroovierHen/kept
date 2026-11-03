@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/nextjs'
 import posthog from 'posthog-js'
+import { SENTRY_DATA_COLLECTION } from '@/lib/observability/sentry-data-collection'
 
 // A direct-to-storage upload is an XHR/fetch to a presigned URL, and Sentry's
 // breadcrumb records that URL verbatim — including the signature and access-key
@@ -20,6 +21,7 @@ Sentry.init({
 	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || undefined,
 	tracesSampleRate: 0.1,
 	enabled: Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN),
+	dataCollection: SENTRY_DATA_COLLECTION,
 	beforeBreadcrumb: (breadcrumb) => (leaksPresignedCredential(breadcrumb) ? null : breadcrumb)
 })
 

@@ -15,10 +15,8 @@
 //
 // Exit codes: 0 every table locked, 1 a table is not (or there are none).
 
-import prismaClientModule from '@prisma/client'
 import { pathToFileURL } from 'node:url'
-
-const { PrismaClient } = prismaClientModule
+import { createPrismaClient } from '../src/server/db/create-client.ts'
 
 // Tables this project deliberately leaves without RLS. Ships empty — the rule
 // is every table — and is the one place an exception is recorded, with a
@@ -87,7 +85,7 @@ async function main() {
 		process.exit(1)
 	}
 
-	const db = new PrismaClient()
+	const db = createPrismaClient(process.env.DATABASE_URL)
 	let tables
 	try {
 		tables = await fetchTables(db)

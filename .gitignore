@@ -21,6 +21,7 @@ dist/
 
 # prisma
 **/prisma/generated/
+apps/web/src/generated/
 
 # supabase CLI local runtime (only used for local Postgres/auth emulation,
 # never a schema source — see .claude/rules/migrations.md)

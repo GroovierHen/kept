@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../../src/server/db/create-client'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 

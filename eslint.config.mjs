@@ -202,8 +202,9 @@ const eslintConfig = defineConfig([
 		}
 	},
 	{
-		// The one file that constructs the Prisma client.
-		files: ['apps/web/src/server/db/client.ts'],
+		// The files that construct the Prisma client: the factory over the pg
+		// adapter, and the app's one `db` built from it.
+		files: ['apps/web/src/server/db/client.ts', 'apps/web/src/server/db/create-client.ts'],
 		rules: {
 			'no-restricted-imports': [
 				'error',

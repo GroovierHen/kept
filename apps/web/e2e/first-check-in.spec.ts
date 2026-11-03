@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client'
+import { createPrismaClient } from '../src/server/db/create-client'
 import { test, expect, type Page, type Request } from '@playwright/test'
 import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
 import { FAKE_GRADE } from './support/fake-services'
 import { choose, HYDRATION_CHECK_MS, TIME_ZONE } from './support/walk-setup'
 
 // Its own client: `db` in src/ is server-only, so a test can't import it.
-const db = new PrismaClient({ datasourceUrl: DATABASE_URL })
+const db = createPrismaClient(DATABASE_URL)
 
 // The second action of the plan the fake AI returns, so the test can't pass
 // on the form's default choice.
