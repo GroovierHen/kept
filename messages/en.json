@@ -399,7 +399,6 @@
 		"meta": {
 			"title": "Set up Kept"
 		},
-		"heading": "Set up Kept",
 		"progress": "Step {current} of {total}",
 		"steps": {
 			"goal": "Your goal",
@@ -410,7 +409,58 @@
 		},
 		"continue": "Continue",
 		"saveFailed": "We couldn’t save that step. Check your connection, then tap Continue again.",
+		"savesAsYouGo": "Your answers save as you go",
+		"rail": {
+			"label": "Setup steps",
+			"heading": "Getting set up",
+			"done": "Done",
+			"subs": {
+				"goal": "Four short questions",
+				"plan": "Made for you in under 30 seconds",
+				"keyIdea": "One idea, then a quick check",
+				"promise": "One small thing for tomorrow",
+				"reminder": "A nudge at the same time each day"
+			}
+		},
+		"draft": {
+			"label": "Your plan takes shape",
+			"lead": "Every answer shapes the first promise you’ll make.",
+			"title": "Plan draft",
+			"answered": "{count} of {total} answered",
+			"answering": "Answering now",
+			"empty": "Not answered yet",
+			"labels": {
+				"text": "Goal",
+				"weeks": "Length",
+				"startingPoint": "Starting point",
+				"obstacle": "What gets in the way"
+			},
+			"daily": "Then, every day"
+		},
+		"keyIdea": {
+			"label": "Why one idea at a time",
+			"lead": "Each key idea is a reason behind your promises.",
+			"nextHeading": "What happens next",
+			"steps": {
+				"read": "Read it now, in under a minute.",
+				"recall": "Kept brings it back as a quick question, so it sticks.",
+				"next": "Then you make your first promise."
+			}
+		},
 		"promise": {
+			"lead": "One small thing, at one moment. Small enough that you’ll keep it even on a bad day.",
+			"firstAction": "Plan’s first step",
+			"asideLabel": "In your words",
+			"asideLead": "This is what you’ll report back on tomorrow.",
+			"tomorrow": "Tomorrow · {moment}",
+			"pickMoment": "Pick a moment",
+			"empty": "Pick an action and a moment.",
+			"asks": "The next day, Kept asks if you kept it",
+			"answers": {
+				"yes": "Yes",
+				"partly": "Partly",
+				"no": "No"
+			},
 			"actionsLabel": "Which action will you promise?",
 			"typeMyOwn": "Type my own",
 			"useAction": "Pick from my plan instead",
@@ -448,6 +498,10 @@
 			"added": "Your daily reminder is ready. If your calendar asked you to save it, make sure you did.",
 			"goToToday": "Go to today",
 			"saveFailed": "We couldn’t save that. Check your connection, then tap the same button again.",
+			"asideLabel": "Your reminder",
+			"asideLead": "One calendar event that repeats every day.",
+			"every": "Every day at {time}",
+			"opens": "Opens today’s screen in Kept",
 			"calendar": {
 				"title": "Open Kept and report back",
 				"details": "Report back on today’s promise: {url}"
@@ -574,6 +628,26 @@
 				"obstacle": "I’m tired after work and skip it."
 			},
 			"weeksOption": "{weeks} weeks",
+			"weeksUnit": "weeks",
+			"examplesLabel": "Start from one of these:",
+			"examples": {
+				"text": {
+					"first": "Run 5k without stopping",
+					"second": "Read 20 pages a day",
+					"third": "Hold a conversation in Spanish"
+				},
+				"startingPoint": {
+					"first": "I’ve never really started",
+					"second": "I’ve tried and stopped",
+					"third": "I do it now and then"
+				},
+				"obstacle": {
+					"first": "I run out of time",
+					"second": "I lose steam after a week",
+					"third": "I forget"
+				}
+			},
+			"count": "{count} / {max}",
 			"continue": "Continue",
 			"saving": "Saving…",
 			"errors": {
@@ -586,13 +660,8 @@
 			}
 		},
 		"plan": {
-			"eyebrow": "Your plan",
-			"weeks": "Over {weeks} weeks",
-			"keyIdeas": "{count, plural, one {# key idea} other {# key ideas}} to learn, one a day",
 			"milestones": "Milestones",
-			"week": "Week {week}:",
 			"actions": "Daily actions, starting small",
-			"bigger": "Then: {medium}. Then: {large}.",
 			"build": {
 				"title": "Ready to make your plan",
 				"body": "Kept turns your answers into milestones, small daily actions and the ideas behind them. It usually takes under 30 seconds.",
@@ -603,7 +672,12 @@
 				"failed": "We couldn’t make your plan right now. Your answers are saved; try again in a minute.",
 				"offline": "You’re offline, so nothing was sent. Try again once you’re connected.",
 				"unsafe": "Kept can’t plan that goal safely. Here’s a safer version: use it as it is, or change it.",
-				"blocked": "Kept can’t plan this goal. Try putting it another way."
+				"blocked": "Kept can’t plan this goal. Try putting it another way.",
+				"features": {
+					"milestones": "Milestones",
+					"actions": "Daily actions, starting small",
+					"keyIdeas": "Key ideas, one a day"
+				}
 			},
 			"wait": {
 				"promise": "Each day you’ll make one small promise toward “{goal}”.",
@@ -632,7 +706,29 @@
 					"offline": "You’re offline, so nothing was saved. Try again once you’re connected."
 				}
 			},
+			"review": {
+				"stats": {
+					"weeks": "weeks, start to finish",
+					"actions": "{count, plural, one {daily action} other {daily actions}}, starting small",
+					"keyIdeas": "{count, plural, one {key idea} other {key ideas}} to learn, one a day"
+				},
+				"milestonesHint": "Where you’ll be along the way.",
+				"actionsHint": "Each one starts small and grows as you keep your promises. Reword anything that doesn’t sound like you.",
+				"week": "Week {week}",
+				"confirmTitle": "Happy with it?",
+				"checkLabel": "Before you confirm",
+				"checkLead": "A quick gut check. The plan is fixed once you confirm.",
+				"checks": {
+					"badDay": "The first step of each action would still fit a bad day.",
+					"reach": "Every milestone feels within reach by its week.",
+					"obstacle": "It works around what usually gets in your way."
+				},
+				"checkHint": "If one doesn’t hold, edit that action or use Try again.",
+				"tomorrow": "Tomorrow",
+				"tomorrowLead": "Your first promise will be one of these:"
+			},
 			"rebuild": {
+				"label": "Not quite right?",
 				"submit": "Try again",
 				"pending": "Writing a new plan…",
 				"hint": "Get a different plan instead. You can do this once.",

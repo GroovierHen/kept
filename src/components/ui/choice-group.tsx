@@ -17,6 +17,8 @@ type ChoiceGroupProps<T extends string> = {
 	onChange: (value: T) => void
 	layout?: 'row' | 'stack'
 	className?: string
+	/** Merged over each choice's own classes, checked state included. */
+	itemClassName?: string
 }
 
 export function ChoiceGroup<T extends string>({
@@ -25,7 +27,8 @@ export function ChoiceGroup<T extends string>({
 	value,
 	onChange,
 	layout = 'row',
-	className
+	className,
+	itemClassName
 }: ChoiceGroupProps<T>) {
 	const handleValueChange = (next: string) => {
 		const choice = choices.find((candidate) => candidate.value === next)
@@ -52,7 +55,8 @@ export function ChoiceGroup<T extends string>({
 						'group border-border bg-surface text-text text-small hover:bg-surface-hover focus-visible:outline-accent min-h-12 rounded border px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
 						// A pick turns gold rather than green, so it never reads as the one button to press.
 						'data-[state=checked]:border-field-1 data-[state=checked]:bg-field-1 data-[state=checked]:text-field-1-ink',
-						layout === 'row' ? 'text-center' : 'text-left'
+						layout === 'row' ? 'text-center' : 'text-left',
+						itemClassName
 					)}
 				>
 					<span className="block">{choice.label}</span>

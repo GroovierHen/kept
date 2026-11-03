@@ -3,6 +3,7 @@
 import { useActionState, useId, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { EditIcon } from '@/components/ui/icons'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { ActionSize } from '@/lib/learn/plan'
@@ -29,7 +30,8 @@ export function ActionEditor({
 
 	return (
 		<details className="group">
-			<summary className="text-small text-text-muted hover:text-text w-fit cursor-pointer">
+			<summary className="border-border-strong text-text hover:bg-surface-hover focus-visible:outline-accent flex h-10 w-fit cursor-pointer list-none items-center gap-2 rounded-xl border px-3.5 text-[14px] font-semibold group-open:mb-3 focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
+				<EditIcon size={16} />
 				{t('open')}
 			</summary>
 			<form
@@ -38,26 +40,35 @@ export function ActionEditor({
 					setIsOffline(!navigator.onLine)
 					if (!navigator.onLine) event.preventDefault()
 				}}
-				className="mt-3 flex flex-col gap-3"
+				className="flex flex-col gap-3"
 			>
 				<input type="hidden" name="actionId" value={action.id} />
 				{SIZES.map((size) => (
-					<div key={size} className="flex flex-col gap-1">
-						<Label htmlFor={`${id}-${size}`}>{t(`sizes.${size}`)}</Label>
+					<div key={size} className="flex flex-col gap-1.5">
+						<Label htmlFor={`${id}-${size}`} className="text-[13px] font-semibold">
+							{t(`sizes.${size}`)}
+						</Label>
 						<Input
 							id={`${id}-${size}`}
 							name={size}
 							defaultValue={action[size]}
 							maxLength={MAX_ACTION_LENGTH}
 							required
+							className="border-border-strong h-12 rounded-xl text-[16px]"
 						/>
 					</div>
 				))}
-				<p role="alert" className="text-small text-danger empty:hidden">
+				<p role="alert" className="text-danger text-[14px] empty:hidden">
 					{error}
 				</p>
-				<div className="flex gap-2">
-					<Button type="submit" name="intent" value="save" variant="secondary" disabled={pending}>
+				<div className="flex flex-wrap items-center gap-2.5">
+					<Button
+						type="submit"
+						name="intent"
+						value="save"
+						disabled={pending}
+						className="h-12 rounded-xl px-[22px] text-[15px] font-semibold"
+					>
 						{pending ? t('saving') : t('save')}
 					</Button>
 					{canRemove && (
@@ -68,6 +79,7 @@ export function ActionEditor({
 							variant="ghost"
 							disabled={pending}
 							formNoValidate
+							className="text-danger hover:bg-surface-hover ml-auto h-11 text-[14px] font-semibold"
 						>
 							{t('remove')}
 						</Button>

@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { SETUP_SECONDARY_BUTTON } from '@/components/setup/setup-styles'
 import { cn } from '@/lib/cn'
 import { rebuildPlan } from '@/server/actions/plan'
 import type { BuildPlanState } from '@/server/learn/plan-outcome'
@@ -28,13 +29,14 @@ export function RebuildPlanArea({
 
 	return (
 		<>
-			{pending && <PlanWaiting title={t('pending')} />}
+			{pending && (
+				<div className="border-border bg-surface mt-3 mb-2 rounded-[20px] border p-5">
+					<PlanWaiting title={t('pending')} />
+				</div>
+			)}
 			<div
 				inert={pending}
-				className={cn(
-					'flex flex-col gap-4 transition-opacity duration-300',
-					pending && 'opacity-40'
-				)}
+				className={cn('flex flex-col transition-opacity duration-300', pending && 'opacity-40')}
 			>
 				{children}
 			</div>
@@ -45,21 +47,22 @@ export function RebuildPlanArea({
 						setIsOffline(!navigator.onLine)
 						if (!navigator.onLine) event.preventDefault()
 					}}
-					className="flex flex-col gap-2"
+					className="mt-4 flex flex-wrap items-center justify-between gap-3 px-1"
 				>
-					<p role="alert" className="text-small text-danger empty:hidden">
-						{error}
+					<p className="text-text-muted flex-[1_1_260px] text-[15px] leading-normal">
+						<strong className="text-text font-semibold">{t('label')}</strong> {t('hint')}
 					</p>
 					<Button
 						type="submit"
 						variant="outline"
-						size="lg"
 						disabled={pending}
-						className="text-body h-12 w-full"
+						className={SETUP_SECONDARY_BUTTON}
 					>
 						{pending ? t('pending') : t('submit')}
 					</Button>
-					<p className="text-small text-text-muted">{t('hint')}</p>
+					<p role="alert" className="text-danger basis-full text-[14px] empty:hidden">
+						{error}
+					</p>
 				</form>
 			)}
 		</>

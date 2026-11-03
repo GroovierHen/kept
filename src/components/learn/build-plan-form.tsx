@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { SETUP_BUTTON } from '@/components/setup/setup-styles'
 import { buildPlan } from '@/server/actions/plan'
 import type { BuildPlanState } from '@/server/learn/plan-outcome'
 import { GoalQuestionForm } from './goal-question-form'
@@ -24,7 +25,7 @@ export function BuildPlanForm({ goalText }: { goalText: string }) {
 	if (state.kind === 'unsafe' || state.kind === 'blocked') {
 		return (
 			<div className="flex flex-col gap-4">
-				<p role="alert" className="text-body">
+				<p role="alert" className="text-[17px] leading-[1.55]">
 					{t(state.kind)}
 				</p>
 				<GoalQuestionForm
@@ -46,10 +47,10 @@ export function BuildPlanForm({ goalText }: { goalText: string }) {
 			}}
 			className="flex flex-col gap-4"
 		>
-			<p role="alert" className="text-body text-danger empty:hidden">
+			<p role="alert" className="text-danger text-[15px] empty:hidden">
 				{error}
 			</p>
-			<Button type="submit" size="lg" className="text-body h-12 w-full">
+			<Button type="submit" className={SETUP_BUTTON}>
 				{error == null ? t('submit') : t('retry')}
 			</Button>
 		</form>
