@@ -8,7 +8,7 @@ import { env } from './env'
  * the same object_action names the web sends, properties that are ids, enums
  * or booleans, never free text or PII. Off until EXPO_PUBLIC_POSTHOG_KEY is set.
  */
-export type ScreenName = 'sign_in' | 'sign_up' | 'setup' | 'today'
+export type ScreenName = 'sign_in' | 'sign_up' | 'setup' | 'today' | 'ledger'
 export type Permission = 'notifications'
 
 type EventProps = {

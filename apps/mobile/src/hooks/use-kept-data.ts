@@ -16,3 +16,7 @@ export function useToday({ enabled }: { enabled: boolean }) {
 		enabled
 	})
 }
+
+export function useLedger() {
+	return useQuery({ queryKey: ['ledger'], queryFn: ({ signal }) => api('getLedger', { signal }) })
+}

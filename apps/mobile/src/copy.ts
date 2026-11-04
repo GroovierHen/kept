@@ -286,5 +286,69 @@ export const copy = {
 			submit: 'Change my promise'
 		}
 	},
+	tabs: { today: 'Today', ledger: 'Ledger' },
+	ledger: {
+		eyebrow: (day: number, goal: string) => `Day ${day} · ${goal}`,
+		title: 'Your ledger',
+		lead: 'Every promise you’ve made, and what you said about it.',
+		promises: {
+			title: 'Your promises',
+			kept: 'Kept',
+			partly: 'Partly',
+			slipped: 'Slipped',
+			days: (days: readonly number[]) =>
+				`${days.length === 1 ? 'day' : 'days'} ${listOf(days.map(String))}`,
+			note: 'A Partly counts as half. A promise nobody reported on counts as neither kept nor slipped.'
+		},
+		days: {
+			title: 'Day by day',
+			hint: 'Pick a day to see its promise',
+			day: (day: number) => `Day ${day}`,
+			none: 'You made no promise for this day.',
+			outcomes: {
+				kept: 'Kept',
+				partly: 'Partly',
+				slipped: 'Slipped',
+				open: 'Not reported yet',
+				unreported: 'Not reported',
+				noPromise: 'No promise'
+			} satisfies Record<Outcome, string>
+		},
+		sizes: {
+			title: 'How your actions changed',
+			bigger: 'Getting bigger',
+			smaller: 'Getting smaller',
+			change: (from: string, to: string, day: number) => `${from} → ${to} on day ${day}`,
+			smallerNote: 'Smaller isn’t going backwards. It’s the size you’ll keep.'
+		},
+		learned: {
+			title: 'What you learned',
+			scores: (first: number, firstDay: number, last: number, lastDay: number) =>
+				`${first} out of 2 on day ${firstDay}, ${last} out of 2 on day ${lastDay}`,
+			leftOut: (count: number) =>
+				`${count} more ${count === 1 ? 'idea needs' : 'ideas need'} another recall before it shows here.`,
+			none: 'Your key ideas show here once you’ve recalled them twice.'
+		},
+		week: {
+			label: 'This week',
+			lead: 'Promises you reported on in your last 7 days. A Partly counts as half.'
+		},
+		milestone: {
+			heading: (week: number) => `Next milestone · Week ${week}`,
+			week: (week: number) => `Week ${week}`
+		},
+		stats: {
+			daysIn: 'Days in',
+			daysOf: (total: number) => `of ${total}`,
+			recalled: 'Ideas recalled',
+			recalledOf: 'twice or more'
+		}
+	},
 	error: { retry: 'Try again' }
 } as const
+
+/** "1, 2 and 3", the way the web's list format reads in English. */
+function listOf(items: readonly string[]): string {
+	if (items.length <= 1) return items.join('')
+	return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+}

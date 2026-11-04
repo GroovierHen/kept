@@ -23,6 +23,8 @@ test('a Today answer with a malformed Kept day is rejected, not passed through',
 	}
 	assert.equal(todayResponse.safeParse(today).success, true)
 	assert.equal(todayResponse.safeParse({ ...today, today: '4 Nov' }).success, false)
+	// A Partly counts as half, so a week can be 1.5 of 2 kept.
+	assert.equal(todayResponse.safeParse({ ...today, week: { kept: 1.5, total: 2 } }).success, true)
 	assert.equal(todayResponse.safeParse({ ...today, step: 'celebrate' }).success, false)
 	assert.equal(
 		todayResponse.safeParse({ ...today, checkIn: { step: 'report', when: 'today' } }).success,

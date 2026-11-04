@@ -6,6 +6,7 @@ import { useSetup } from '@/hooks/use-setup'
 import { track } from '@/lib/analytics'
 import { colors, space } from '@/lib/theme'
 import { ErrorState } from '../error-state'
+import { SignOutButton } from '../sign-out-button'
 import { Screen } from '../ui/screen'
 import { FirstPromiseStep, KeyIdeaStep, ReminderStep } from './first-steps'
 import { GoalStep } from './goal-step'
@@ -56,6 +57,7 @@ export function SetupFlow() {
 				)}
 				{view?.step === 'reminder' && <ReminderStep eyebrow={eyebrowFor('reminder')} />}
 			</View>
+			<SignOutButton />
 		</Screen>
 	)
 }

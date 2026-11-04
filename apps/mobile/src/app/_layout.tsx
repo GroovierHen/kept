@@ -39,7 +39,7 @@ function Routes() {
 	return (
 		<Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
 			<Stack.Protected guard={session === 'signedIn'}>
-				<Stack.Screen name="index" />
+				<Stack.Screen name="(tabs)" />
 			</Stack.Protected>
 			<Stack.Protected guard={session === 'signedOut'}>
 				<Stack.Screen name="sign-in" />

@@ -8,6 +8,7 @@ import {
 	reportSubmission,
 	saved
 } from './check-in.ts'
+import { ledgerResponse } from './ledger.ts'
 import { meResponse, provisionInput } from './me.ts'
 import {
 	firstKeyIdeaInput,
@@ -53,6 +54,13 @@ export const endpoints = {
 		path: '/api/app/v1/today',
 		auth: 'user',
 		response: todayResponse,
+		status: 200
+	},
+	getLedger: {
+		method: 'GET',
+		path: '/api/app/v1/ledger',
+		auth: 'user',
+		response: ledgerResponse,
 		status: 200
 	},
 	// The Check-in's writes. Each answers once the change is saved; the app then
