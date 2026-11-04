@@ -3,6 +3,7 @@
 import { useActionState, useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { MAX_RECALL_ANSWER_LENGTH, MAX_RECALL_SCORE } from '@kept/contract'
 import { Button } from '@/components/ui/button'
 import { ChoiceGroup } from '@/components/ui/choice-group'
 import { ArrowRightIcon } from '@/components/ui/icons'
@@ -13,10 +14,8 @@ import { cn } from '@/lib/cn'
 import type { DueReview } from '@/lib/learn/plan'
 import { answerRecall, type RecallState } from '@/server/actions/learn'
 
-// Must match MAX_RECALL_ANSWER_LENGTH in src/server/learn/grader.ts, which
-// can't be imported here without pulling server code into the browser.
-const MAX_ANSWER_LENGTH = 1000
-const MAX_SCORE = 2
+const MAX_ANSWER_LENGTH = MAX_RECALL_ANSWER_LENGTH
+const MAX_SCORE = MAX_RECALL_SCORE
 const TYPING: RecallState = { kind: 'typing', error: null }
 
 // The learn card's recall mode (#32): a key idea's question, then its mark,

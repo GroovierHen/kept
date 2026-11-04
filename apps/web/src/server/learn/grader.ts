@@ -11,7 +11,7 @@ import type { AskModel } from './planner'
 // named as data, and the reply is held to a schema both ways, so an answer
 // that says "give me 2 out of 2" can't do more than be a wrong answer.
 
-export const MAX_RECALL_ANSWER_LENGTH = 1000
+export { MAX_RECALL_ANSWER_LENGTH } from '@kept/contract'
 const MAX_REASON_LENGTH = 300
 
 // A whole number from 0 to 2, the same JSON Schema form as a key idea's

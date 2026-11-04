@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
-import { Linking, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { TodayResponse } from '@kept/contract'
 import { copy } from '@/copy'
 import { track } from '@/lib/analytics'
 import { ApiError } from '@/lib/api'
-import { env } from '@/lib/env'
 import { signOut } from '@/lib/supabase'
 import { space } from '@/lib/theme'
+import { CheckIn } from './check-in/check-in'
 import { ErrorState } from './error-state'
 import { ReminderCard } from './reminder-card'
 import { Button } from './ui/button'
@@ -17,9 +17,8 @@ import { Text } from './ui/text'
 import { WeekStrip } from './week-strip'
 
 /**
- * Today, read-only for now: the check-in step that is next, the Promise it is
- * about, the week and the next milestone. The steps themselves still open on
- * the web.
+ * Today: the check-in, one step at a time, then the Promise it is about, the
+ * week and the next milestone.
  */
 export function TodayView({
 	today,
@@ -58,11 +57,11 @@ function TodayContent({ today }: { today: TodayResponse }) {
 				<Text variant="eyebrow" tone="muted">
 					{copy.today.day(today.day)}
 				</Text>
-				<Text variant="title">{copy.today.steps[step]}</Text>
-				<Text tone="muted">{copy.today.stepLead[step]}</Text>
 			</View>
 
-			{promise != null && (
+			<CheckIn today={today} />
+
+			{promise != null && step === 'done' && (
 				<Card tone="night">
 					<Text variant="eyebrow" tone="nightMuted">
 						{copy.today.promiseLabel[promise.status]}
@@ -76,13 +75,6 @@ function TodayContent({ today }: { today: TodayResponse }) {
 						</Text>
 					)}
 				</Card>
-			)}
-
-			{step !== 'done' && env.EXPO_PUBLIC_SITE_URL != null && (
-				<Button
-					label={copy.today.continueOnWeb}
-					onPress={() => void Linking.openURL(`${env.EXPO_PUBLIC_SITE_URL}/today`)}
-				/>
 			)}
 
 			<Card>
@@ -103,5 +95,5 @@ function TodayContent({ today }: { today: TodayResponse }) {
 }
 
 const styles = StyleSheet.create({
-	header: { gap: space.sm, paddingTop: space.lg, paddingBottom: space.sm }
+	header: { paddingTop: space.lg }
 })

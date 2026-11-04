@@ -12,7 +12,7 @@ export const DATABASE_URL = 'postgresql://postgres:postgres@localhost:54329/post
 export const DATABASE_ENV = { DATABASE_URL, DIRECT_URL: DATABASE_URL }
 
 export const APP_URL = `http://localhost:${APP_PORT}`
-const FAKE_SERVICES_URL = `http://localhost:${FAKE_SERVICES_PORT}`
+export const FAKE_SERVICES_URL = `http://localhost:${FAKE_SERVICES_PORT}`
 
 export const APP_ENV = {
 	...DATABASE_ENV,

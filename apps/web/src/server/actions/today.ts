@@ -6,12 +6,10 @@ import { redirect } from '@/i18n/routing'
 import { promiseChoice } from '@/lib/promise'
 import { reportSubmission } from '@/lib/report'
 import { getSignedInUser } from '@/server/auth/session'
-import { db } from '@/server/db/client'
 import { changePromise } from '@/server/today/change-promise'
 import { commitNextPromise } from '@/server/today/commit-next-promise'
 import { makeReport } from '@/server/today/make-report'
-import { readCheckIn } from '@/server/today/read-check-in'
-import { teachLesson } from '@/server/learn/teach-lesson'
+import { finishTodaysLesson } from '@/server/today/finish-lesson'
 import type { PromiseFormState } from './setup'
 import { saveFailedMessage, validatedAction } from './validated-action'
 
@@ -48,10 +46,7 @@ export async function submitReport(
 
 const learn = validatedAction({
 	input: z.object({ userId: z.uuid(), keyIdeaId: z.uuid() }),
-	handler: async ({ userId, keyIdeaId }) => {
-		const { today } = await readCheckIn({ client: db, userId })
-		await teachLesson({ userId, keyIdeaId, keptDay: today })
-	}
+	handler: finishTodaysLesson
 })
 
 // If saving fails, the same lesson comes back, since it still isn't taught.

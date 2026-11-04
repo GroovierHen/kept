@@ -1,9 +1,9 @@
 # Kept mobile (`@kept/mobile`)
 
 The Kept app for iOS and Android: Expo SDK 58, React Native 0.88, Expo Router.
-It signs in with Supabase, shows Today from the web app's API, and reminds the
-person to check in each day. The check-in steps themselves still open on the
-web for now.
+It signs in with Supabase, runs the daily check-in (report, recall, the day's
+key idea, the next promise) through the web app's API, and reminds the person
+to check in each day. Sign-up and setup still open on the web for now.
 
 ## How it fits together
 
