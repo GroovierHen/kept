@@ -12,7 +12,12 @@ const RECALL_TIMEOUT_MS = 100_000
 
 export function useRefreshToday() {
 	const queryClient = useQueryClient()
-	return () => queryClient.invalidateQueries({ queryKey: ['today'] })
+	// The Ledger is built from the same Reports and Promises.
+	return () =>
+		Promise.all([
+			queryClient.invalidateQueries({ queryKey: ['today'] }),
+			queryClient.invalidateQueries({ queryKey: ['ledger'] })
+		])
 }
 
 /** An id made once per screen, so a retried write saves once (the server keys on it). */

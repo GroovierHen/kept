@@ -25,6 +25,16 @@ secret.
 - The app parses every response with the same contract and throws an
   `ApiError` on anything else. A screen shows the error's message and a way to
   try again; it never shows an empty state for a failed request.
+- **A write calls the web's own function.** The app's handler calls the same
+  `src/server/**` function the web's server action calls (the action keeps
+  only the form parsing and the redirect), so the two can't disagree on a
+  rule. Logic sitting inside an action or a component moves into
+  `src/server/` before an app route uses it. A write the screen might retry
+  takes an id the screen makes once (a report's `reportId`), so it saves
+  once.
+- **The server says what's next.** After a write the app reads the screen's
+  data again (`GET /today`, `GET /setup`); it never works out the next step
+  itself.
 - An endpoint the app ships against is a public API: a build in someone's
   pocket keeps calling it for months. Add fields; don't rename or remove one
   until no supported build reads it.
@@ -33,7 +43,8 @@ secret.
 
 ESLint enforces each of these, as it does on the web:
 
-- Supabase: `src/lib/supabase.ts`, sign-in only, typed to the auth surface.
+- Supabase: `src/lib/supabase.ts`, sign-in and sign-up only, typed to the
+  auth surface.
 - Sentry: `src/lib/observability.ts` (`captureError`) and `src/lib/logger.ts`.
 - PostHog: `src/lib/analytics.ts`, whose typed event list uses the web's
   names and rules (docs/rules/analytics.md).
@@ -46,6 +57,10 @@ ESLint enforces each of these, as it does on the web:
 
 `packages/contract` (Zod schemas) and `packages/brand` (design tokens) are
 imported by both apps, so they hold no React, no Next.js and no React Native.
+An input rule both apps check (a length limit, the plan's week choices) lives
+in the contract; plain values go in `@kept/contract/limits`, which has no Zod,
+so a web form can import them without pulling a schema library into the
+browser.
 The web reads the brand as CSS variables from the generated
 `packages/brand/brand.css` (run `pnpm --filter @kept/brand build:css` after
 editing `src/tokens.ts`; a test fails when the two differ); the app reads the

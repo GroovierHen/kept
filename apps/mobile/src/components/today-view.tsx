@@ -5,12 +5,11 @@ import type { TodayResponse } from '@kept/contract'
 import { copy } from '@/copy'
 import { track } from '@/lib/analytics'
 import { ApiError } from '@/lib/api'
-import { signOut } from '@/lib/supabase'
 import { space } from '@/lib/theme'
 import { CheckIn } from './check-in/check-in'
 import { ErrorState } from './error-state'
+import { SignOutButton } from './sign-out-button'
 import { ReminderCard } from './reminder-card'
-import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { Screen } from './ui/screen'
 import { Text } from './ui/text'
@@ -44,7 +43,7 @@ export function TodayView({
 			{today.isError && <ErrorState error={today.error} onRetry={onRefresh} />}
 			{today.data != null && <TodayContent today={today.data} />}
 			{reminderTime != null && <ReminderCard time={reminderTime} />}
-			<Button variant="quiet" label={copy.today.signOut} onPress={() => void signOut()} />
+			<SignOutButton />
 		</Screen>
 	)
 }

@@ -130,4 +130,26 @@ test('the app checks in through the API, and each write saves once', async ({ pa
 		expect(count('recall_graded')).toBe(1)
 		expect(count('promise_changed')).toBe(1)
 	})
+
+	await test.step('a report changed to Partly counts as half, on Today and in the Ledger', async () => {
+		const { changeableReport } = await api.today()
+		expect(changeableReport).not.toBeNull()
+		await api.ok('submitReport', {
+			promiseId: changeableReport?.promiseId,
+			reportId: crypto.randomUUID(),
+			answer: 'partly'
+		})
+		const today = await api.today()
+		expect(today.week).toEqual({ kept: 0.5, total: 1 })
+
+		const ledger = await api.ok('getLedger')
+		expect(ledger.day).toBe(2)
+		expect(ledger.promises).toEqual({ kept: [], partly: [2], slipped: [] })
+		expect(ledger.days.map(({ day, outcome }) => ({ day, outcome }))).toEqual([
+			{ day: 1, outcome: 'noPromise' },
+			{ day: 2, outcome: 'partly' }
+		])
+		expect(ledger.days[1]?.promise).toEqual({ wording: CHOSEN_ACTION, moment: 'after_work' })
+		expect(ledger.week).toEqual({ kept: 0.5, total: 1 })
+	})
 })

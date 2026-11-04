@@ -15,6 +15,18 @@ next promise) and be reminded to, all through the web app's API.
   `packages/contract` (method, path, auth, Zod schemas). The web validates
   each response with it before sending; the app parses each response with it
   on arrival. A change one side doesn't follow fails that side's typecheck.
+- **The routes**, all in `packages/contract/src/v1/endpoints.ts`:
+  - `GET`/`POST /me`: who is signed in; the POST saves the account row on
+    the first read after a sign-in.
+  - `GET /setup` and one `POST` per setup step (`setup/goal`, `setup/plan`,
+    `setup/plan/rebuild`, `setup/plan/action`, `setup/plan/confirm`,
+    `setup/key-idea`, `setup/promise`, `setup/reminder`).
+  - `GET /today`, the check-in step and what it shows, and its writes
+    (`today/report`, `today/recall`, `today/lesson`, `today/promise`,
+    `today/promise-change`).
+  - `GET /ledger`.
+- **Screens**: sign-in and sign-up while signed out; setup until it's
+  finished; then two tabs, Today and Ledger (`src/app/(tabs)`).
 - **One look.** Colours, radii and fonts come from `packages/brand`, the same
   tokens the web app's `.theme-brand` pages are built from.
 - **Supabase is sign-in and sign-up only** (`src/lib/supabase.ts`, the only

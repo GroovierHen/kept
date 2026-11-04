@@ -17,6 +17,9 @@ export const DAY_OUTCOMES = [
 	'noPromise'
 ] as const
 
+/** Kept is worth 1 and Partly half, so `kept` can end in .5, out of the Promises reported. */
+export const weekKept = z.object({ kept: z.number().min(0), total: z.int().min(0) })
+
 export const todayResponse = z.object({
 	today: keptDay,
 	/** Day 1 is the day they signed up. */
@@ -33,7 +36,7 @@ export const todayResponse = z.object({
 		.nullable(),
 	/** The last seven days up to today, oldest first, never before sign-up. */
 	strip: z.array(z.object({ day: z.int().min(1), outcome: z.enum(DAY_OUTCOMES) })),
-	week: z.object({ kept: z.int().min(0), total: z.int().min(0) }),
+	week: weekKept,
 	milestone: z.object({ text: z.string(), daysLeft: z.int().min(0) }).nullable(),
 	checkIn: checkInView,
 	/** A Report made today on an earlier Promise, still changeable until 4am. */
