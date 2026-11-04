@@ -19,6 +19,7 @@ const LEDGER: LedgerResponse = {
 	],
 	learned: { ideas: [], leftOut: 1 },
 	week: { kept: 1.5, total: 2 },
+	streak: { days: 0, best: 0, isForgivenessReady: true, comebacks: 0, comebackToday: null },
 	milestone: { week: 1, text: 'Run 1 km', daysLeft: 3 },
 	milestones: [
 		{ id: 'm1', week: 1, text: 'Run 1 km' },

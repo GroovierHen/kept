@@ -20,6 +20,18 @@ export const DAY_OUTCOMES = [
 /** Kept is worth 1 and Partly half, so `kept` can end in .5, out of the Promises reported. */
 export const weekKept = z.object({ kept: z.number().min(0), total: z.int().min(0) })
 
+/** The Streak, Best streak and Comebacks (GLOSSARY.md, ADR 0004), worked out on the server. */
+export const streak = z.object({
+	/** Kept days in the current Streak, today included once its Check-in is finished. */
+	days: z.int().min(0),
+	best: z.int().min(0),
+	/** True while the next Empty day would be forgiven rather than end the Streak. */
+	isForgivenessReady: z.boolean(),
+	comebacks: z.int().min(0),
+	/** Today's Check-in as a Comeback: the Streak was safe, or started again. */
+	comebackToday: z.enum(['safe', 'restarted']).nullable()
+})
+
 export const todayResponse = z.object({
 	today: keptDay,
 	/** Day 1 is the day they signed up. */
@@ -37,6 +49,7 @@ export const todayResponse = z.object({
 	/** The last seven days up to today, oldest first, never before sign-up. */
 	strip: z.array(z.object({ day: z.int().min(1), outcome: z.enum(DAY_OUTCOMES) })),
 	week: weekKept,
+	streak,
 	milestone: z.object({ text: z.string(), daysLeft: z.int().min(0) }).nullable(),
 	checkIn: checkInView,
 	/** A Report made today on an earlier Promise, still changeable until 4am. */

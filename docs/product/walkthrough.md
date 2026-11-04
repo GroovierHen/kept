@@ -80,6 +80,15 @@ Sara is 26. She wants to get fit, can jog about 1 km before she has to walk, and
 - **A missed day doesn't count against her.** A promise she doesn't report by the end of the next day closes as Unreported, neither kept nor slipped. The app skips it when sizing promises, so a weekend away doesn't shrink them, and No, Unreported, No still counts as two Noes.
 - **Milestones get checked.** On the day a milestone is due, today's screen asks once: "Can you run 2 km without stopping yet?" **Yes** or **Not yet**. Not yet changes nothing in her plan; it is shown honestly in her ledger.
 
+### Her streak
+
+Her streak counts the Kept days in a row she finished a check-in: she reported if a promise was due, then made her next promise. A No counts as much as a Yes, so she never has a reason to tap Yes to save it (docs/adr/0004).
+
+- **One empty day is forgiven.** If she doesn't check in on Saturday, her streak holds at 3 instead of ending, and Sunday makes it 4. The forgiveness comes back after 3 check-ins in a row; another empty day before then ends the streak.
+- **Coming back is the win.** The first check-in after an empty day is a comeback. Done for today says "You're back. Your streak is safe at 4 days.", or, if the streak ended, "You're back. Day 1 of your next streak."
+- **A streak that ends is never shown as lost.** Today hides a streak of 0, and her ledger keeps her best streak.
+- **Nothing else changes.** Coming back doesn't shrink her promise, and her reminder still says "Open Kept and report back".
+
 ### Day 5: the ledger
 
 Her progress looks like a ledger. It's one tap from today's screen, and on day 5 it shows:
@@ -89,6 +98,7 @@ Her progress looks like a ledger. It's one tap from today's screen, and on day 5
 - **This week:** 3.5 of 4 promises kept. Day 1 had no promise to report, because setup makes the first one for day 2.
 - **Next milestone:** run 2 km without stopping, due in 9 days.
 - **What she learned:** run slow enough to talk, 1 out of 2 on day 2, 2 out of 2 on day 4.
+- **Streak:** 5 days, best 5. **Comebacks:** 0, the number of times she came back after an empty day.
 
 A week is her last 7 Kept days.
 
@@ -109,7 +119,7 @@ Nothing in the loop knows about running. The AI writes the plan, and code runs t
 
 Our testers' week is the proof, so we make it easy to check.
 
-- **Results page.** A public page with live numbers from all testers, built from the same events as the ledger: how many signed up, how many started (finished setup), how many still check in each day (submitted a report that day), promises kept, partly kept and slipped, milestones reached, and recall scores the first time against the last time for each key idea. Raw counts, people who dropped out included. No names, emails or goals, and testers are told at sign-up that their numbers appear there. They are also told that their goal and answers are sent through OpenRouter to OpenAI's GPT-6 Luna, on hosts that don't keep them, so they shouldn't type anything private anyway. The demo account and our own accounts aren't counted.
+- **Results page.** A public page with live numbers from all testers, built from the same events as the ledger: how many signed up, how many started (finished setup), how many still check in each day (submitted a report that day), promises kept, partly kept and slipped, milestones reached, testers who came back after an empty day, and recall scores the first time against the last time for each key idea. Raw counts, people who dropped out included. No names, emails or goals, and testers are told at sign-up that their numbers appear there. They are also told that their goal and answers are sent through OpenRouter to OpenAI's GPT-6 Luna, on hosts that don't keep them, so they shouldn't type anything private anyway. The demo account and our own accounts aren't counted.
 - **Demo account.** A login with Sara's week already in it. Her plan is saved, not generated, and her taps are replayed through the same code a real user goes through, so judges see the promise grow, the ledger and recall improving in 2 minutes instead of 5 days. We use it to test any day of the loop without waiting for one.
 - **Grader check.** 20 answers we graded by hand, plus every **I think I was right** from testers, with how often the AI's mark matched ours.
 - **Plan check.** We read every tester's plan the day it's made, and count how many passed code's checks first time, needed a second try, or we would have changed.
@@ -147,6 +157,7 @@ Why so little AI:
 | "Is my answer right?"           | Recall grader: the AI marks her words against the saved model answer            |
 | I think I was right             | Saved with her answer, then added to the grader check                           |
 | Easier or harder promises       | Adaptive engine, reading her Yes, Partly and No answers                         |
+| Her streak and comebacks        | Code, from the Check-ins her Events record (one empty day forgiven)             |
 | Ideas returning on days 2, 4, 8 | Review scheduler (1, 3, 7 days, at most 2 recalls a check-in)                   |
 | Milestone question              | Milestone check, on the day each milestone is due                               |
 | Phone reminder                  | One repeating calendar event, added once. No app install, no push notifications |

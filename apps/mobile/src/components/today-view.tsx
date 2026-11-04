@@ -49,7 +49,7 @@ export function TodayView({
 }
 
 function TodayContent({ today }: { today: TodayResponse }) {
-	const { step, promise, milestone } = today
+	const { step, promise, milestone, streak } = today
 	return (
 		<>
 			<View style={styles.header}>
@@ -79,6 +79,19 @@ function TodayContent({ today }: { today: TodayResponse }) {
 			<Card>
 				<WeekStrip strip={today.strip} week={today.week} />
 			</Card>
+
+			{/* Hidden at 0, so a Streak that ended never shows as lost (ADR 0004). */}
+			{streak.days > 0 && (
+				<Card>
+					<Text variant="eyebrow" tone="muted">
+						{copy.today.streak.heading}
+					</Text>
+					<Text variant="lead">{copy.today.streak.days(streak.days)}</Text>
+					<Text tone="muted">
+						{streak.isForgivenessReady ? copy.today.streak.safe : copy.today.streak.notSafe}
+					</Text>
+				</Card>
+			)}
 
 			{milestone != null && (
 				<Card>

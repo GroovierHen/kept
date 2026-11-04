@@ -303,6 +303,11 @@
 			"partly": "Partly",
 			"slipped": "Slipped"
 		},
+		"comebacks": {
+			"heading": "Comebacks",
+			"note": "Started testers who finished a check-in after a day with none. An empty day isn’t the end, and this counts the people who came back.",
+			"cameBack": "Came back"
+		},
 		"milestones": {
 			"heading": "Milestones",
 			"note": "Answers of Yes on the day a milestone was due.",
@@ -571,7 +576,11 @@
 		},
 		"done": {
 			"title": "Done for today",
-			"nextCheckIn": "We’ll ask how it went at your next check-in."
+			"nextCheckIn": "We’ll ask how it went at your next check-in.",
+			"comeback": {
+				"safe": "You’re back. Your streak is safe at {days, plural, one {# day} other {# days}}.",
+				"restarted": "You’re back. Day 1 of your next streak."
+			}
 		},
 		"progress": "Step {current} of {total}",
 		"rail": {
@@ -621,7 +630,13 @@
 					"noPromise": "No promise"
 				}
 			},
-			"milestone": "Next milestone"
+			"milestone": "Next milestone",
+			"streak": {
+				"heading": "Streak",
+				"days": "{days, plural, one {# day} other {# days}}",
+				"safe": "One empty day won’t end it.",
+				"notSafe": "Check in 3 days in a row and one empty day won’t end it again."
+			}
 		}
 	},
 	"LedgerPage": {
@@ -690,7 +705,12 @@
 			"daysIn": "Days in",
 			"daysOf": "of {total}",
 			"recalled": "Ideas recalled",
-			"recalledOf": "twice or more"
+			"recalledOf": "twice or more",
+			"streak": "Streak",
+			"streakBest": "best {best}",
+			"streakBestOnly": "your best",
+			"comebacks": "Comebacks",
+			"comebacksOf": "after a gap"
 		}
 	},
 	"SiteFooter": {

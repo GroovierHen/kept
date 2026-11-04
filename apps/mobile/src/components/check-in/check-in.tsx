@@ -35,7 +35,7 @@ export function CheckIn({ today }: { today: TodayResponse }) {
 				<LessonStep key={checkIn.lesson.keyIdeaId} lesson={checkIn.lesson} />
 			)}
 			{checkIn.step === 'commit' && <CommitStep view={checkIn} />}
-			{checkIn.step === 'done' && <DoneStep view={checkIn} />}
+			{checkIn.step === 'done' && <DoneStep view={checkIn} streak={today.streak} />}
 
 			{today.changeableReport != null && <ChangeReport report={today.changeableReport} />}
 		</>

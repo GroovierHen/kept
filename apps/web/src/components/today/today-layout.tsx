@@ -262,3 +262,30 @@ export function MilestoneNote({
 		</div>
 	)
 }
+
+/**
+ * The Streak on the green panel (ADR 0004). Hidden at 0, so a Streak that ended
+ * never shows as lost; the next Check-in starts the next one.
+ */
+export async function StreakNote({
+	streak
+}: {
+	streak: { readonly days: number; readonly isForgivenessReady: boolean }
+}) {
+	if (streak.days === 0) return null
+	const t = await getTranslations('TodayPage.aside.streak')
+
+	return (
+		<div className="border-accent-ink/20 bg-accent-ink/10 relative rounded-[18px] border px-[18px] py-4">
+			<h2 className="flex items-baseline justify-between gap-3 text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
+				{t('heading')}
+				<span className="text-[16px] font-bold tracking-normal normal-case">
+					{t('days', { days: streak.days })}
+				</span>
+			</h2>
+			<p className="mt-2 text-[14px] leading-normal opacity-90">
+				{streak.isForgivenessReady ? t('safe') : t('notSafe')}
+			</p>
+		</div>
+	)
+}

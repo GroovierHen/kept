@@ -56,6 +56,22 @@ _Avoid_: level, difficulty, tier
 An unbroken series of the same Report on one Action. A Partly or a change of size ends it, an Unreported is skipped over, and switching Action starts a new one.
 _Avoid_: streak
 
+**Streak**:
+How many Kept days in a row the user finished a Check-in, whatever their Reports said. One per user, across all Actions, so a No counts as much as a Yes. One Empty day is forgiven, and forgiven again only after 3 finished Check-ins in a row; any other Empty day ends it.
+_Avoid_: run (a Run is one Action's series of the same Report), chain
+
+**Empty day**:
+A Kept day on which the user didn't finish a Check-in, whether a Promise went Unreported or no Promise was due.
+_Avoid_: missed day, skipped day, Unreported (Unreported is a Promise, not a day)
+
+**Best streak**:
+The longest Streak the user has had. A Streak that ends is never shown as lost; the Best streak keeps the record.
+_Avoid_: record, high score
+
+**Comeback**:
+The first finished Check-in after an Empty day, whether that Empty day was forgiven or ended the Streak. Comebacks are counted, as a return worth marking rather than a slip to point out.
+_Avoid_: restart, recovery, streak repair
+
 **Check-in**:
 One Kept day's turn of the loop: the user reports on their due promise, learns, and commits the next promise, across as many visits as that takes. Setup counts as Day 1's check-in.
 _Avoid_: session, visit, daily loop (the loop is the repeating cycle, a check-in is one turn of it)

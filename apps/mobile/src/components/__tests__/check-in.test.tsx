@@ -24,6 +24,7 @@ const BASE: Omit<TodayResponse, 'checkIn'> = {
 	},
 	strip: [],
 	week: { kept: 0, total: 0 },
+	streak: { days: 0, best: 0, isForgivenessReady: true, comebacks: 0, comebackToday: null },
 	milestone: null,
 	changeableReport: null,
 	unreported: false

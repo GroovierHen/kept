@@ -37,7 +37,18 @@ export default async function LedgerPage() {
 	}
 
 	const [
-		{ today, signUpDay, promises, goal, milestones, ledger, actions, milestone, recallProgress },
+		{
+			today,
+			signUpDay,
+			promises,
+			goal,
+			milestones,
+			ledger,
+			actions,
+			milestone,
+			recallProgress,
+			streak
+		},
 		t,
 		tPromise,
 		format
@@ -340,6 +351,31 @@ export default async function LedgerPage() {
 							{recallProgress.ideas.length}{' '}
 							<span className="font-sans text-[14px] font-medium opacity-90">
 								{t('stats.recalledOf')}
+							</span>
+						</dd>
+					</div>
+					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4">
+						<dt className="text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
+							{t('stats.streak')}
+						</dt>
+						<dd className="face-display mt-2 text-[28px] font-extrabold">
+							{/* A Streak that ended is never shown as lost (ADR 0004). */}
+							{streak.days > 0 ? streak.days : streak.best}{' '}
+							<span className="font-sans text-[14px] font-medium opacity-90">
+								{streak.days > 0
+									? t('stats.streakBest', { best: streak.best })
+									: t('stats.streakBestOnly')}
+							</span>
+						</dd>
+					</div>
+					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4">
+						<dt className="text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
+							{t('stats.comebacks')}
+						</dt>
+						<dd className="face-display mt-2 text-[28px] font-extrabold">
+							{streak.comebacks}{' '}
+							<span className="font-sans text-[14px] font-medium opacity-90">
+								{t('stats.comebacksOf')}
 							</span>
 						</dd>
 					</div>

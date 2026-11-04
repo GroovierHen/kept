@@ -18,7 +18,8 @@ export async function readLedgerView(userId: string): Promise<LedgerResponse> {
 		ledger,
 		actions,
 		milestone,
-		recallProgress
+		recallProgress,
+		streak
 	} = await readLedger(userId)
 	const dayOf = (day: KeptDay) => dayNumber({ signUpDay, today: day })
 	const promiseOn = new Map(promises.map((promise) => [promise.promiseDay, promise]))
@@ -68,6 +69,7 @@ export async function readLedgerView(userId: string): Promise<LedgerResponse> {
 			leftOut: recallProgress.leftOut
 		},
 		week: { kept: ledger.week.kept, total: ledger.week.total },
+		streak,
 		milestone:
 			milestone == null
 				? null
