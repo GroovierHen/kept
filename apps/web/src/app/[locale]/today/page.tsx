@@ -21,26 +21,20 @@ import {
 } from '@/components/today/today-layout'
 import { Button } from '@/components/ui/button'
 import { ArrowRightIcon, CheckIcon, InfoIcon } from '@/components/ui/icons'
-import { canChangePromise, checkInStep, closedAsUnreported } from '@/lib/check-in'
+import { canChangePromise, closedAsUnreported } from '@/lib/check-in'
 import { cn } from '@/lib/cn'
-import { addDays, dayNumber, type KeptDay } from '@/lib/kept-day'
-import { dayOutcomes } from '@/lib/ledger'
+import { dayNumber, type KeptDay } from '@/lib/kept-day'
 import type { PromiseMoment } from '@/lib/promise'
 import { reportQuestionWording } from '@/lib/report'
 import { finishLearning } from '@/server/actions/today'
 import { getSignedInUser } from '@/server/auth/session'
-import { db } from '@/server/db/client'
-import { getDueReviews, getTodaysLesson } from '@/server/learn/learn'
-import { hasLearnedOn } from '@/server/learn/teach-lesson'
 import { readSetupStep } from '@/server/setup/progress'
-import { readCheckIn } from '@/server/today/read-check-in'
-import { readLedger } from '@/server/today/read-ledger'
+import { readCheckInState, recentDays } from '@/server/today/read-check-in-state'
 
 // Marking a recall answer is an AI call with up to 2 tries of 45s; the usual
 // case is a few seconds. Server actions on this page share it.
 export const maxDuration = 100
 
-const STRIP_DAYS = 7
 const WEEK_DAYS = 7
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -58,35 +52,18 @@ export default async function TodayPage() {
 		return redirect({ href: '/setup', locale })
 	}
 
-	const { today, day, latestPromise, changeableReport } = await readCheckIn({
-		client: db,
-		userId: user.id
-	})
-	const [dueReviews, lesson, hasLearnedToday, ledger, t, tLedger, tPromise] = await Promise.all([
-		getDueReviews(user.id, today),
-		getTodaysLesson(user.id, today),
-		hasLearnedOn({ userId: user.id, today }),
-		readLedger(user.id),
+	const [state, t, tLedger, tPromise] = await Promise.all([
+		readCheckInState(user.id),
 		getTranslations('TodayPage'),
 		getTranslations('LedgerPage'),
 		getTranslations('SetupPage.promise')
 	])
-	const step = checkInStep({
-		today,
-		latestPromise,
-		// Learning is today's recalls first, then the new idea if there is one.
-		hasLearned: dueReviews.length === 0 && (hasLearnedToday || lesson == null)
-	})
+	const { today, day, latestPromise, changeableReport, dueReviews, lesson, hasLearnedToday } = state
+	const { ledger, step } = state
 	const [recall] = dueReviews
 	const dayOf = (keptDay: KeptDay) => dayNumber({ signUpDay: ledger.signUpDay, today: keptDay })
 
-	const stripStart = addDays({ day: today, days: 1 - STRIP_DAYS })
-	const strip = dayOutcomes({
-		ledger: ledger.ledger,
-		promiseDays: ledger.promises.map(({ promiseDay }) => promiseDay),
-		from: stripStart > ledger.signUpDay ? stripStart : ledger.signUpDay,
-		today
-	}).map(({ day: keptDay, outcome }) => ({ day: dayOf(keptDay), outcome }))
+	const strip = recentDays(state)
 	const { week } = ledger.ledger
 	const asideExtras = (
 		<>

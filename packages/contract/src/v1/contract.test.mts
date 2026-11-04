@@ -16,11 +16,18 @@ test('a Today answer with a malformed Kept day is rejected, not passed through',
 		promise: { wording: 'walk', moment: 'lunch', promiseDay: '2026-11-04', status: 'dueToday' },
 		strip: [{ day: 3, outcome: 'open' }],
 		week: { kept: 1, total: 2 },
-		milestone: null
+		milestone: null,
+		checkIn: { step: 'report', promiseId: 'p1', when: 'today' },
+		changeableReport: null,
+		unreported: false
 	}
 	assert.equal(todayResponse.safeParse(today).success, true)
 	assert.equal(todayResponse.safeParse({ ...today, today: '4 Nov' }).success, false)
 	assert.equal(todayResponse.safeParse({ ...today, step: 'celebrate' }).success, false)
+	assert.equal(
+		todayResponse.safeParse({ ...today, checkIn: { step: 'report', when: 'today' } }).success,
+		false
+	)
 })
 
 test('an error body names a known code', () => {

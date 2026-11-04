@@ -127,3 +127,22 @@ test('an AppError carries its own message and status; anything else is reported'
 	assert.doesNotMatch((await errorOf(failed)).message, /hunter2/)
 	assert.equal(reported.length, 1)
 })
+
+test('a 409 or 403 AppError reaches the app as conflict or forbidden, not invalid_request', async () => {
+	const { deps: d } = deps()
+	for (const [status, code] of [
+		[409, 'conflict'],
+		[403, 'forbidden']
+	] as const) {
+		const route = buildAppRoute(
+			echo,
+			async () => {
+				throw new AppError('That day is closed.', { status })
+			},
+			d
+		)
+		const response = await route(request({ word: 'hi' }))
+		assert.equal(response.status, status)
+		assert.deepEqual(await errorOf(response), { code, message: 'That day is closed.' })
+	}
+})

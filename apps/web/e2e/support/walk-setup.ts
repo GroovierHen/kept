@@ -82,3 +82,22 @@ export async function passLearnCard(page: Page) {
 		}
 	}
 }
+
+/** The rest of setup after the key idea: the first promise, then the reminder. */
+export async function finishSetup({ page, action }: { page: Page; action: string }) {
+	await choose({ page, name: action })
+	await choose({ page, name: 'After work' })
+	await page.getByRole('button', { name: 'Make my promise' }).click()
+
+	const addReminder = page.getByRole('link', { name: 'Add daily reminder' })
+	await expect(async () => {
+		await page.getByLabel('Remind me at').fill('07:30')
+		await expect(addReminder).toHaveAttribute('href', /time=07%3A30/, {
+			timeout: HYDRATION_CHECK_MS
+		})
+	}).toPass()
+	const calendarFile = page.waitForEvent('download')
+	await addReminder.click()
+	await calendarFile
+	await expect(page.getByRole('status')).toContainText('Your daily reminder is ready')
+}

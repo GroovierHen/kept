@@ -39,7 +39,9 @@ const NO_STORE = { 'Cache-Control': 'no-store' }
 const STATUS_CODES: Record<number, ErrorCode> = {
 	400: 'invalid_request',
 	401: 'unauthorized',
-	404: 'not_found'
+	403: 'forbidden',
+	404: 'not_found',
+	409: 'conflict'
 }
 
 const GENERIC_MESSAGE = 'Something went wrong on our side. Try again in a moment.'

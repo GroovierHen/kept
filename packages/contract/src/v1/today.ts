@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { keptDay } from './common.ts'
+import { changeableReport, checkInView } from './check-in.ts'
+import { keptDay, PROMISE_MOMENTS } from './common.ts'
 
-// The Today screen, read-only: which step of the Check-in is next, the
-// Promise it is about, and the week so far (GLOSSARY.md). The steps
-// themselves (report, learn, commit) are separate routes.
+// The Today screen: which step of the Check-in is next, the Promise it is
+// about, what that step needs to show, and the week so far (GLOSSARY.md).
+// Each step's write is its own route (check-in.ts).
 
 export const CHECK_IN_STEPS = ['report', 'learn', 'commit', 'done'] as const
-export const PROMISE_MOMENTS = ['wake_up', 'lunch', 'after_work', 'before_bed'] as const
 export const PROMISE_STATUSES = ['upcoming', 'dueToday', 'dueYesterday', 'unreported'] as const
 export const DAY_OUTCOMES = [
 	'kept',
@@ -34,6 +34,11 @@ export const todayResponse = z.object({
 	/** The last seven days up to today, oldest first, never before sign-up. */
 	strip: z.array(z.object({ day: z.int().min(1), outcome: z.enum(DAY_OUTCOMES) })),
 	week: z.object({ kept: z.int().min(0), total: z.int().min(0) }),
-	milestone: z.object({ text: z.string(), daysLeft: z.int().min(0) }).nullable()
+	milestone: z.object({ text: z.string(), daysLeft: z.int().min(0) }).nullable(),
+	checkIn: checkInView,
+	/** A Report made today on an earlier Promise, still changeable until 4am. */
+	changeableReport: changeableReport.nullable(),
+	/** The last Promise closed with no Report, so the screen says it counted for nothing. */
+	unreported: z.boolean()
 })
 export type TodayResponse = z.infer<typeof todayResponse>
