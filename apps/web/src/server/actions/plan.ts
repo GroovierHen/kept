@@ -3,24 +3,13 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { z } from 'zod'
 import { redirect } from '@/i18n/routing'
-import { completeGoal } from '@/lib/learn/goal'
 import { planActionEdit } from '@/lib/learn/plan'
-import { captureError } from '@/lib/observability/capture-error'
 import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
 import { markPlanConfirmed } from '@/server/learn/confirm-plan'
 import { removePlanAction, updatePlanAction } from '@/server/learn/edit-plan'
-import { generatePlan, PLANNER_MODEL } from '@/server/learn/generate-plan'
-import { getGoal, getPlanStatus } from '@/server/learn/learn'
-import { outcomeOf, type BuildPlanState } from '@/server/learn/plan-outcome'
-import { claimBuild, releaseBuild } from '@/server/learn/claim-build'
-import {
-	claimRebuild,
-	getPlanToReplace,
-	releaseRebuild,
-	replacePlan
-} from '@/server/learn/rebuild-plan'
-import { savePlan } from '@/server/learn/save-plan'
+import type { BuildPlanState } from '@/server/learn/plan-outcome'
+import { runPlanBuild, runPlanRebuild } from '@/server/learn/run-plan-build'
 import { validatedAction } from './validated-action'
 
 // The plan step (#30). Building only happens from the button, after the person
@@ -36,28 +25,10 @@ export async function buildPlan(): Promise<BuildPlanState> {
 	const user = await getSignedInUser()
 	if (user == null) return redirect({ href: '/sign-in', locale })
 
-	const [status, answers] = await Promise.all([getPlanStatus(user.id), getGoal(user.id)])
-	const goal = completeGoal(answers)
-	if (status !== 'goal_saved' || goal == null || !(await claimBuild(user.id))) {
+	const result = await runPlanBuild(user.id)
+	if (result.kind === 'saved' || result.kind === 'skipped')
 		return redirect({ href: '/setup', locale })
-	}
-
-	const outcome = outcomeOf(await generatePlan({ userId: user.id, goal }))
-	try {
-		if ('state' in outcome) {
-			if (outcome.report != null) captureError(outcome.report)
-			// A stuck claim only delays a retry until it goes stale; the
-			// person's answer (a safer goal, a reword) still matters more.
-			await releaseBuild(user.id).catch(captureError)
-			return outcome.state
-		}
-		await savePlan({ userId: user.id, goal, plan: outcome.save, model: PLANNER_MODEL })
-	} catch (error) {
-		captureError(error)
-		await releaseBuild(user.id).catch(captureError)
-		return { kind: 'failed' }
-	}
-	return redirect({ href: '/setup', locale })
+	return result
 }
 
 const confirm = validatedAction({
@@ -77,34 +48,16 @@ export async function confirmPlan(): Promise<void> {
 	})
 }
 
-// Like buildPlan, for the one Try again, which sends the plan the person has
-// so the new one differs. Every way it fails leaves the first plan in place
-// and gives the Try again back; an AI fault is reported.
+// Like buildPlan, for the one Try again (src/server/learn/run-plan-build.ts).
 export async function rebuildPlan(): Promise<BuildPlanState> {
 	const locale = await getLocale()
 	const user = await getSignedInUser()
 	if (user == null) return redirect({ href: '/sign-in', locale })
 
-	const [answers, previous] = await Promise.all([getGoal(user.id), getPlanToReplace(user.id)])
-	const goal = completeGoal(answers)
-	if (goal == null || previous == null || !(await claimRebuild(user.id))) {
+	const result = await runPlanRebuild(user.id)
+	if (result.kind === 'saved' || result.kind === 'skipped')
 		return redirect({ href: '/setup', locale })
-	}
-
-	const outcome = outcomeOf(await generatePlan({ userId: user.id, goal, previous }))
-	try {
-		if ('state' in outcome) {
-			if (outcome.report != null) captureError(outcome.report)
-			await releaseRebuild(user.id)
-			return { kind: 'failed' }
-		}
-		await replacePlan({ userId: user.id, plan: outcome.save, model: PLANNER_MODEL })
-	} catch (error) {
-		captureError(error)
-		await releaseRebuild(user.id).catch(captureError)
-		return { kind: 'failed' }
-	}
-	return redirect({ href: '/setup', locale })
+	return { kind: 'failed' }
 }
 
 export interface ActionEditState {

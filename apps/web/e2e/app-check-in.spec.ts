@@ -1,16 +1,10 @@
 import { createPrismaClient } from '../src/server/db/create-client'
-import { test, expect, type APIRequestContext } from '@playwright/test'
-import {
-	checkInView,
-	endpoints,
-	errorBodySchema,
-	todayResponse,
-	type CheckInView,
-	type EndpointName
-} from '@kept/contract'
+import { test, expect } from '@playwright/test'
+import { checkInView, endpoints, errorBodySchema, type CheckInView } from '@kept/contract'
+import { accessToken, appClient } from './support/app-api'
 import { daysPass } from './support/days-pass'
 import { FAKE_GRADE } from './support/fake-services'
-import { DATABASE_URL, FAKE_SERVICES_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
+import { DATABASE_URL, RUNS_AGAINST_LIVE_URL } from './support/test-env'
 import { finishSetup, TIME_ZONE, walkToPromiseStep } from './support/walk-setup'
 
 // The app's check-in, end to end through /api/app/v1 with a bearer token, as
@@ -23,39 +17,6 @@ const TEST_TIMEOUT_MS = 180_000
 test.use({ timezoneId: TIME_ZONE })
 test.skip(RUNS_AGAINST_LIVE_URL, 'Needs the local database and fake services')
 test.afterAll(() => db.$disconnect())
-
-/** Signs in against the fake Supabase Auth, as src/lib/supabase.ts does on the phone. */
-async function accessToken(request: APIRequestContext, email: string): Promise<string> {
-	const response = await request.post(`${FAKE_SERVICES_URL}/auth/v1/token?grant_type=password`, {
-		data: { email, password: 'a-test-password' }
-	})
-	const { access_token } = (await response.json()) as { access_token: string }
-	return access_token
-}
-
-function client(request: APIRequestContext, token: string) {
-	async function call(name: EndpointName, body?: unknown) {
-		const { method, path } = endpoints[name]
-		return request.fetch(path, {
-			method,
-			headers: { authorization: `Bearer ${token}` },
-			...(body !== undefined && { data: body })
-		})
-	}
-	return {
-		call,
-		async today() {
-			const response = await call('getToday')
-			expect(response.status()).toBe(200)
-			return todayResponse.parse(await response.json())
-		},
-		async ok(name: EndpointName, body: unknown) {
-			const response = await call(name, body)
-			expect(response.status(), await response.text()).toBe(200)
-			return (await response.json()) as unknown
-		}
-	}
-}
 
 function stepOf<S extends CheckInView['step']>(view: CheckInView, step: S) {
 	expect(view.step).toBe(step)
@@ -71,7 +32,7 @@ test('the app checks in through the API, and each write saves once', async ({ pa
 		await finishSetup({ page, action: CHOSEN_ACTION })
 	})
 
-	const api = client(request, await accessToken(request, email))
+	const api = appClient(request, await accessToken(request, email))
 
 	await test.step('without a token, every route is a 401', async () => {
 		const response = await request.get(endpoints.getToday.path)

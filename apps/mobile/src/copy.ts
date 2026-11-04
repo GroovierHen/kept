@@ -1,4 +1,11 @@
-import type { PromiseMoment, PromiseNudgeKind, ReportAnswer, TodayResponse } from '@kept/contract'
+import type {
+	GoalQuestion,
+	PromiseMoment,
+	PromiseNudgeKind,
+	ReportAnswer,
+	SetupStep,
+	TodayResponse
+} from '@kept/contract'
 
 // The app's words, matching the web app's (apps/web/messages/en.json) so a
 // person reads the same thing on either. English only for now.
@@ -16,7 +23,7 @@ export const copy = {
 		submit: 'Sign in',
 		pending: 'Signing you in',
 		switch: 'New to Kept?',
-		switchLink: 'Create an account on the web',
+		switchLink: 'Create an account',
 		errors: {
 			credentials: 'That email and password don’t match an account.',
 			offline: 'You’re offline. Try again when you’re back.',
@@ -25,12 +32,140 @@ export const copy = {
 			missing: 'Enter your email and password.'
 		}
 	},
-	finishSetup: {
-		heading: 'Finish setting up on the web.',
+	signUp: {
+		heading: 'Make your first promise tonight.',
 		support:
-			'Your goal, your plan and your first promise are set up on the Kept website. Once that’s done, your check-ins live here too.',
-		open: 'Continue setup',
-		refresh: 'I’ve finished'
+			'Two minutes a day. You stay signed in, so tomorrow’s reminder opens straight on today’s screen.',
+		email: 'Email',
+		emailPlaceholder: 'you@email.com',
+		password: 'Password',
+		passwordHint: 'At least 8 characters.',
+		submit: 'Create account',
+		pending: 'Creating your account',
+		switch: 'Already have an account?',
+		switchLink: 'Sign in',
+		errors: {
+			email: 'Enter your email address, like you@email.com.',
+			password: 'Your password needs at least 8 characters.',
+			passwordLong: 'Your password can be at most 72 characters.',
+			taken: 'There’s already an account with this email. Sign in instead.',
+			weak: 'Your password needs at least 8 characters.',
+			confirm: 'Check your inbox to confirm your email, then sign in.',
+			busy: 'Too many tries. Wait a minute, then try again.',
+			offline: 'You’re offline, so nothing was sent. Try again once you’re connected.',
+			not_configured: 'Sign-up isn’t set up in this version of the app yet.',
+			other: 'Something went wrong on our side. Try again in a moment.'
+		}
+	},
+	setup: {
+		progress: (current: number, total: number) => `Step ${current} of ${total}`,
+		steps: {
+			goal: 'Your goal',
+			plan: 'Your plan',
+			keyIdea: 'Your first key idea',
+			promise: 'Your promise for tomorrow',
+			reminder: 'Your daily reminder'
+		} satisfies Record<SetupStep, string>,
+		continue: 'Continue',
+		goal: {
+			progress: (current: number, total: number) => `Question ${current} of ${total}`,
+			questions: {
+				text: 'What do you want to get better at?',
+				weeks: 'How long will you give yourself?',
+				startingPoint: 'Where are you now?',
+				obstacle: 'What usually gets in your way?'
+			} satisfies Record<GoalQuestion, string>,
+			hints: {
+				text: 'One goal, in your own words. Kept turns it into one small promise a day.',
+				weeks: 'Long enough to build the habit. You can’t change this once your plan is made.',
+				startingPoint: 'Be honest: the first promises are sized to where you start.',
+				obstacle: 'Your plan will work around it.'
+			} satisfies Record<GoalQuestion, string>,
+			placeholders: {
+				text: 'I want to run 5k without stopping.',
+				startingPoint: 'I can jog about 1 km, then I have to walk.',
+				obstacle: 'I’m tired after work and skip it.'
+			},
+			examplesLabel: 'Start from one of these:',
+			examples: {
+				text: ['Run 5k without stopping', 'Read 20 pages a day', 'Hold a conversation in Spanish'],
+				startingPoint: [
+					'I’ve never really started',
+					'I’ve tried and stopped',
+					'I do it now and then'
+				],
+				obstacle: ['I run out of time', 'I lose steam after a week', 'I forget']
+			},
+			weeksOption: (weeks: number) => `${weeks} weeks`,
+			errors: {
+				empty: 'Write a few words so we can plan around it.',
+				weeks: 'Pick 4, 8 or 12 weeks.'
+			}
+		},
+		plan: {
+			buildTitle: 'Ready to make your plan',
+			buildBody:
+				'Kept turns your answers into milestones, small daily actions and the ideas behind them. It usually takes under 30 seconds.',
+			privacy:
+				'Your answers are sent through OpenRouter to OpenAI’s GPT-6 Luna to write the plan. Leave out anything private.',
+			features: ['Milestones', 'Daily actions, starting small', 'Key ideas, one a day'],
+			submit: 'Make my plan',
+			pending: 'Writing your plan…',
+			slow: 'Still writing. This can take up to a minute.',
+			failed:
+				'We couldn’t make your plan right now. Your answers are saved; try again in a minute.',
+			unsafe:
+				'Kept can’t plan that goal safely. Here’s a safer version: use it as it is, or change it.',
+			useSafer: 'Use this goal',
+			blocked: 'Kept can’t plan this goal. Try putting it another way.',
+			changeGoal: 'Change my goal',
+			stats: {
+				weeks: 'weeks, start to finish',
+				actions: (count: number) =>
+					`${count === 1 ? 'daily action' : 'daily actions'}, starting small`,
+				keyIdeas: (count: number) => `${count === 1 ? 'key idea' : 'key ideas'} to learn, one a day`
+			},
+			milestones: 'Milestones',
+			milestonesHint: 'Where you’ll be along the way.',
+			actions: 'Daily actions, starting small',
+			actionsHint:
+				'Each one starts small and grows as you keep your promises. Reword anything that doesn’t sound like you.',
+			week: (week: number) => `Week ${week}`,
+			edit: {
+				open: 'Edit',
+				sizes: { small: 'Start with', medium: 'Then', large: 'Then' },
+				save: 'Save',
+				cancel: 'Cancel',
+				remove: 'Remove this action',
+				errors: {
+					empty: 'Each step needs a few words, up to 160 characters.',
+					lastAction: 'Your plan needs at least one action, so this one stays.'
+				}
+			},
+			rebuild: {
+				label: 'Not quite right?',
+				hint: 'Get a different plan instead. You can do this once.',
+				submit: 'Try again',
+				pending: 'Writing a new plan…',
+				failed:
+					'We couldn’t make a new plan right now. This one is saved, and you can still try again.'
+			},
+			confirm: 'Confirm my plan',
+			confirmHint: 'Once confirmed, your plan stays fixed for the test.'
+		},
+		keyIdea: {
+			lead: 'Each key idea is a reason behind your promises. Kept brings it back as a quick question, so it sticks.'
+		},
+		promise: {
+			lead: 'One small thing, at one moment. Small enough that you’ll keep it even on a bad day.'
+		},
+		reminder: {
+			body: 'Your phone reminds you every day at this time, straight to today’s screen.',
+			timeLabel: 'Remind me at',
+			submit: 'Turn on my daily reminder',
+			denied:
+				'Notifications are off for Kept, so the phone can’t remind you. Your time is saved; turn them on in Settings.'
+		}
 	},
 	today: {
 		day: (day: number) => `Day ${day}`,

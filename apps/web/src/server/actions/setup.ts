@@ -6,9 +6,7 @@ import { redirect } from '@/i18n/routing'
 import { promiseChoice } from '@/lib/promise'
 import { reminderTime } from '@/lib/reminder'
 import { getSignedInUser } from '@/server/auth/session'
-import { addReminder } from '@/server/setup/add-reminder'
-import { commitFirstPromise } from '@/server/setup/commit-first-promise'
-import { readSetupStep } from '@/server/setup/progress'
+import { commitSetupPromise, saveSetupReminder } from '@/server/setup/step-writes'
 import { saveFailedMessage, validatedAction } from './validated-action'
 
 export interface PromiseFormState {
@@ -17,11 +15,7 @@ export interface PromiseFormState {
 
 const commit = validatedAction({
 	input: z.object({ userId: z.uuid(), choice: promiseChoice }),
-	handler: async ({ userId, choice }) => {
-		// Only from the promise step, so nobody commits around an unconfirmed plan.
-		if ((await readSetupStep(userId)) !== 'promise') return
-		await commitFirstPromise({ userId, choice })
-	}
+	handler: commitSetupPromise
 })
 
 export async function commitPromise(
@@ -43,10 +37,7 @@ export async function commitPromise(
 
 const saveReminderStep = validatedAction({
 	input: z.object({ userId: z.uuid(), time: reminderTime }),
-	handler: async ({ userId, time }) => {
-		if ((await readSetupStep(userId)) !== 'reminder') return
-		await addReminder({ userId, time })
-	}
+	handler: saveSetupReminder
 })
 
 /** The form stays on screen after this, so it says what happened rather than redirecting. */

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { KeptDay } from '@/lib/kept-day'
 import type { PlanStatus } from '@/lib/setup-step'
-import { MAX_ACTION_LENGTH } from './plan-limits'
+import { actionSizes, planActionEdit } from '@kept/contract'
 
 // The shape of a plan, and what Learn hands Act (docs/product/tasks.md, "Where
 // our halves meet"). The goal planner (#28) parses the AI's answer with
@@ -12,20 +12,10 @@ export const KEY_IDEAS_PER_PLAN = 5
 export const CHOICES_PER_IDEA = 3
 
 const text = (max: number) => z.string().trim().min(1).max(max)
-const actionWording = text(MAX_ACTION_LENGTH)
 
-/** An action's three sizes, as the AI writes them and as the person rewords them. */
-export const actionSizes = z.strictObject({
-	small: actionWording,
-	medium: actionWording,
-	large: actionWording
-})
-
-/** One submit of an action's edit form: reword its three sizes, or remove it. */
-export const planActionEdit = z.discriminatedUnion('intent', [
-	z.strictObject({ intent: z.literal('save'), actionId: z.uuid(), sizes: actionSizes }),
-	z.strictObject({ intent: z.literal('remove'), actionId: z.uuid() })
-])
+// An action's three sizes, and one submit of its edit form (reword its three
+// sizes, or remove it), defined once for the web and the app.
+export { actionSizes, planActionEdit }
 
 export function generatedPlanSchema({ weeks }: { weeks: number }) {
 	return z.strictObject({
@@ -40,10 +30,7 @@ export function generatedPlanSchema({ weeks }: { weeks: number }) {
 					message: 'Milestones must run in week order'
 				}
 			),
-		actions: z
-			.array(z.strictObject({ small: actionWording, medium: actionWording, large: actionWording }))
-			.min(3)
-			.max(5),
+		actions: z.array(actionSizes).min(3).max(5),
 		keyIdeas: z
 			.array(
 				z.strictObject({

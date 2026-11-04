@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Linking, StyleSheet, TextInput, View } from 'react-native'
+import { StyleSheet, TextInput, View } from 'react-native'
+import { useRouter } from 'expo-router'
 import { Button } from '@/components/ui/button'
 import { Screen } from '@/components/ui/screen'
 import { Text } from '@/components/ui/text'
 import { copy } from '@/copy'
 import { track } from '@/lib/analytics'
-import { env } from '@/lib/env'
 import { signInWithPassword, type SignInResult } from '@/lib/supabase'
 import { colors, fontFamily, radii, space, type } from '@/lib/theme'
 
 type Failure = Extract<SignInResult, { ok: false }>['reason'] | 'missing'
 
 export default function SignInScreen() {
+	const router = useRouter()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [failure, setFailure] = useState<Failure | null>(null)
@@ -83,16 +84,14 @@ export default function SignInScreen() {
 					onPress={() => void submit()}
 				/>
 			</View>
-			{env.EXPO_PUBLIC_SITE_URL != null && (
-				<View style={styles.switch}>
-					<Text tone="muted">{copy.signIn.switch}</Text>
-					<Button
-						variant="quiet"
-						label={copy.signIn.switchLink}
-						onPress={() => void Linking.openURL(`${env.EXPO_PUBLIC_SITE_URL}/sign-up`)}
-					/>
-				</View>
-			)}
+			<View style={styles.switch}>
+				<Text tone="muted">{copy.signIn.switch}</Text>
+				<Button
+					variant="quiet"
+					label={copy.signIn.switchLink}
+					onPress={() => router.push('/sign-up')}
+				/>
+			</View>
 		</Screen>
 	)
 }

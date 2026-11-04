@@ -72,6 +72,40 @@ export async function refreshedAccessToken(): Promise<AccessToken> {
 export type SignInResult =
 	{ ok: true } | { ok: false; reason: 'not_configured' | 'credentials' | 'offline' | 'other' }
 
+export type SignUpResult =
+	| { ok: true }
+	| {
+			ok: false
+			reason: 'not_configured' | 'taken' | 'weak' | 'confirm' | 'busy' | 'offline' | 'other'
+	  }
+
+// Supabase's codes for what a person can fix themself, the same ones the web
+// maps (apps/web/src/server/actions/auth.ts).
+const SIGN_UP_FAILURES: Record<string, Extract<SignUpResult, { ok: false }>['reason']> = {
+	user_already_exists: 'taken',
+	email_exists: 'taken',
+	weak_password: 'weak',
+	email_not_confirmed: 'confirm',
+	over_request_rate_limit: 'busy',
+	over_email_send_rate_limit: 'busy'
+}
+
+/**
+ * A new account, signed in at once. Kept's Supabase project has email
+ * confirmation off; if it is ever turned on, the person is told to check
+ * their inbox rather than left on a dead screen.
+ */
+export async function signUpWithPassword(email: string, password: string): Promise<SignUpResult> {
+	if (!isSupabaseEnabled) return { ok: false, reason: 'not_configured' }
+	const { data, error } = await supabase.auth.signUp({ email, password })
+	if (error == null) return data.session == null ? { ok: false, reason: 'confirm' } : { ok: true }
+	if (isAuthRetryableFetchError(error)) return { ok: false, reason: 'offline' }
+	const reason = error.code == null ? undefined : SIGN_UP_FAILURES[error.code]
+	if (reason != null) return { ok: false, reason }
+	log.warn('Sign-up failed', { code: error.code ?? null })
+	return { ok: false, reason: 'other' }
+}
+
 export async function signInWithPassword(email: string, password: string): Promise<SignInResult> {
 	if (!isSupabaseEnabled) return { ok: false, reason: 'not_configured' }
 	const { error } = await supabase.auth.signInWithPassword({ email, password })
