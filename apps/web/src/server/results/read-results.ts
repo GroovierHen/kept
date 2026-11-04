@@ -42,6 +42,9 @@ async function readResults() {
 	return { results: buildResults({ events, now: new Date() }), recall: buildRecallResults(recall) }
 }
 
-export const getResults = unstable_cache(readResults, ['results-page'], {
+// The key is readResults' own source plus these parts, and the Data Cache outlives
+// a deploy. Bump the version when what readResults returns changes shape, or a new
+// deploy serves the old shape until the entry expires.
+export const getResults = unstable_cache(readResults, ['results-page', 'v2'], {
 	revalidate: REVALIDATE_SECONDS
 })
