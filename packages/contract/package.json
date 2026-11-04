@@ -5,7 +5,8 @@
 	"type": "module",
 	"description": "The Zod schemas for every /api/app/v1 route: the web app validates with them, the mobile app parses every response with them.",
 	"exports": {
-		".": "./index.ts"
+		".": "./index.ts",
+		"./limits": "./src/v1/limits.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit -p .",

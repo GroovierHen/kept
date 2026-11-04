@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { forgetAccount } from '@/lib/account'
 import { queryClient } from '@/lib/query-client'
 import { hasSession, onSessionChange } from '@/lib/supabase'
 import { resetIdentity } from '@/lib/analytics'
@@ -22,6 +23,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 			if (!signedIn) {
 				// Nothing of the last person stays on the device.
 				queryClient.clear()
+				forgetAccount()
 				resetIdentity()
 				void cancelDailyReminder()
 			}

@@ -1,9 +1,9 @@
 # Kept mobile (`@kept/mobile`)
 
 The Kept app for iOS and Android: Expo SDK 58, React Native 0.88, Expo Router.
-It signs in with Supabase, runs the daily check-in (report, recall, the day's
-key idea, the next promise) through the web app's API, and reminds the person
-to check in each day. Sign-up and setup still open on the web for now.
+Someone can sign up, set up (goal, the AI's plan, the first key idea, promise
+and reminder), check in every day (report, recall, the day's key idea, the
+next promise) and be reminded to, all through the web app's API.
 
 ## How it fits together
 
@@ -17,11 +17,13 @@ to check in each day. Sign-up and setup still open on the web for now.
   on arrival. A change one side doesn't follow fails that side's typecheck.
 - **One look.** Colours, radii and fonts come from `packages/brand`, the same
   tokens the web app's `.theme-brand` pages are built from.
-- **Supabase is sign-in only** (`src/lib/supabase.ts`, the only file that may
-  import it). Sign-up and setup happen on the web; the app sends a person
-  with setup left there.
+- **Supabase is sign-in and sign-up only** (`src/lib/supabase.ts`, the only
+  file that may import it). The first read after signing in saves the
+  account row with the phone's time zone (`src/lib/account.ts`), as the web's
+  sign-in does.
 - **Reminders are local notifications** (`src/lib/reminders.ts`), scheduled on
-  the phone at the time picked in setup. No push service is involved yet.
+  the phone at the time picked in setup's last step. No push service is
+  involved.
 
 ## Running it
 

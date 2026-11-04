@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import { addDays, ROLLOVER_HOUR, type KeptDay } from '@/lib/kept-day'
 
 // The one repeating calendar event a user adds in setup (docs/product/tasks.md,
@@ -8,7 +7,7 @@ import { addDays, ROLLOVER_HOUR, type KeptDay } from '@/lib/kept-day'
 export const DEFAULT_REMINDER_TIME = '20:00'
 const REMINDER_MINUTES = 15
 
-export const reminderTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+export { reminderTime } from '@kept/contract'
 
 /**
  * The first reminder falls on the first Promise's day. A time before the 4am

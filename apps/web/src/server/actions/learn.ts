@@ -9,8 +9,7 @@ import { SAVE_FAILED_PARAM } from '@/lib/setup-step'
 import { getSignedInUser } from '@/server/auth/session'
 import { gradeChoice, gradeRecall } from '@/server/learn/grade-recall'
 import { MAX_RECALL_ANSWER_LENGTH } from '@/server/learn/grader'
-import { keptDayFor, teachLesson } from '@/server/learn/teach-lesson'
-import { readSetupStep } from '@/server/setup/progress'
+import { learnFirstKeyIdea as learnFirstKeyIdeaFor } from '@/server/setup/step-writes'
 import { validatedAction } from './validated-action'
 
 // Setup's key idea step (#31): Continue means the person has read it, so it
@@ -18,11 +17,7 @@ import { validatedAction } from './validated-action'
 
 const learnFirst = validatedAction({
 	input: z.object({ userId: z.uuid(), keyIdeaId: z.uuid() }),
-	handler: async ({ userId, keyIdeaId }) => {
-		// Only from the key idea step, so a stale tab can't teach around setup.
-		if ((await readSetupStep(userId)) !== 'keyIdea') return
-		await teachLesson({ userId, keyIdeaId, keptDay: await keptDayFor(userId) })
-	}
+	handler: learnFirstKeyIdeaFor
 })
 
 export async function learnFirstKeyIdea(formData: FormData): Promise<void> {

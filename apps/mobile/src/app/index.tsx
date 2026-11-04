@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { ErrorState } from '@/components/error-state'
-import { FinishSetup } from '@/components/finish-setup'
+import { SetupFlow } from '@/components/setup/setup-flow'
 import { TodayView } from '@/components/today-view'
 import { useMe, useToday } from '@/hooks/use-kept-data'
 import { identify } from '@/lib/analytics'
 import { colors } from '@/lib/theme'
 import { Screen } from '@/components/ui/screen'
 
-// Home, once signed in: Today, or the way back to setup on the web while
-// setup has steps left (the web sends them to /setup the same way).
+// Home, once signed in: setup while it has steps left (the web sends them to
+// /setup the same way), then Today.
 export default function HomeScreen() {
 	const me = useMe()
 	const isSetUp = me.data != null && me.data.setupStep == null
@@ -28,7 +28,7 @@ export default function HomeScreen() {
 			</Screen>
 		)
 	}
-	if (!isSetUp) return <FinishSetup onRefresh={() => void me.refetch()} />
+	if (!isSetUp) return <SetupFlow />
 	return (
 		<TodayView
 			today={today}

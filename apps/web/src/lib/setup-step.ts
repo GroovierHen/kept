@@ -1,9 +1,9 @@
+import type { SetupStep } from '@kept/contract/limits'
+
 // The order of the setup screens (docs/product/walkthrough.md, Day 1). The step
 // a user lands on is always worked out from what they've saved, never stored.
 
-export const SETUP_STEPS = ['goal', 'plan', 'keyIdea', 'promise', 'reminder'] as const
-
-export type SetupStep = (typeof SETUP_STEPS)[number]
+export { SETUP_STEPS, type SetupStep } from '@kept/contract/limits'
 
 /** What Learn's `getPlanStatus(userId)` returns. `goal_saved` must mean every goal screen is answered. */
 export type PlanStatus = 'no_goal' | 'goal_saved' | 'plan_made' | 'confirmed'

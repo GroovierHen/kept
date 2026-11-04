@@ -8,11 +8,15 @@
 		"icon": "./assets/icon.png",
 		"userInterfaceStyle": "light",
 		"backgroundColor": "#f4f5f0",
-		"runtimeVersion": { "policy": "fingerprint" },
+		"runtimeVersion": {
+			"policy": "fingerprint"
+		},
 		"ios": {
 			"bundleIdentifier": "app.kept.mobile",
 			"supportsTablet": false,
-			"infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+			"infoPlist": {
+				"ITSAppUsesNonExemptEncryption": false
+			}
 		},
 		"android": {
 			"package": "app.kept.mobile",
@@ -29,13 +33,23 @@
 			"expo-status-bar",
 			[
 				"expo-splash-screen",
-				{ "image": "./assets/splash-icon.png", "imageWidth": 160, "backgroundColor": "#f4f5f0" }
+				{
+					"image": "./assets/splash-icon.png",
+					"imageWidth": 160,
+					"backgroundColor": "#f4f5f0"
+				}
 			],
 			"expo-font",
 			"expo-localization",
-			["expo-notifications", { "color": "#14532d" }],
+			[
+				"expo-notifications",
+				{
+					"color": "#14532d"
+				}
+			],
 			"expo-updates",
-			"@sentry/react-native"
+			"@sentry/react-native",
+			"@react-native-community/datetimepicker"
 		],
 		"experiments": {
 			"typedRoutes": true,

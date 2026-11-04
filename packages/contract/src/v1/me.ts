@@ -1,9 +1,8 @@
 import { z } from 'zod'
+import { SETUP_STEPS } from './limits.ts'
 
-// Who is signed in, and how far through setup they are. Setup itself runs on
-// the web for now: the app sends anyone with a setup step left there.
+// Who is signed in, and how far through setup they are.
 
-export const SETUP_STEPS = ['goal', 'plan', 'keyIdea', 'promise', 'reminder'] as const
 export const setupStep = z.enum(SETUP_STEPS)
 
 export const meResponse = z.object({
@@ -17,3 +16,10 @@ export const meResponse = z.object({
 		.nullable()
 })
 export type MeResponse = z.infer<typeof meResponse>
+
+/**
+ * Saves the person's account row on first sign-in, from the app as the web's
+ * sign-in does. `timeZone` is the phone's (an IANA name); it is saved only for
+ * a new account, never changed after (GLOSSARY.md, "Kept day").
+ */
+export const provisionInput = z.object({ timeZone: z.string().max(100).nullable() })
