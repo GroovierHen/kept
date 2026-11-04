@@ -57,7 +57,7 @@ An unbroken series of the same Report on one Action. A Partly or a change of siz
 _Avoid_: streak
 
 **Streak**:
-How many Kept days in a row the user finished a Check-in, whatever their Reports said. One per user, across all Actions, so a No counts as much as a Yes. One Empty day is forgiven, and forgiven again only after 3 finished Check-ins in a row; any other Empty day ends it.
+How many Kept days in a row the user finished a Check-in, whatever their Reports said. One per user, across all Actions, so a No counts as much as a Yes. One Empty day is forgiven, and forgiven again only after 3 finished Check-ins in a row; any other Empty day ends it. A Streak that starts again after one ended has to earn its forgiveness the same way.
 _Avoid_: run (a Run is one Action's series of the same Report), chain
 
 **Empty day**:

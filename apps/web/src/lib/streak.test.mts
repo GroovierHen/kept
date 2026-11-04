@@ -57,3 +57,10 @@ test("today's Comeback says whether the Streak was safe or started again", () =>
 	// Not a Comeback until today's Check-in is finished.
 	assert.equal(streakOn({ today: 5, checkedIn: [1, 2, 3] }).comebackToday, null)
 })
+
+test('a Streak that starts again has to earn its forgiveness with 3 Check-ins in a row', () => {
+	// Day 2 forgiven, Day 3 ends it, back on Day 4; Day 5 ends the new one too.
+	const streak = streakOn({ today: 6, checkedIn: [1, 4, 6] })
+	assert.equal(streak.days, 1)
+	assert.equal(streak.isForgivenessReady, false)
+})

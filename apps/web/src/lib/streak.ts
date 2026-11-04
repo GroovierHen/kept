@@ -65,9 +65,9 @@ export function buildStreak({
 			if (isForgivenessReady) {
 				isForgivenessReady = false
 			} else {
-				// The Streak ends, and the next one starts with its own forgiveness.
+				// The Streak ends. The next one earns its forgiveness with 3 in a row,
+				// so checking in every other day can't keep starting forgiven Streaks.
 				days = 0
-				isForgivenessReady = true
 			}
 		}
 	}

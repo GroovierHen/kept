@@ -84,7 +84,7 @@ Sara is 26. She wants to get fit, can jog about 1 km before she has to walk, and
 
 Her streak counts the Kept days in a row she finished a check-in: she reported if a promise was due, then made her next promise. A No counts as much as a Yes, so she never has a reason to tap Yes to save it (docs/adr/0004).
 
-- **One empty day is forgiven.** If she doesn't check in on Saturday, her streak holds at 3 instead of ending, and Sunday makes it 4. The forgiveness comes back after 3 check-ins in a row; another empty day before then ends the streak.
+- **One empty day is forgiven.** If she doesn't check in on Saturday, her streak holds at 3 instead of ending, and Sunday makes it 4. The forgiveness comes back after 3 check-ins in a row; another empty day before then ends the streak. After a streak ends, the next one earns its forgiveness the same way.
 - **Coming back is the win.** The first check-in after an empty day is a comeback. Done for today says "You're back. Your streak is safe at 4 days.", or, if the streak ended, "You're back. Day 1 of your next streak."
 - **A streak that ends is never shown as lost.** Today hides a streak of 0, and her ledger keeps her best streak.
 - **Nothing else changes.** Coming back doesn't shrink her promise, and her reminder still says "Open Kept and report back".
