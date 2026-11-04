@@ -195,6 +195,12 @@ export const copy = {
 				noPromise: 'No promise'
 			} satisfies Record<Outcome, string>
 		},
+		streak: {
+			heading: 'Streak',
+			days: dayCount,
+			safe: 'One empty day won’t end it.',
+			notSafe: 'Check in 3 days in a row and one empty day won’t end it again.'
+		},
 		milestone: {
 			heading: 'Next milestone',
 			due: (days: number) =>
@@ -280,6 +286,10 @@ export const copy = {
 	done: {
 		title: 'Done for today',
 		nextCheckIn: 'We’ll ask how it went at your next check-in.',
+		comeback: {
+			safe: (days: number) => `You’re back. Your streak is safe at ${dayCount(days)}.`,
+			restarted: () => 'You’re back. Day 1 of your next streak.'
+		},
 		change: {
 			summary: 'Change this promise',
 			hint: 'You can change it until 4am.',
@@ -341,11 +351,21 @@ export const copy = {
 			daysIn: 'Days in',
 			daysOf: (total: number) => `of ${total}`,
 			recalled: 'Ideas recalled',
-			recalledOf: 'twice or more'
+			recalledOf: 'twice or more',
+			streak: 'Streak',
+			streakBest: (best: number) => `best ${best}`,
+			streakBestOnly: 'your best',
+			comebacks: 'Comebacks',
+			comebacksOf: 'after a gap'
 		}
 	},
 	error: { retry: 'Try again' }
 } as const
+
+/** "1 day", "4 days". */
+function dayCount(days: number): string {
+	return `${days} ${days === 1 ? 'day' : 'days'}`
+}
 
 /** "1, 2 and 3", the way the web's list format reads in English. */
 function listOf(items: readonly string[]): string {

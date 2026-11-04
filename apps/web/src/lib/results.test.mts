@@ -44,7 +44,8 @@ test('no events give zeros and no days, not an error', () => {
 		kept: 0,
 		partly: 0,
 		slipped: 0,
-		milestonesReached: 0
+		milestonesReached: 0,
+		cameBack: 0
 	})
 })
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { PROMISE_MOMENTS } from './common.ts'
-import { DAY_OUTCOMES, weekKept } from './today.ts'
+import { DAY_OUTCOMES, streak, weekKept } from './today.ts'
 
 // The Ledger (GLOSSARY.md): every Promise the person has made and what they
 // said about it, how their actions changed size, and what they've learned.
@@ -49,6 +49,7 @@ export const ledgerResponse = z.object({
 		leftOut: z.int().min(0)
 	}),
 	week: weekKept,
+	streak,
 	milestone: z.object({ week: z.int(), text: z.string(), daysLeft: z.int().min(0) }).nullable(),
 	milestones: z.array(z.object({ id: z.string(), week: z.int(), text: z.string() }))
 })

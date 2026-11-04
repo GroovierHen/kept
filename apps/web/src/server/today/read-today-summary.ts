@@ -35,6 +35,7 @@ export async function readTodaySummary(userId: string): Promise<TodayResponse> {
 					},
 		strip: recentDays(state),
 		week: { kept: ledger.ledger.week.kept, total: ledger.ledger.week.total },
+		streak: ledger.streak,
 		milestone:
 			ledger.milestone == null
 				? null

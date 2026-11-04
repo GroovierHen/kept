@@ -17,6 +17,7 @@ import {
 	CheckInRail,
 	MilestoneNote,
 	PromiseTicket,
+	StreakNote,
 	WeekStrip
 } from '@/components/today/today-layout'
 import { Button } from '@/components/ui/button'
@@ -65,6 +66,7 @@ export default async function TodayPage() {
 
 	const strip = recentDays(state)
 	const { week } = ledger.ledger
+	const { streak } = ledger
 	const asideExtras = (
 		<>
 			<WeekStrip
@@ -73,6 +75,7 @@ export default async function TodayPage() {
 					week.total === 0 ? null : tLedger('week.kept', { kept: week.kept, total: week.total })
 				}
 			/>
+			<StreakNote streak={streak} />
 			{ledger.milestone != null && (
 				<MilestoneNote
 					heading={t('aside.milestone')}
@@ -173,6 +176,11 @@ export default async function TodayPage() {
 									<CheckIcon size={34} />
 								</span>
 								<StepTitle>{t('done.title')}</StepTitle>
+								{streak.comebackToday != null && (
+									<p className="max-w-[52ch] text-[17px] leading-[1.55] font-semibold">
+										{t(`done.comeback.${streak.comebackToday}`, { days: streak.days })}
+									</p>
+								)}
 								<p className="text-text-muted max-w-[52ch] text-[17px] leading-[1.55]">
 									{t('done.nextCheckIn')}
 								</p>

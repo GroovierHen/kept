@@ -24,6 +24,7 @@ const TODAY: TodayResponse = {
 		{ day: 9, outcome: 'open' }
 	],
 	week: { kept: 1, total: 1 },
+	streak: { days: 0, best: 0, isForgivenessReady: true, comebacks: 0, comebackToday: null },
 	milestone: { text: 'Walk 20 minutes three times a week', daysLeft: 3 },
 	checkIn: { step: 'report', promiseId: 'p1', when: 'yesterday' },
 	changeableReport: null,

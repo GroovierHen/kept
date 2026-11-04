@@ -15,7 +15,7 @@ const BAR = 14
 /** What the person has kept, built from their Events: the web's Ledger, one column. */
 export function LedgerView({ ledger }: { ledger: LedgerResponse }) {
 	useEffect(() => track('page_viewed', { page: 'ledger' }), [])
-	const { week, milestone, learned } = ledger
+	const { week, milestone, learned, streak } = ledger
 
 	return (
 		<>
@@ -169,6 +169,29 @@ export function LedgerView({ ledger }: { ledger: LedgerResponse }) {
 					<Text variant="title">{String(learned.ideas.length)}</Text>
 					<Text variant="small" tone="muted">
 						{copy.ledger.stats.recalledOf}
+					</Text>
+				</Card>
+			</View>
+			<View style={styles.counts}>
+				<Card style={styles.count}>
+					<Text variant="small" tone="muted">
+						{copy.ledger.stats.streak}
+					</Text>
+					{/* A Streak that ended is never shown as lost (ADR 0004). */}
+					<Text variant="title">{String(streak.days > 0 ? streak.days : streak.best)}</Text>
+					<Text variant="small" tone="muted">
+						{streak.days > 0
+							? copy.ledger.stats.streakBest(streak.best)
+							: copy.ledger.stats.streakBestOnly}
+					</Text>
+				</Card>
+				<Card style={styles.count}>
+					<Text variant="small" tone="muted">
+						{copy.ledger.stats.comebacks}
+					</Text>
+					<Text variant="title">{String(streak.comebacks)}</Text>
+					<Text variant="small" tone="muted">
+						{copy.ledger.stats.comebacksOf}
 					</Text>
 				</Card>
 			</View>

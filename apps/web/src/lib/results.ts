@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { dayNumber, toKeptDay, type KeptDay } from '@/lib/kept-day'
 import type { RecallProgress } from '@/lib/learn/plan'
 import { REPORT_ANSWERS } from '@/lib/report'
+import { buildStreak, checkInDaysOf } from '@/lib/streak'
 
 // The results page's numbers, worked out from Events alone (ADR 0001). What comes
 // out is counts and scores, never an id, a title or anything a tester typed, so
@@ -19,7 +20,9 @@ export const RESULTS_EVENT_NAMES = [
 	'signed_up',
 	'setup_finished',
 	'report_made',
-	'milestone_checked'
+	'milestone_checked',
+	// Committing the next Promise finishes a Check-in, which is what a Comeback counts (ADR 0004).
+	'promise_committed'
 ] as const
 
 export interface ResultsEvent {
@@ -49,6 +52,8 @@ export interface Results {
 	readonly partly: number
 	readonly slipped: number
 	readonly milestonesReached: number
+	/** Started testers with at least one Comeback: a finished Check-in after an Empty day. */
+	readonly cameBack: number
 }
 
 const reportDetails = z.object({ promiseId: z.string(), answer: z.enum(REPORT_ANSWERS) })
@@ -117,6 +122,21 @@ export function buildResults({
 		})
 	}
 
+	const eventsByTester = new Map<string, { events: ResultsEvent[]; timeZone: string }>()
+	for (const event of events) {
+		if (!startedIds.has(event.userId)) continue
+		const tester = eventsByTester.get(event.userId) ?? { events: [], timeZone: event.timeZone }
+		tester.events.push(event)
+		eventsByTester.set(event.userId, tester)
+	}
+	const cameBack = [...eventsByTester.values()].filter(
+		({ events: own, timeZone }) =>
+			buildStreak({
+				checkInDays: checkInDaysOf(own),
+				today: toKeptDay({ instant: now, timeZone })
+			}).comebacks > 0
+	).length
+
 	return {
 		signedUp: signUpDays.size,
 		started: startedIds.size,
@@ -124,7 +144,8 @@ export function buildResults({
 		...countLatestReports(reports),
 		milestonesReached: named('milestone_checked').filter(
 			(event) => reachedMilestoneDetails.safeParse(event.details).success
-		).length
+		).length,
+		cameBack
 	}
 }
 

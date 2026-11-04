@@ -133,6 +133,10 @@ export default async function ResultsPage() {
 					/>
 				</Section>
 
+				<Section id="comebacks" heading={t('comebacks.heading')} note={t('comebacks.note')}>
+					<Counts counts={[{ label: t('comebacks.cameBack'), value: results.cameBack }]} />
+				</Section>
+
 				<Section id="milestones" heading={t('milestones.heading')} note={t('milestones.note')}>
 					<Counts counts={[{ label: t('milestones.reached'), value: results.milestonesReached }]} />
 				</Section>
