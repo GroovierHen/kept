@@ -19,6 +19,7 @@
 // import path if you stay on phosphor.
 import {
 	ArrowRight,
+	ArrowUUpLeft,
 	ArrowSquareOut,
 	Calendar,
 	CaretDown,
@@ -41,6 +42,8 @@ import {
 	Minus,
 	PencilSimple,
 	Plus,
+	Shield,
+	ShieldCheck,
 	SignOut,
 	Trash,
 	User,
@@ -95,6 +98,7 @@ function Glyph({ source: Source, size = DEFAULT_SIZE, className }: IconProps & {
 // provider's whole catalog here. Keep the list alphabetical.
 export const AlertIcon = (props: IconProps) => <Glyph source={Warning} {...props} />
 export const ArrowRightIcon = (props: IconProps) => <Glyph source={ArrowRight} {...props} />
+export const ComebackIcon = (props: IconProps) => <Glyph source={ArrowUUpLeft} {...props} />
 export const CalendarIcon = (props: IconProps) => <Glyph source={Calendar} {...props} />
 export const CheckIcon = (props: IconProps) => <Glyph source={Check} {...props} />
 export const ChevronDownIcon = (props: IconProps) => <Glyph source={CaretDown} {...props} />
@@ -116,6 +120,8 @@ export const MoreIcon = (props: IconProps) => <Glyph source={DotsThreeVertical} 
 export const PlusIcon = (props: IconProps) => <Glyph source={Plus} {...props} />
 export const SearchIcon = (props: IconProps) => <Glyph source={MagnifyingGlass} {...props} />
 export const SettingsIcon = (props: IconProps) => <Glyph source={Gear} {...props} />
+export const ShieldIcon = (props: IconProps) => <Glyph source={Shield} {...props} />
+export const ShieldCheckIcon = (props: IconProps) => <Glyph source={ShieldCheck} {...props} />
 export const SignOutIcon = (props: IconProps) => <Glyph source={SignOut} {...props} />
 export const SuccessIcon = (props: IconProps) => <Glyph source={CheckCircle} {...props} />
 export const TrashIcon = (props: IconProps) => <Glyph source={Trash} {...props} />

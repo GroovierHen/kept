@@ -17,11 +17,11 @@ import {
 	CheckInRail,
 	MilestoneNote,
 	PromiseTicket,
-	StreakNote,
+	StreakCard,
 	WeekStrip
 } from '@/components/today/today-layout'
 import { Button } from '@/components/ui/button'
-import { ArrowRightIcon, CheckIcon, InfoIcon } from '@/components/ui/icons'
+import { ArrowRightIcon, CheckIcon, ComebackIcon, InfoIcon } from '@/components/ui/icons'
 import { canChangePromise, closedAsUnreported } from '@/lib/check-in'
 import { cn } from '@/lib/cn'
 import { dayNumber, type KeptDay } from '@/lib/kept-day'
@@ -67,6 +67,9 @@ export default async function TodayPage() {
 	const strip = recentDays(state)
 	const { week } = ledger.ledger
 	const { streak } = ledger
+	// Under the promise the panel's heading is about, and on the done step it
+	// plays its entrance (ADR 0004).
+	const streakCard = <StreakCard streak={streak} celebrate={step === 'done'} />
 	const asideExtras = (
 		<>
 			<WeekStrip
@@ -75,7 +78,6 @@ export default async function TodayPage() {
 					week.total === 0 ? null : tLedger('week.kept', { kept: week.kept, total: week.total })
 				}
 			/>
-			<StreakNote streak={streak} />
 			{ledger.milestone != null && (
 				<MilestoneNote
 					heading={t('aside.milestone')}
@@ -119,7 +121,12 @@ export default async function TodayPage() {
 						</>
 					}
 					footer={changeReport}
-					aside={asideExtras}
+					aside={
+						<>
+							{streakCard}
+							{asideExtras}
+						</>
+					}
 				/>
 			) : (
 				<>
@@ -172,15 +179,26 @@ export default async function TodayPage() {
 
 						{step === 'done' && (
 							<>
-								<span className="bg-coral text-accent mt-7 grid size-[72px] place-items-center rounded-full shadow-[0_0_0_8px_var(--accent-soft)]">
-									<CheckIcon size={34} />
-								</span>
-								<StepTitle>{t('done.title')}</StepTitle>
+								{/* A Comeback lands as a return, never a slip (ADR 0004). */}
 								{streak.comebackToday != null && (
-									<p className="max-w-[52ch] text-[17px] leading-[1.55] font-semibold">
+									<p className="border-accent bg-accent-soft mt-7 flex items-center gap-3 self-start rounded-full border-[1.5px] py-2.5 pr-[18px] pl-2.5 text-[16px] leading-[1.35] font-semibold motion-safe:animate-[streak-drop_.85s_.9s_cubic-bezier(.2,1.25,.4,1)_both]">
+										<span
+											aria-hidden
+											className="bg-accent text-coral grid size-8 flex-none place-items-center rounded-full motion-safe:animate-[streak-spin-back_.8s_1.25s_cubic-bezier(.5,0,.3,1.4)_both]"
+										>
+											<ComebackIcon size={18} />
+										</span>
 										{t(`done.comeback.${streak.comebackToday}`, { days: streak.days })}
 									</p>
 								)}
+								<span aria-hidden className="relative mt-7 size-[72px]">
+									<span className="border-coral absolute inset-0 rounded-full border-[5px] opacity-0 motion-safe:animate-[streak-ring_1.1s_.3s_cubic-bezier(.1,.6,.3,1)_both]" />
+									<span className="border-accent absolute inset-0 rounded-full border-[3px] opacity-0 motion-safe:animate-[streak-ring_1.1s_.55s_cubic-bezier(.1,.6,.3,1)_both]" />
+									<span className="bg-coral text-accent absolute inset-0 grid place-items-center rounded-full shadow-[0_0_0_8px_var(--accent-soft)] motion-safe:animate-[streak-pop_.75s_cubic-bezier(.2,1.5,.4,1)_both]">
+										<CheckIcon size={34} />
+									</span>
+								</span>
+								<StepTitle>{t('done.title')}</StepTitle>
 								<p className="text-text-muted max-w-[52ch] text-[17px] leading-[1.55]">
 									{t('done.nextCheckIn')}
 								</p>
@@ -240,6 +258,7 @@ export default async function TodayPage() {
 								}
 								isStamped={step === 'done' || latestPromise.latestAnswer != null}
 							/>
+							{streakCard}
 							{asideExtras}
 						</SetupAside>
 					)}

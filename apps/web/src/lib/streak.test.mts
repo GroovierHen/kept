@@ -64,3 +64,11 @@ test('a Streak that starts again has to earn its forgiveness with 3 Check-ins in
 	assert.equal(streak.days, 1)
 	assert.equal(streak.isForgivenessReady, false)
 })
+
+test('inARow counts the Check-ins since the last Empty day, toward forgiveness coming back', () => {
+	// Day 3 forgiven, then Days 4 and 5: 2 of the 3 in a row it takes.
+	assert.equal(streakOn({ today: 5, checkedIn: [1, 2, 4, 5] }).inARow, 2)
+	// Today's Check-in still to come doesn't break the run.
+	assert.equal(streakOn({ today: 6, checkedIn: [1, 2, 4, 5] }).inARow, 2)
+	assert.equal(streakOn({ today: 4, checkedIn: [1, 2, 3, 4] }).inARow, 4)
+})

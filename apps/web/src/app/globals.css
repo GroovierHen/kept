@@ -402,3 +402,133 @@ body {
 		transform: translateX(-18%);
 	}
 }
+
+/* The Streak and Comeback moments (today-layout.tsx, the done step, the
+   ledger), each used through a motion-safe:animate-[…] utility so reduced
+   motion keeps everything still. Bold on purpose: finishing a check-in, and
+   coming back after a gap, are the moments the user should feel. */
+@keyframes streak-pop {
+	0% {
+		transform: scale(0) rotate(-30deg);
+		opacity: 0;
+	}
+	55% {
+		transform: scale(1.3) rotate(10deg);
+		opacity: 1;
+	}
+	78% {
+		transform: scale(0.9) rotate(-3deg);
+	}
+	100% {
+		transform: scale(1) rotate(0);
+	}
+}
+@keyframes streak-ring {
+	0% {
+		transform: scale(0.7);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(2.8);
+		opacity: 0;
+	}
+}
+@keyframes streak-drop {
+	0% {
+		transform: translateY(-70px) scale(0.7);
+		opacity: 0;
+	}
+	55% {
+		transform: translateY(10px) scale(1.06);
+		opacity: 1;
+	}
+	78% {
+		transform: translateY(-4px) scale(0.98);
+	}
+	100% {
+		transform: none;
+	}
+}
+@keyframes streak-spin-back {
+	from {
+		transform: rotate(0) scale(0.4);
+	}
+	to {
+		transform: rotate(-360deg) scale(1);
+	}
+}
+@keyframes streak-slam {
+	0% {
+		transform: scale(2.6);
+		opacity: 0;
+	}
+	55% {
+		transform: scale(0.88);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+@keyframes streak-bump {
+	35% {
+		transform: scale(1.45) rotate(-4deg);
+	}
+	65% {
+		transform: scale(0.92);
+	}
+}
+@keyframes streak-glow {
+	0% {
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--coral) 95%, transparent);
+	}
+	70%,
+	100% {
+		box-shadow: 0 0 0 18px color-mix(in srgb, var(--coral) 0%, transparent);
+	}
+}
+@keyframes streak-wobble {
+	0%,
+	100% {
+		transform: rotate(0);
+	}
+	20% {
+		transform: rotate(-20deg) scale(1.15);
+	}
+	40% {
+		transform: rotate(15deg);
+	}
+	60% {
+		transform: rotate(-8deg);
+	}
+	80% {
+		transform: rotate(4deg);
+	}
+}
+/* On top of the card's own tilt (AsideCard's rotate), so it lands back on it. */
+@keyframes streak-tilt-in {
+	0% {
+		transform: rotate(9deg) translateY(80px) scale(0.85);
+		opacity: 0;
+	}
+	60% {
+		transform: rotate(-3deg) translateY(-8px) scale(1.03);
+		opacity: 1;
+	}
+	100% {
+		transform: none;
+	}
+}
+@keyframes streak-flip-in {
+	0% {
+		transform: perspective(700px) rotateX(-95deg) translateY(30px);
+		opacity: 0;
+	}
+	60% {
+		transform: perspective(700px) rotateX(12deg);
+		opacity: 1;
+	}
+	100% {
+		transform: perspective(700px) rotateX(0);
+	}
+}
