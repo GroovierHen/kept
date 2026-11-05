@@ -101,23 +101,39 @@ and `pnpm --filter @kept/mobile doctor` (expo-doctor). ESLint keeps the
 Supabase, Sentry and PostHog SDKs, `process.env` and `console` each to the
 one file that owns them; `pnpm check:standards` confirms it.
 
+## Trying it against the live site, with nothing running locally
+
+The `simulator` build profile makes an iOS Simulator app on EAS's servers,
+with the JavaScript inside it, pointed at `https://kept-swart.vercel.app` and
+the production Supabase through the `preview` environment's variables. No
+Metro, no Docker, no Xcode build on the Mac, and no Apple account:
+
+```bash
+cd apps/mobile
+pnpm dlx eas-cli@latest build --platform ios --profile simulator
+pnpm dlx eas-cli@latest build:run --platform ios --latest
+```
+
+It signs in to real accounts and real data, so use a test account. A later
+JavaScript change reaches it with
+`pnpm dlx eas-cli@latest update --channel preview`; a new native package needs
+another build.
+
 ## Releasing
 
-Not set up for the stores yet. What's left needs the Expo account that will
-own the app:
+Linked to the Expo project `@wakechromium/kept` (`extra.eas.projectId` and
+`updates.url` in `app.json`). What's left before the stores:
 
-1. `pnpm dlx eas-cli@latest init` in `apps/mobile`, which links the project
-   and writes `extra.eas.projectId` into `app.json`.
-2. `pnpm dlx eas-cli@latest update:configure`, which writes `updates.url`.
-3. Confirm the bundle identifier (`app.kept.mobile` in `app.json`, a
+1. Confirm the bundle identifier (`app.kept.mobile` in `app.json`, a
    placeholder) before the first store build; it can't change after.
-4. Set the EAS environment variables for each environment, and
+2. Set the EAS environment variables for `production` (the `preview` ones
+   are set: the site URL and the Supabase URL and publishable key), and
    `SENTRY_AUTH_TOKEN` (secret) plus `SENTRY_ORG` and `SENTRY_PROJECT` for
    source maps.
 
 After that, `eas.json` holds the build profiles (`development`, `preview`,
-`production`) and `.eas/workflows/publish-update.yml` publishes over-the-air
-updates. An update carries JavaScript and assets only, so it suits a copy or
-logic fix. A new native package or a change to `app.json` plugins needs a new
-build; `runtimeVersion` uses Expo's fingerprint policy, so an update is only
-offered to builds whose native code matches it.
+`simulator`, `production`) and `.eas/workflows/publish-update.yml` publishes
+over-the-air updates. An update carries JavaScript and assets only, so it
+suits a copy or logic fix. A new native package or a change to `app.json`
+plugins needs a new build; `runtimeVersion` uses Expo's fingerprint policy,
+so an update is only offered to builds whose native code matches it.
