@@ -9,6 +9,7 @@ import { space } from '@/lib/theme'
 import { CheckIn } from './check-in/check-in'
 import { ErrorState } from './error-state'
 import { SignOutButton } from './sign-out-button'
+import { StreakCard } from './streak/streak-card'
 import { ReminderCard } from './reminder-card'
 import { Card } from './ui/card'
 import { Screen } from './ui/screen'
@@ -60,6 +61,9 @@ function TodayContent({ today }: { today: TodayResponse }) {
 
 			<CheckIn today={today} />
 
+			{/* First under the check-in; on the done step it plays its entrance (ADR 0004). */}
+			<StreakCard streak={streak} celebrate={step === 'done'} />
+
 			{promise != null && step === 'done' && (
 				<Card tone="night">
 					<Text variant="eyebrow" tone="nightMuted">
@@ -79,19 +83,6 @@ function TodayContent({ today }: { today: TodayResponse }) {
 			<Card>
 				<WeekStrip strip={today.strip} week={today.week} />
 			</Card>
-
-			{/* Hidden at 0, so a Streak that ended never shows as lost (ADR 0004). */}
-			{streak.days > 0 && (
-				<Card>
-					<Text variant="eyebrow" tone="muted">
-						{copy.today.streak.heading}
-					</Text>
-					<Text variant="lead">{copy.today.streak.days(streak.days)}</Text>
-					<Text tone="muted">
-						{streak.isForgivenessReady ? copy.today.streak.safe : copy.today.streak.notSafe}
-					</Text>
-				</Card>
-			)}
 
 			{milestone != null && (
 				<Card>

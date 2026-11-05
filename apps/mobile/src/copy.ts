@@ -199,7 +199,11 @@ export const copy = {
 			heading: 'Streak',
 			days: dayCount,
 			safe: 'One empty day won’t end it.',
-			notSafe: 'Check in 3 days in a row and one empty day won’t end it again.'
+			notSafe: 'Check in 3 days in a row and one empty day won’t end it again.',
+			unit: (days: number) => (days === 1 ? 'day' : 'days'),
+			lead: (best: number) =>
+				`Days in a row you finished a check-in. A No counts as much as a Yes. Best: ${best}.`,
+			inARow: (count: number, total: number) => `${count} of ${total} in a row`
 		},
 		milestone: {
 			heading: 'Next milestone',

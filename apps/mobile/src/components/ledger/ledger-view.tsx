@@ -3,7 +3,9 @@ import { StyleSheet, View } from 'react-native'
 import type { LedgerResponse } from '@kept/contract'
 import { copy } from '@/copy'
 import { track } from '@/lib/analytics'
-import { colors, fontFamily, radii, space } from '@/lib/theme'
+import { colors, displayTracking, fontFamily, radii, space, type } from '@/lib/theme'
+import { CountUp } from '../streak/count-up'
+import { ComebackGlyph, ShieldGlyph } from '../streak/glyphs'
 import { Card } from '../ui/card'
 import { Text } from '../ui/text'
 import { DayByDay } from './day-by-day'
@@ -11,6 +13,8 @@ import { DayByDay } from './day-by-day'
 const OUTCOMES = ['kept', 'partly', 'slipped'] as const
 const WEEK_DAYS = 7
 const BAR = 14
+// The Streak and Comebacks count up once the page has settled.
+const STAT_COUNT_DELAY_MS = 500
 
 /** What the person has kept, built from their Events: the web's Ledger, one column. */
 export function LedgerView({ ledger }: { ledger: LedgerResponse }) {
@@ -173,23 +177,38 @@ export function LedgerView({ ledger }: { ledger: LedgerResponse }) {
 				</Card>
 			</View>
 			<View style={styles.counts}>
-				<Card style={styles.count}>
-					<Text variant="small" tone="muted">
-						{copy.ledger.stats.streak}
-					</Text>
+				{/* The one lime tile: the Streak is the number to keep. */}
+				<Card style={[styles.count, styles.streak]}>
+					<View style={styles.statLabel}>
+						<ShieldGlyph size={14} color={colors.accent} isChecked={false} />
+						<Text variant="small" style={[styles.strong, styles.onCoral]}>
+							{copy.ledger.stats.streak}
+						</Text>
+					</View>
 					{/* A Streak that ended is never shown as lost (ADR 0004). */}
-					<Text variant="title">{String(streak.days > 0 ? streak.days : streak.best)}</Text>
-					<Text variant="small" tone="muted">
+					<CountUp
+						value={streak.days > 0 ? streak.days : streak.best}
+						delayMs={STAT_COUNT_DELAY_MS}
+						style={styles.statNumber}
+					/>
+					<Text variant="small" style={styles.onCoral}>
 						{streak.days > 0
 							? copy.ledger.stats.streakBest(streak.best)
 							: copy.ledger.stats.streakBestOnly}
 					</Text>
 				</Card>
 				<Card style={styles.count}>
-					<Text variant="small" tone="muted">
-						{copy.ledger.stats.comebacks}
-					</Text>
-					<Text variant="title">{String(streak.comebacks)}</Text>
+					<View style={styles.statLabel}>
+						<ComebackGlyph size={14} color={colors.accent} />
+						<Text variant="small" tone="muted">
+							{copy.ledger.stats.comebacks}
+						</Text>
+					</View>
+					<CountUp
+						value={streak.comebacks}
+						delayMs={STAT_COUNT_DELAY_MS}
+						style={styles.statNumber}
+					/>
 					<Text variant="small" tone="muted">
 						{copy.ledger.stats.comebacksOf}
 					</Text>
@@ -225,5 +244,14 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.nightSurface,
 		overflow: 'hidden'
 	},
-	fill: { height: '100%', backgroundColor: colors.coral, borderRadius: radii.sm }
+	fill: { height: '100%', backgroundColor: colors.coral, borderRadius: radii.sm },
+	streak: { backgroundColor: colors.coral, borderColor: colors.coral },
+	onCoral: { color: colors.accent },
+	statLabel: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+	statNumber: {
+		...type.title,
+		fontFamily: fontFamily.display,
+		letterSpacing: displayTracking(type.title.fontSize),
+		color: colors.text
+	}
 })

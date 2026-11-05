@@ -1,10 +1,10 @@
+// IN_A_ROW_TO_FORGIVE_AGAIN matches the three Yeses that grow a Promise a Size
+// (src/lib/adaptive.ts). It lives in the contract so both apps can show the way back.
+import { IN_A_ROW_TO_FORGIVE_AGAIN } from '@kept/contract'
 import { addDays, type KeptDay } from './kept-day'
 
 // The user's Streak, Best streak and Comebacks (GLOSSARY.md, ADR 0004), worked
 // out from the Kept days they finished a Check-in on, never stored.
-
-// Matches the three Yeses that grow a Promise a Size (src/lib/adaptive.ts).
-const IN_A_ROW_TO_FORGIVE_AGAIN = 3
 
 export interface Streak {
 	/** Kept days in the current Streak, today included once its Check-in is finished. */
@@ -12,6 +12,11 @@ export interface Streak {
 	readonly best: number
 	/** True while the next Empty day would be forgiven rather than end the Streak. */
 	readonly isForgivenessReady: boolean
+	/**
+	 * Finished Check-ins in a row since the last Empty day. Forgiveness comes back
+	 * at IN_A_ROW_TO_FORGIVE_AGAIN; today's Check-in still to come doesn't break it.
+	 */
+	readonly inARow: number
 	/** Finished Check-ins that came after an Empty day, whether it was forgiven or ended a Streak. */
 	readonly comebacks: number
 	/**
@@ -71,5 +76,5 @@ export function buildStreak({
 			}
 		}
 	}
-	return { days, best, isForgivenessReady, comebacks, comebackToday }
+	return { days, best, isForgivenessReady, inARow, comebacks, comebackToday }
 }

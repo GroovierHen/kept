@@ -6,7 +6,8 @@ import { SETUP_SECONDARY_BUTTON } from '@/components/setup/setup-styles'
 import { AppShell } from '@/components/today/app-shell'
 import { DayByDay } from '@/components/today/day-by-day'
 import { Button } from '@/components/ui/button'
-import { ArrowRightIcon, ChevronLeftIcon } from '@/components/ui/icons'
+import { CountUp } from '@/components/today/count-up'
+import { ArrowRightIcon, ChevronLeftIcon, ComebackIcon, ShieldIcon } from '@/components/ui/icons'
 import { cn } from '@/lib/cn'
 import { dayNumber, type KeptDay } from '@/lib/kept-day'
 import { dayOutcomes } from '@/lib/ledger'
@@ -23,6 +24,8 @@ const OUTCOMES = ['kept', 'partly', 'slipped'] as const
 const SIZE_DIRECTIONS = ['bigger', 'smaller'] as const
 const MAX_SCORE = 2
 const WEEK_DAYS = 7
+// The Streak and Comebacks count up once their tiles have flipped in.
+const STAT_COUNT_DELAY_MS = 900
 
 const SECTION_HEADING = 'mb-3.5 text-[16px] font-semibold'
 const PANEL = 'border-border bg-surface rounded-[22px] border'
@@ -332,7 +335,7 @@ export default async function LedgerPage() {
 				)}
 
 				<dl className="relative grid grid-cols-2 gap-2.5">
-					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4">
+					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4 motion-safe:animate-[streak-flip-in_.8s_.35s_cubic-bezier(.2,1.3,.4,1)_both]">
 						<dt className="text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
 							{t('stats.daysIn')}
 						</dt>
@@ -343,7 +346,7 @@ export default async function LedgerPage() {
 							</span>
 						</dd>
 					</div>
-					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4">
+					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4 motion-safe:animate-[streak-flip-in_.8s_.45s_cubic-bezier(.2,1.3,.4,1)_both]">
 						<dt className="text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
 							{t('stats.recalled')}
 						</dt>
@@ -354,26 +357,36 @@ export default async function LedgerPage() {
 							</span>
 						</dd>
 					</div>
-					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4">
-						<dt className="text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
+					{/* The one lime tile: the Streak is the number to keep. */}
+					<div className="bg-coral text-coral-ink rounded-[18px] p-4 motion-safe:animate-[streak-flip-in_.8s_.6s_cubic-bezier(.2,1.3,.4,1)_both,streak-glow_1.8s_ease-out_2s_infinite]">
+						<dt className="text-accent flex items-center gap-1.5 text-[12px] font-bold tracking-[0.08em] uppercase">
+							<span className="inline-block motion-safe:animate-[streak-wobble_.9s_1.6s_ease-in-out_both]">
+								<ShieldIcon size={14} />
+							</span>
 							{t('stats.streak')}
 						</dt>
 						<dd className="face-display mt-2 text-[28px] font-extrabold">
 							{/* A Streak that ended is never shown as lost (ADR 0004). */}
-							{streak.days > 0 ? streak.days : streak.best}{' '}
-							<span className="font-sans text-[14px] font-medium opacity-90">
+							<CountUp
+								value={streak.days > 0 ? streak.days : streak.best}
+								delayMs={STAT_COUNT_DELAY_MS}
+							/>{' '}
+							<span className="text-accent font-sans text-[14px] font-semibold">
 								{streak.days > 0
 									? t('stats.streakBest', { best: streak.best })
 									: t('stats.streakBestOnly')}
 							</span>
 						</dd>
 					</div>
-					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4">
-						<dt className="text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
+					<div className="border-accent-ink/20 bg-accent-ink/10 rounded-[18px] border p-4 motion-safe:animate-[streak-flip-in_.8s_.75s_cubic-bezier(.2,1.3,.4,1)_both]">
+						<dt className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.08em] uppercase opacity-90">
+							<span className="text-coral inline-block motion-safe:animate-[streak-spin-back_.8s_1.5s_cubic-bezier(.5,0,.3,1.4)_both]">
+								<ComebackIcon size={14} />
+							</span>
 							{t('stats.comebacks')}
 						</dt>
 						<dd className="face-display mt-2 text-[28px] font-extrabold">
-							{streak.comebacks}{' '}
+							<CountUp value={streak.comebacks} delayMs={STAT_COUNT_DELAY_MS} />{' '}
 							<span className="font-sans text-[14px] font-medium opacity-90">
 								{t('stats.comebacksOf')}
 							</span>

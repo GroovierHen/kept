@@ -20,6 +20,9 @@ export const DAY_OUTCOMES = [
 /** Kept is worth 1 and Partly half, so `kept` can end in .5, out of the Promises reported. */
 export const weekKept = z.object({ kept: z.number().min(0), total: z.int().min(0) })
 
+/** Finished Check-ins in a row it takes for a used forgiveness to come back (ADR 0004). */
+export const IN_A_ROW_TO_FORGIVE_AGAIN = 3
+
 /** The Streak, Best streak and Comebacks (GLOSSARY.md, ADR 0004), worked out on the server. */
 export const streak = z.object({
 	/** Kept days in the current Streak, today included once its Check-in is finished. */
@@ -27,6 +30,8 @@ export const streak = z.object({
 	best: z.int().min(0),
 	/** True while the next Empty day would be forgiven rather than end the Streak. */
 	isForgivenessReady: z.boolean(),
+	/** Finished Check-ins in a row since the last Empty day; at 3 forgiveness comes back. */
+	inARow: z.int().min(0),
 	comebacks: z.int().min(0),
 	/** Today's Check-in as a Comeback: the Streak was safe, or started again. */
 	comebackToday: z.enum(['safe', 'restarted']).nullable()

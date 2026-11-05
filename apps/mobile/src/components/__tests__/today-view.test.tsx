@@ -24,7 +24,14 @@ const TODAY: TodayResponse = {
 		{ day: 9, outcome: 'open' }
 	],
 	week: { kept: 1, total: 1 },
-	streak: { days: 0, best: 0, isForgivenessReady: true, comebacks: 0, comebackToday: null },
+	streak: {
+		days: 0,
+		best: 0,
+		isForgivenessReady: true,
+		inARow: 0,
+		comebacks: 0,
+		comebackToday: null
+	},
 	milestone: { text: 'Walk 20 minutes three times a week', daysLeft: 3 },
 	checkIn: { step: 'report', promiseId: 'p1', when: 'yesterday' },
 	changeableReport: null,
@@ -68,4 +75,40 @@ test('a finished day shows the promise to report on next, and says when it close
 	expect(screen.getByText('walk my dog')).toBeOnTheScreen()
 	expect(screen.getByText(/closed as Unreported/)).toBeOnTheScreen()
 	expect(screen.queryByText('Change this promise')).toBeNull()
+})
+
+test('a Comeback after a forgiven day says the streak is safe and shows the way back to forgiveness', async () => {
+	await renderWithClient(
+		<TodayView
+			today={loaded({
+				...TODAY,
+				step: 'done',
+				checkIn: { step: 'done', change: null, learned: null },
+				streak: {
+					days: 4,
+					best: 4,
+					isForgivenessReady: false,
+					inARow: 1,
+					comebacks: 1,
+					comebackToday: 'safe'
+				}
+			})}
+			reminderTime={null}
+			onRefresh={jest.fn()}
+		/>
+	)
+	expect(screen.getByText('You’re back. Your streak is safe at 4 days.')).toBeOnTheScreen()
+	expect(screen.getByLabelText('4')).toBeOnTheScreen()
+	expect(screen.getByText(/Best: 4\./)).toBeOnTheScreen()
+	expect(
+		screen.getByText('Check in 3 days in a row and one empty day won’t end it again.')
+	).toBeOnTheScreen()
+	expect(screen.getByText('1 of 3 in a row')).toBeOnTheScreen()
+})
+
+test('a Streak of 0 is hidden, so a Streak that ended never shows as lost', async () => {
+	await renderWithClient(
+		<TodayView today={loaded(TODAY)} reminderTime={null} onRefresh={jest.fn()} />
+	)
+	expect(screen.queryByText('Streak')).toBeNull()
 })
