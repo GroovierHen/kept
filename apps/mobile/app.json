@@ -55,6 +55,15 @@
 			"typedRoutes": true,
 			"reactCompiler": true,
 			"autolinkingModuleResolution": true
+		},
+		"extra": {
+			"eas": {
+				"projectId": "cc03831e-872a-4c63-a792-496030f64b4a"
+			}
+		},
+		"owner": "wakechromium",
+		"updates": {
+			"url": "https://u.expo.dev/cc03831e-872a-4c63-a792-496030f64b4a"
 		}
 	}
 }
