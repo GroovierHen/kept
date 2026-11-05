@@ -14,6 +14,7 @@
 import { z } from 'zod'
 import { daysPass } from '../e2e/support/days-pass.ts'
 import { dayNumber, keptDayFromDate, toKeptDay } from '../src/lib/kept-day.ts'
+import { withRetry } from '../src/lib/retry.ts'
 import { buildStreak, checkInDaysOf } from '../src/lib/streak.ts'
 import { createPrismaClient } from '../src/server/db/create-client.ts'
 
@@ -38,9 +39,18 @@ const parsed = args.safeParse(process.argv.slice(2))
 if (!parsed.success) fail(USAGE)
 const [command, email, daysArg] = parsed.data
 
-const databaseUrl = process.env.DATABASE_URL
+// DIRECT_URL is the session pooler migrations use: one connection held for the
+// whole run, which suits a long script better than the transaction pooler the
+// app's short requests share. Either reaches the same database.
+const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
 if (databaseUrl == null || databaseUrl === '') fail('DATABASE_URL is not set: is .env.local there?')
 console.log(`Database: ${new URL(databaseUrl).host}`)
+
+// Opening a connection from a laptop to the hosted database sometimes drops or
+// passes the 5 second connect timeout, so the first read gets a few tries.
+const CONNECT_ATTEMPTS = 4
+const CONNECT_BASE_DELAY_MS = 1000
+const CONNECT_MAX_DELAY_MS = 5000
 
 // A jump moves every row the account has in one transaction, one round trip
 // each. From a laptop to the hosted database that passes Prisma's 5 second
@@ -51,6 +61,21 @@ const TRANSACTION_MAX_WAIT_MS = 10_000
 const db = createPrismaClient(databaseUrl, {
 	transactionOptions: { maxWait: TRANSACTION_MAX_WAIT_MS, timeout: TRANSACTION_TIMEOUT_MS }
 })
+
+// Only this read is retried. A jump never is: if its answer were lost after it
+// saved, a retry would move the account twice.
+async function connect() {
+	await withRetry(() => db.user.findFirst({ select: { id: true } }), {
+		isRetryable: () => true,
+		attempts: CONNECT_ATTEMPTS,
+		baseDelayMs: CONNECT_BASE_DELAY_MS,
+		maxDelayMs: CONNECT_MAX_DELAY_MS,
+		onRetry: ({ attempt }) =>
+			console.log(
+				`Couldn't reach the database (try ${attempt} of ${CONNECT_ATTEMPTS}), trying again...`
+			)
+	})
+}
 
 async function findAccount() {
 	const user = await db.user.findUnique({
@@ -120,6 +145,7 @@ async function status() {
 }
 
 try {
+	await connect()
 	await { exclude, jump, status }[command]()
 } finally {
 	await db.$disconnect()
