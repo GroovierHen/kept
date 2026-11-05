@@ -29,7 +29,10 @@
 		"check:rls": "pnpm --filter @kept/web check:rls",
 		"check:ai-models": "pnpm --filter @kept/web check:ai-models",
 		"prepare": "git config core.hooksPath .githooks",
-		"eval:planner": "pnpm --filter @kept/web eval:planner"
+		"eval:planner": "pnpm --filter @kept/web eval:planner",
+		"test-account:exclude": "pnpm --filter @kept/web test-account:exclude",
+		"test-account:jump": "pnpm --filter @kept/web test-account:jump",
+		"test-account:status": "pnpm --filter @kept/web test-account:status"
 	},
 	"devDependencies": {
 		"eslint": "^9",

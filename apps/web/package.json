@@ -20,7 +20,10 @@
 		"check:rls": "node scripts/check-rls.mjs",
 		"check:ai-models": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/check-ai-models.mjs",
 		"postinstall": "prisma generate",
-		"eval:planner": "node --conditions=react-server --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/eval-planner.mts"
+		"eval:planner": "node --conditions=react-server --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/eval-planner.mts",
+		"test-account:exclude": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/test-account.mts exclude",
+		"test-account:jump": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/test-account.mts jump",
+		"test-account:status": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/test-account.mts status"
 	},
 	"dependencies": {
 		"@kept/brand": "workspace:^",
